@@ -1,0 +1,31 @@
+## .NET / Visual Studio
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.vspscc
+*.vssscc
+
+## NuGet
+*.nupkg
+**/packages/*
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Bb]uild/
+
+## Rider / VS Code (if you ever use them)
+.idea/
+.vscode/
+
+## OS files
+.DS_Store
+Thumbs.db
+
+## Secrets (important - never commit real connection strings/passwords)
+appsettings.Development.json
+*.pfx
