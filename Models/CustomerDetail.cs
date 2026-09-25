@@ -30,7 +30,6 @@ namespace CustomerManagementPractiseCS.Models
 
         [StringLength(100)]
         public string? Country { get; set; }
-        
 
         [Required]
         [StringLength(250)]
