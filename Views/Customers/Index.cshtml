@@ -1,0 +1,55 @@
+﻿@model List<CustomerManagementPractiseCS.Models.Customer> // Models Call with a list of Customers
+
+@{
+    ViewData["title"] = "Customer";
+}
+
+<h1>Customers</h1>
+
+<a asp-controller="Customers" asp-action="Create" class="btn btn-primary">
+    Create New Customer
+</a>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Name
+            </th>
+            <th>
+                Gender
+            </th>
+            <th>
+                Bio Data
+            </th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var customer in Model)
+        {
+            <tr>
+                <td>@customer.Name</td>
+                <td>@customer.Gender</td>
+                <td>@customer.BioData</td>
+                <td>
+                    <a asp-action="Details"
+                       asp-route-id="@customer.Id">
+                        Details
+                    </a>
+                    |
+                    <a asp-action="Edit"
+                       asp-route-id="@customer.Id">
+                        Edit
+                    </a>
+                    |
+                    <a asp-action="Delete"
+                       asp-route-id="@customer.Id">
+                        Delete
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
