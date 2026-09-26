@@ -29,3 +29,7 @@ Thumbs.db
 ## Secrets (important - never commit real connection strings/passwords)
 appsettings.Development.json
 *.pfx
+
+## Uploaded files (user content - don't commit)
+wwwroot/uploads/
+!wwwroot/uploads/.gitkeep

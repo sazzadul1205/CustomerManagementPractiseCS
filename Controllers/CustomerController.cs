@@ -16,8 +16,10 @@ namespace CustomerManagementPractiseCS.Controllers
             _context = context;
         }
 
+        // Customer
         public IActionResult Index()
         {
+            // Get the Customer with the Active Details Attached 
             var customers = _context.Customers.Include(x => x.Details).ToList();
 
             // Build view models with the active detail picked out
@@ -31,11 +33,13 @@ namespace CustomerManagementPractiseCS.Controllers
             return View(Data);
         }
 
+        // Customer/Create
         public IActionResult Create()
         {
             return View();
         }
 
+        // POST: Customer/Create
         [HttpPost]
         public IActionResult Create(Customer customer)
         {
@@ -58,6 +62,7 @@ namespace CustomerManagementPractiseCS.Controllers
             return View();
         }
 
+        // Customer/{id}
         public IActionResult Details(int id)
         {
             //var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
@@ -70,6 +75,7 @@ namespace CustomerManagementPractiseCS.Controllers
             return View(customer);
         }
 
+        // Customer/Edit/{id}
         public IActionResult Edit(int id)
         {
             var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
@@ -81,6 +87,7 @@ namespace CustomerManagementPractiseCS.Controllers
             return View(customer);
         }
 
+        // POST: Customer/Edit/{id}
         [HttpPost]
         public IActionResult Edit(Customer customer, int id)
         {
@@ -89,7 +96,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            var previousCustomer = _context.Customers.Find(id);
+            // Get the Previous Customer Data
+            var previousCustomer = _context.Customers.FirstOrDefault(x => x.Id == id);
 
 
             if (previousCustomer == null)
@@ -97,20 +105,24 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
+            // If Data is Valid
             if (ModelState.IsValid)
             {
+
+                // Register Changes
                 previousCustomer.Name = customer.Name;
                 previousCustomer.Gender = customer.Gender;
                 previousCustomer.BioData = customer.BioData;
 
                 _context.SaveChanges();
+
                 return RedirectToAction(nameof(Index));
             }
 
             return View(customer);
         }
 
-
+        // Customer/Delete/{id}
         public IActionResult Delete(int id)
         {
             var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
@@ -119,12 +131,16 @@ namespace CustomerManagementPractiseCS.Controllers
             {
                 return NotFound();
             }
+
             return View(customer);
         }
 
+
+        // POST: Customer/Delete/{id}
         [HttpPost, ActionName("Delete")]    
         public IActionResult DeleteConfirm(int id)
         {
+            // Find the Customer with the Details Attached 
             var customer = _context.Customers.Include(c => c.Details).FirstOrDefault(x => x.Id == id);
 
             if (customer == null)
@@ -132,9 +148,10 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            // Remove all child CustomerDetail rows first
+            // Check if there is any Details
             if (customer.Details != null && customer.Details.Any())
             {
+                // One by One Go through all the Details and Delete 
                 foreach (var detail in customer.Details)
                 {
                     _context.CustomersDetail.Remove(detail);
@@ -142,7 +159,9 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             _context.Customers.Remove(customer);
+
             _context.SaveChanges();
+
             return RedirectToAction(nameof(Index));
         }
 

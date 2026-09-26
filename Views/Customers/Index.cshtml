@@ -10,9 +10,10 @@
     Create New Customer
 </a>
 
-<table class="table table-striped">
+<table class="table table-striped align-middle">
     <thead>
         <tr>
+            <th>Image</th>
             <th>Name</th>
             <th>Gender</th>
             <th>Bio Data</th>
@@ -31,6 +32,19 @@
             var detail = item.ActiveDetail;
 
             <tr>
+                <td>
+                    @if (detail != null && !string.IsNullOrEmpty(detail.ProfileImage))
+                    {
+                        <img src="@detail.ProfileImage"
+                             alt="@customer.Name"
+                             style="width: 45px; height: 45px; object-fit: cover; border-radius: 50%;" />
+                    }
+                    else
+                    {
+                        <span style="display: inline-block; width: 45px; height: 45px; border-radius: 50%; background-color: #e0e0e0; border: 1px solid #ccc;"></span>
+                    }
+                </td>
+
                 <td>@customer.Name</td>
                 <td>@customer.Gender</td>
                 <td>@customer.BioData</td>

@@ -6,7 +6,7 @@
 
 <h1>Add Customer Detail</h1>
 
-<form asp-action="Create" method="post">
+<form asp-action="Create" method="post" enctype="multipart/form-data">
 
     <input type="hidden" asp-for="CustomerId" />
 
@@ -47,9 +47,8 @@
     </div>
 
     <div class="mb-3">
-        <label asp-for="ProfileImage" class="form-label"></label>
-        <input asp-for="ProfileImage" class="form-control" type="url" />
-        <span asp-validation-for="ProfileImage" class="text-danger"></span>
+        <label class="form-label">Profile Image</label>
+        <input type="file" name="imageFile" class="form-control" accept="image/*" />
     </div>
 
     <div class="form-check mb-3">
@@ -71,4 +70,3 @@
     </a>
 
 </form>
-
