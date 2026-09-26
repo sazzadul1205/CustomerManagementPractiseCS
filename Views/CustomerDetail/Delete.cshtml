@@ -1,0 +1,50 @@
+﻿@model CustomerManagementPractiseCS.Models.CustomerDetail
+
+@{
+    ViewData["Title"] = "Delete Customer Detail";
+}
+
+<h1>Delete Customer Detail</h1>
+
+<h3>Are you sure you want to delete this record?</h3>
+
+<div>
+    <hr />
+
+    <dl class="row">
+        <dt class="col-sm-2">Phone</dt>
+        <dd class="col-sm-10">@Model.Phone</dd>
+
+        <dt class="col-sm-2">Address</dt>
+        <dd class="col-sm-10">@Model.Address</dd>
+
+        <dt class="col-sm-2">Status</dt>
+        <dd class="col-sm-10">
+            @if (Model.IsActive)
+            {
+                <span class="badge bg-success">Active</span>
+            }
+            else
+            {
+                <span class="badge bg-secondary">Inactive</span>
+            }
+        </dd>
+    </dl>
+
+    <form asp-action="Delete" method="post">
+
+        <input type="hidden" asp-for="Id" />
+
+        <button type="submit" class="btn btn-danger">
+            Delete
+        </button>
+
+        <a asp-controller="Customers"
+           asp-action="Details"
+           asp-route-id="@Model.CustomerId"
+           class="btn btn-secondary">
+            Cancel
+        </a>
+
+    </form>
+</div>

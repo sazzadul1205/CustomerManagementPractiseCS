@@ -1,0 +1,74 @@
+﻿@model CustomerManagementPractiseCS.Models.CustomerDetail
+
+@{
+    ViewData["Title"] = "Add Customer Detail";
+}
+
+<h1>Add Customer Detail</h1>
+
+<form asp-action="Create" method="post">
+
+    <input type="hidden" asp-for="CustomerId" />
+
+    <div class="mb-3">
+        <label asp-for="Phone" class="form-label"></label>
+        <input asp-for="Phone" class="form-control" />
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Email" class="form-label"></label>
+        <input asp-for="Email" class="form-control" type="email" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="DateOfBirth" class="form-label"></label>
+        <input asp-for="DateOfBirth" class="form-control" type="date" />
+        <span asp-validation-for="DateOfBirth" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="City" class="form-label"></label>
+        <input asp-for="City" class="form-control" />
+        <span asp-validation-for="City" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Country" class="form-label"></label>
+        <input asp-for="Country" class="form-control" />
+        <span asp-validation-for="Country" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Address" class="form-label"></label>
+        <textarea asp-for="Address" class="form-control"></textarea>
+        <span asp-validation-for="Address" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="ProfileImage" class="form-label"></label>
+        <input asp-for="ProfileImage" class="form-control" type="url" />
+        <span asp-validation-for="ProfileImage" class="text-danger"></span>
+    </div>
+
+    <div class="form-check mb-3">
+        <input asp-for="IsActive" class="form-check-input" />
+        <label asp-for="IsActive" class="form-check-label">
+            Make this the active detail record
+        </label>
+    </div>
+
+    <button type="submit" class="btn btn-primary">
+        Add Customer Detail
+    </button>
+
+    <a asp-controller="Customers"
+       asp-action="Details"
+       asp-route-id="@Model.CustomerId"
+       class="btn btn-secondary">
+        Cancel
+    </a>
+
+</form>
+

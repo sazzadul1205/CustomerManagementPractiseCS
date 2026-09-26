@@ -1,51 +1,70 @@
-﻿@model List<CustomerManagementPractiseCS.Models.Customer> // Models Call with a list of Customers
+﻿@model List<CustomerManagementPractiseCS.ViewModels.CustomerViewModel>
 
 @{
-    ViewData["title"] = "Customer";
+    ViewData["Title"] = "Customers";
 }
 
 <h1>Customers</h1>
 
-<a asp-controller="Customers" asp-action="Create" class="btn btn-primary">
+<a asp-controller="Customers" asp-action="Create" class="btn btn-primary mb-3">
     Create New Customer
 </a>
 
-<table class="table">
+<table class="table table-striped">
     <thead>
         <tr>
-            <th>
-                Name
-            </th>
-            <th>
-                Gender
-            </th>
-            <th>
-                Bio Data
-            </th>
+            <th>Name</th>
+            <th>Gender</th>
+            <th>Bio Data</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th>City</th>
+            <th>Country</th>
             <th>Actions</th>
         </tr>
     </thead>
 
     <tbody>
-        @foreach (var customer in Model)
+        @foreach (var item in Model)
         {
+            var customer = item.Customer;
+            var detail = item.ActiveDetail;
+
             <tr>
                 <td>@customer.Name</td>
                 <td>@customer.Gender</td>
                 <td>@customer.BioData</td>
+
+                @if (detail != null)
+                {
+                    <td>@detail.Phone</td>
+                    <td>@detail.Email</td>
+                    <td>@detail.City</td>
+                    <td>@detail.Country</td>
+                }
+                else
+                {
+                    <td colspan="4" class="text-muted fst-italic">
+                        No active detail record
+                    </td>
+                }
+
                 <td>
                     <a asp-action="Details"
-                       asp-route-id="@customer.Id">
+                       asp-route-id="@customer.Id"
+                       class="btn btn-primary btn-sm">
                         Details
                     </a>
-                    |
+
                     <a asp-action="Edit"
-                       asp-route-id="@customer.Id">
+                       asp-route-id="@customer.Id"
+                       class="btn btn-warning btn-sm">
                         Edit
                     </a>
-                    |
+
                     <a asp-action="Delete"
-                       asp-route-id="@customer.Id">
+                       asp-route-id="@customer.Id"
+                       class="btn btn-danger btn-sm">
                         Delete
                     </a>
                 </td>

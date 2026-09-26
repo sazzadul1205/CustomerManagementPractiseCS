@@ -1,7 +1,8 @@
-﻿using Azure.Identity;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using CustomerManagementPractiseCS.Data;
 using CustomerManagementPractiseCS.Models;
-using Microsoft.AspNetCore.Mvc;
+using CustomerManagementPractiseCS.ViewModels;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -17,8 +18,17 @@ namespace CustomerManagementPractiseCS.Controllers
 
         public IActionResult Index()
         {
-            var Customer = _context.Customers.ToList();
-            return View(Customer);
+            var customers = _context.Customers.Include(x => x.Details).ToList();
+
+            // Build view models with the active detail picked out
+            var Data = customers.Select(x => new CustomerViewModel
+            {
+                Customer = x,
+                ActiveDetail = x.Details.FirstOrDefault(x => x.IsActive), 
+            }).ToList();
+
+
+            return View(Data);
         }
 
         public IActionResult Create()
@@ -50,7 +60,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
         public IActionResult Details(int id)
         {
-            var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
+            //var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
+            var customer = _context.Customers.Include(cd => cd.Details).FirstOrDefault(x => x.Id == id);
 
             if (customer == null)
             {
@@ -71,19 +82,28 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         [HttpPost]
-        public IActionResult Edit(Customer customer, int id) {
-            if (id != customer.Id) {
+        public IActionResult Edit(Customer customer, int id)
+        {
+            if (id != customer.Id)
+            {
+                return NotFound();
+            }
+
+            var previousCustomer = _context.Customers.Find(id);
+
+
+            if (previousCustomer == null)
+            {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
-                // Update the cutomer datas to the DB not pushed just staged
-                _context.Customers.Update(customer);
+                previousCustomer.Name = customer.Name;
+                previousCustomer.Gender = customer.Gender;
+                previousCustomer.BioData = customer.BioData;
 
                 _context.SaveChanges();
-
-                // This Redairects to Index page
                 return RedirectToAction(nameof(Index));
             }
 
@@ -102,14 +122,23 @@ namespace CustomerManagementPractiseCS.Controllers
             return View(customer);
         }
 
-        [HttpPost]
+        [HttpPost, ActionName("Delete")]    
         public IActionResult DeleteConfirm(int id)
         {
-            var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
+            var customer = _context.Customers.Include(c => c.Details).FirstOrDefault(x => x.Id == id);
 
             if (customer == null)
             {
                 return NotFound();
+            }
+
+            // Remove all child CustomerDetail rows first
+            if (customer.Details != null && customer.Details.Any())
+            {
+                foreach (var detail in customer.Details)
+                {
+                    _context.CustomersDetail.Remove(detail);
+                }
             }
 
             _context.Customers.Remove(customer);

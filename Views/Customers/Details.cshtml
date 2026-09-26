@@ -11,38 +11,109 @@
     <hr />
 
     <dl class="row">
-        <dt class="col-sm-2">
-            Name
-        </dt>
-        <dd class="col-sm-10">
-            @Model.Name
-        </dd>
+        <dt class="col-sm-2">Name</dt>
+        <dd class="col-sm-10">@Model.Name</dd>
 
-        <dt class="col-sm-2">
-            Gender
-        </dt>
-        <dd class="col-sm-10">
-            @Model.Gender
-        </dd>
+        <dt class="col-sm-2">Gender</dt>
+        <dd class="col-sm-10">@Model.Gender</dd>
 
-        <dt class="col-sm-2">
-            Biodata
-        </dt>
-        <dd class="col-sm-10">
-            @Model.BioData
-        </dd>
+        <dt class="col-sm-2">Biodata</dt>
+        <dd class="col-sm-10">@Model.BioData</dd>
     </dl>
 </div>
 
+<hr />
+
+<h3>Customer Details</h3>
+
+@if (Model.Details != null && Model.Details.Any())
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Phone</th>
+                <th>Email</th>
+                <th>Date of Birth</th>
+                <th>City</th>
+                <th>Country</th>
+                <th>Address</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @foreach (var detail in Model.Details)
+            {
+                <tr>
+                    <td>@detail.Phone</td>
+                    <td>@detail.Email</td>
+                    <td>@(detail.DateOfBirth?.ToString("yyyy-MM-dd") ?? "-")</td>
+                    <td>@detail.City</td>
+                    <td>@detail.Country</td>
+                    <td>@detail.Address</td>
+                    <td>
+                        @if (detail.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-secondary">Inactive</span>
+                        }
+                    </td>
+
+                    <td>
+                        <a asp-controller="CustomerDetail"
+                           asp-action="Edit"
+                           asp-route-id="@detail.Id"
+                           class="btn btn-sm btn-primary">
+                            Edit
+                        </a>
+
+                        <a asp-controller="CustomerDetail"
+                           asp-action="Delete"
+                           asp-route-id="@detail.Id"
+                           class="btn btn-sm btn-danger">
+                            Delete
+                        </a>
+
+                        @if (!detail.IsActive)
+                        {
+                            <form asp-controller="CustomerDetail"
+                                  asp-action="SetActive"
+                                  asp-route-id="@detail.Id"
+                                  method="post"
+                                  class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    Set Active
+                                </button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No customer details have been added yet.</p>
+}
+
 <div>
-    <a asp-action="Edit"
-       asp-route-id="@Model.Id"
-       class="btn btn-primary">
+    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
         Edit
     </a>
 
-    <a asp-action="Index"
-       class="btn btn-secondary">
+    <a asp-action="Index" class="btn btn-secondary">
         Back to List
+    </a>
+
+    <a asp-controller="CustomerDetail"
+       asp-action="Create"
+       asp-route-customerId="@Model.Id"
+       class="btn btn-success">
+        Add Customer Detail
     </a>
 </div>

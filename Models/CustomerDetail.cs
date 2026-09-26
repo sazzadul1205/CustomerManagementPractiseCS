@@ -25,14 +25,14 @@ namespace CustomerManagementPractiseCS.Models
         [DataType(DataType.Date)]
         public DateTime? DateOfBirth { get; set; }
 
-        [StringLength(100)]
+        [StringLength(20)]
         public string? City { get; set; }
 
-        [StringLength(100)]
+        [StringLength(20)]
         public string? Country { get; set; }
 
         [Required]
-        [StringLength(250)]
+        [StringLength(100)]
         public string Address { get; set; } = string.Empty; // "string.Empty" this allowes the Content to be empty 
 
         public bool IsActive { get; set; }
