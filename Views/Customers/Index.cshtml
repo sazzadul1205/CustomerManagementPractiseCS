@@ -26,7 +26,6 @@ else
             <th>Email</th>
             <th>City</th>
             <th>Country</th>
-            <th>Actions</th>
         </tr>
     </thead>
 
@@ -67,19 +66,6 @@ else
                         No active detail record
                     </td>
                 }
-
-                <td>
-                    @if (customer.UserId == currentUserId)
-                    {
-                        <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-sm btn-primary">Details</a>
-                        <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-warning">Edit</a>
-                        <a asp-action="Delete" asp-route-id="@customer.Id" class="btn btn-sm btn-danger">Delete</a>
-                    }
-                    else
-                    {
-                        <span class="text-muted fst-italic">Not owned by you</span>
-                    }
-                </td>
             </tr>
         }
     </tbody>

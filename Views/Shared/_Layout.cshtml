@@ -48,7 +48,14 @@
                                 <span class="nav-link text-dark">
                                     Role: @(User.IsInRole("Admin") ? "Admin" : "User")
                                 </span>
-                          </li>
+                            </li>
+                            <li class="nav-item">
+                                <form asp-controller="Account" asp-action="Logout" method="post">
+                                    <button type="submit">
+                                        Logout
+                                    </button>
+                                </form>
+                            </li>
                         }
                         else
                         {

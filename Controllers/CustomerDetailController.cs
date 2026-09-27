@@ -32,7 +32,7 @@ namespace CustomerManagementPractiseCS.Controllers
         // Load a Customer by Id (null when it does Not Exist)
         private Customer? GetCustomer(int customerId)
         {
-            return _context.Customers.FirstOrDefault(x => x.Id == customerId);
+            return _context.Customers.FirstOrDefault(x => x.Id == customerId && !x.Deleted);
         }
 
         // A Customer can Only be Managed by the User that Owns it
@@ -109,7 +109,9 @@ namespace CustomerManagementPractiseCS.Controllers
                     City = customerDetailVM.City,
                     Country = customerDetailVM.Country,
                     Address = customerDetailVM.Address,
-                    IsActive = customerDetailVM.IsActive
+                    IsActive = customerDetailVM.IsActive,
+                         CreatedAt = DateTime.UtcNow,     
+                    CreatedBy = CurrentUserId        
                 };
 
                 // Save uploaded image, if any, and attach its path to the entity
@@ -147,7 +149,7 @@ namespace CustomerManagementPractiseCS.Controllers
         // GET: CustomerDetail/Edit/5
         public IActionResult Edit(int id)
         {
-            var customerDetail = _context.CustomersDetail.FirstOrDefault(x => x.Id == id);
+            var customerDetail = _context.CustomersDetail.FirstOrDefault(x => x.Id == id && !x.Deleted);
 
             if (customerDetail == null)
             {
@@ -210,34 +212,26 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (ModelState.IsValid)
             {
-
-                // If the new data is Checked as active 
                 if (customerDetailVM.IsActive)
                 {
-                    // Get all the Customer Details But exclude the Current one 
-                    // Use the Stored CustomerId and Not the Posted one so it can not be Tampered With
-                    var others = _context.CustomersDetail.Where(x => x.CustomerId == existing.CustomerId && x.Id != id).ToList();
+                    var others = _context.CustomersDetail
+                        .Where(x => x.CustomerId == existing.CustomerId && x.Id != id && !x.Deleted)
+                        .ToList();
 
-                    // Go Through each and Deactivate all
                     foreach (var other in others)
                     {
                         other.IsActive = false;
                     }
                 }
 
-                // Handle new image upload
                 string? newPath = SaveImage(imageFile);
-
-                // 
                 if (newPath != null)
                 {
-                    // Delete old Image Location
                     if (!string.IsNullOrEmpty(existing.ProfileImage))
                     {
-                        // Get the Old image Location
-                        string oldFile = Path.Combine(_env.WebRootPath, existing.ProfileImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        string oldFile = Path.Combine(_env.WebRootPath,
+                            existing.ProfileImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
 
-                        // Delete Location
                         if (System.IO.File.Exists(oldFile))
                         {
                             System.IO.File.Delete(oldFile);
@@ -247,8 +241,6 @@ namespace CustomerManagementPractiseCS.Controllers
                     existing.ProfileImage = newPath;
                 }
 
-
-
                 existing.Phone = customerDetailVM.Phone;
                 existing.Email = customerDetailVM.Email;
                 existing.DateOfBirth = customerDetailVM.DateOfBirth;
@@ -256,12 +248,14 @@ namespace CustomerManagementPractiseCS.Controllers
                 existing.Country = customerDetailVM.Country;
                 existing.Address = customerDetailVM.Address;
                 existing.IsActive = customerDetailVM.IsActive;
+                existing.UpdatedAt = DateTime.UtcNow;  
+                existing.UpdatedBy = CurrentUserId;    
 
                 _context.SaveChanges();
 
                 return RedirectToAction("Details", "Customers", new { id = existing.CustomerId });
             }
-
+            
             // Validation failed 
             return View(customerDetailVM);
         }
@@ -271,7 +265,7 @@ namespace CustomerManagementPractiseCS.Controllers
         [HttpPost]
         public IActionResult SetActive(int id)
         {
-            var customerDetail = _context.CustomersDetail.FirstOrDefault(x => x.Id == id);
+            var customerDetail = _context.CustomersDetail.FirstOrDefault(x => x.Id == id && !x.Deleted);
 
             if (customerDetail == null)
             {
@@ -291,7 +285,10 @@ namespace CustomerManagementPractiseCS.Controllers
                 other.IsActive = false;
             }
 
+
             customerDetail.IsActive = true;
+            customerDetail.UpdatedAt = DateTime.UtcNow;   
+            customerDetail.UpdatedBy = CurrentUserId;    
 
             _context.SaveChanges();
 
@@ -301,7 +298,7 @@ namespace CustomerManagementPractiseCS.Controllers
         // GET: CustomerDetail/Delete/5
         public IActionResult Delete(int id)
         {
-            var customerDetail = _context.CustomersDetail.FirstOrDefault(x => x.Id == id);
+            var customerDetail = _context.CustomersDetail.FirstOrDefault(x => x.Id == id && !x.Deleted);
 
             if (customerDetail == null)
             {
@@ -336,39 +333,41 @@ namespace CustomerManagementPractiseCS.Controllers
         [HttpPost, ActionName("Delete")]
         public IActionResult DeleteConfirmed(int id)
         {
-            var customerDetail = _context.CustomersDetail.FirstOrDefault(x => x.Id == id);
-            if (customerDetail == null)
-            {
-                return NotFound();
-            }
+            var customerDetail = _context.CustomersDetail
+                .FirstOrDefault(x => x.Id == id && !x.Deleted);
 
-            // Only the Owner of the Customer can Delete its Details
-            if (!CanManage(GetCustomer(customerDetail.CustomerId)))
-            {
-                return Forbid();
-            }
+            if (customerDetail == null) return NotFound();
+            if (!CanManage(GetCustomer(customerDetail.CustomerId))) return Forbid();
 
-            // Get the Customer Id
             int customerId = customerDetail.CustomerId;
 
-            // DElete Imaeg 
-            if (!string.IsNullOrEmpty(customerDetail.ProfileImage))
-            {
-                string filePath = Path.Combine(_env.WebRootPath, customerDetail.ProfileImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+            // Soft delete
+            customerDetail.Deleted = true;
+            customerDetail.IsActive= false;
+            customerDetail.UpdatedAt = DateTime.UtcNow;
+            customerDetail.UpdatedBy = CurrentUserId;
 
-                if (System.IO.File.Exists(filePath))
+            // If this was the active one, promote another non-deleted detail
+            if (customerDetail.IsActive)
+            {
+                customerDetail.IsActive = false;
+
+                var fallback = _context.CustomersDetail
+                    .Where(x => x.CustomerId == customerId && x.Id != id && !x.Deleted)
+                    .OrderByDescending(x => x.CreatedAt)
+                    .FirstOrDefault();
+
+                if (fallback != null)
                 {
-                    System.IO.File.Delete(filePath);
+                    fallback.IsActive = true;
                 }
             }
-
-            _context.CustomersDetail.Remove(customerDetail);
 
             _context.SaveChanges();
 
             return RedirectToAction("Details", "Customers", new { id = customerId });
-        }
-
+        }       
+        
         // Image Upload Helper
         private string? SaveImage(IFormFile? imageFile)
         {

@@ -27,6 +27,7 @@ namespace CustomerManagementPractiseCS.Controllers
         {
             // Get Every Customer with the Active Details Attached
             var customers = _context.Customers
+                .Where(c => !c.Deleted)
                 .Include(x => x.Details)
                 .Select(x => new CustomerActiveDetailsViewModel
                 {
@@ -45,7 +46,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
             // Get the Customer With My User Id and then Including the Details and then Modfel Bainding 
             var customers = _context.Customers
-                .Where(x => x.UserId == userId)
+                .Where(x => x.UserId == userId && !x.Deleted)
                 .Include(x => x.Details)
                 .Select(x => new CustomerActiveDetailsViewModel
                 {
@@ -61,7 +62,7 @@ namespace CustomerManagementPractiseCS.Controllers
         {
             // A Regular User only ever Sees One Customer Profile (MyData)
             // so Stop them from Creating a Second one that they can never see
-            if (!User.IsInRole("Admin") && _context.Customers.Any(x => x.UserId == _userManager.GetUserId(User)))
+            if (!User.IsInRole("Admin") && _context.Customers.Any(x => x.UserId == _userManager.GetUserId(User) && !x.Deleted))
             {
                 return RedirectToAction("MyData");
             }
@@ -81,7 +82,8 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Same Guard as the GET : a Regular User gets Exactly One Profile
-            if (!User.IsInRole("Admin") && _context.Customers.Any(x => x.UserId == userId))
+            if (!User.IsInRole("Admin") &&
+                _context.Customers.Any(x => x.UserId == userId && !x.Deleted))
             {
                 return RedirectToAction("MyData");
             }
@@ -89,18 +91,34 @@ namespace CustomerManagementPractiseCS.Controllers
             // Check oif the Model state is Matching the Validation
             if (ModelState.IsValid)
             {
+                var existing = _context.Customers.FirstOrDefault(x => x.UserId == userId);
 
-                // Map ViewModel → Entity
-                var customer = new Customer
+                if (existing != null)
                 {
-                    Name = customerVM.Name,
-                    Gender = customerVM.Gender,
-                    BioData = customerVM.BioData,
-                    UserId = userId
-                };
+                    // Reuse the row: restore + update
+                    existing.Name = customerVM.Name;
+                    existing.Gender = customerVM.Gender;
+                    existing.BioData = customerVM.BioData;
+                    existing.Deleted = false;
+                    existing.UpdatedAt = DateTime.UtcNow;
+                    existing.UpdatedBy = userId;
+                }
+                else
+                {
+                    // Map ViewModel → Entity
+                    var customer = new Customer
+                    {
+                        Name = customerVM.Name,
+                        Gender = customerVM.Gender,
+                        BioData = customerVM.BioData,
+                        UserId = userId,
+                        CreatedAt = DateTime.UtcNow,
+                        CreatedBy = userId
+                    };
 
-                // Add the cutomer datas to the DB not pushed just staged
-                _context.Customers.Add(customer);
+                    // Add the cutomer datas to the DB not pushed just staged
+                    _context.Customers.Add(customer);
+                }
 
                 // Now pushed in async formayt there is one without async
                 _context.SaveChanges();
@@ -112,10 +130,9 @@ namespace CustomerManagementPractiseCS.Controllers
                 }
 
                 return RedirectToAction("MyData");
-            }
-
+            }            
+            
             // If Fail return to create
-
             return View(customerVM);
         }
 
@@ -126,7 +143,10 @@ namespace CustomerManagementPractiseCS.Controllers
             string? userId = _userManager.GetUserId(User);
 
             //var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
-            var customer = _context.Customers.Include(cd => cd.Details).FirstOrDefault(x => x.Id == id);
+            var customer = _context.Customers
+                .Where(c => c.Id == id && !c.Deleted)
+                .Include(cd => cd.Details.Where(d => !d.Deleted))
+                .FirstOrDefault(x => x.Id == id);
 
             if (customer == null)
             {
@@ -148,7 +168,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // Get the Current User Id
             string? userId = _userManager.GetUserId(User);
 
-            var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
+            var customer = _context.Customers.FirstOrDefault(x => x.Id == id && !x.Deleted);
 
             if (customer == null)
             {
@@ -209,7 +229,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 previousCustomer.Name = customerVM.Name;
                 previousCustomer.Gender = customerVM.Gender;
                 previousCustomer.BioData = customerVM.BioData;
-                // UserId is NOT touched, Owner Never Changes
+                previousCustomer.UpdatedAt = DateTime.UtcNow;   
+                previousCustomer.UpdatedBy = userId;           
 
                 _context.SaveChanges();
 
@@ -231,7 +252,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // Get the Current User Id
             string? userId = _userManager.GetUserId(User);
 
-            var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
+            var customer = _context.Customers.FirstOrDefault(x => x.Id == id && !x.Deleted);
 
             if (customer == null)
             {
@@ -258,42 +279,42 @@ namespace CustomerManagementPractiseCS.Controllers
             return View(customerVM);
         }
 
-        // POST: Customer/Delete/{id}
         [HttpPost, ActionName("Delete")]
         public IActionResult DeleteConfirm(int id)
         {
-            // Get the Current User Id
             string? userId = _userManager.GetUserId(User);
 
-            // Find the Customer with the Details Attached 
-            var customer = _context.Customers.Include(c => c.Details).FirstOrDefault(x => x.Id == id);
+            var customer = _context.Customers
+                .Include(c => c.Details)
+                .FirstOrDefault(x => x.Id == id && !x.Deleted);
 
             if (customer == null)
             {
                 return NotFound();
             }
 
-            // Check if the Customer Belongs to the Current User
             if (customer.UserId != userId)
             {
                 return Forbid();
             }
 
-            // Check if there is any Details
+            // Soft delete customer + its (non-deleted) details
+            customer.Deleted = true;
+            customer.UpdatedAt = DateTime.UtcNow;
+            customer.UpdatedBy = userId;
+
             if (customer.Details != null && customer.Details.Any())
             {
-                // One by One Go through all the Details and Delete 
-                foreach (var detail in customer.Details)
+                foreach (var detail in customer.Details.Where(d => !d.Deleted))
                 {
-                    _context.CustomersDetail.Remove(detail);
+                    detail.Deleted = true;
+                    detail.UpdatedAt = DateTime.UtcNow;
+                    detail.UpdatedBy = userId;
                 }
             }
 
-            _context.Customers.Remove(customer);
-
             _context.SaveChanges();
 
-            // Role Based Redirect
             if (User.IsInRole("Admin"))
             {
                 return RedirectToAction("Index");

@@ -18,7 +18,13 @@ namespace CustomerManagementPractiseCS.Models
 
         public string? UserId { get; set; }
 
-        // This Indecates that the Customer Table has a One-To-Many Relaionship with CustomerDetail Table
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public string? CreatedBy { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+        public string? UpdatedBy { get; set; }
+
+        public bool Deleted { get; set; } = false;
+
         public ICollection<CustomerDetail> Details { get; set; } = new List<CustomerDetail>();
     }
 }
