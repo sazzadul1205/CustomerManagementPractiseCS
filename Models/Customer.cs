@@ -16,6 +16,8 @@ namespace CustomerManagementPractiseCS.Models
         [StringLength(1000)]
         public string? BioData { get; set; }
 
+        public string? UserId { get; set; }
+
         // This Indecates that the Customer Table has a One-To-Many Relaionship with CustomerDetail Table
         public ICollection<CustomerDetail> Details { get; set; } = new List<CustomerDetail>();
     }

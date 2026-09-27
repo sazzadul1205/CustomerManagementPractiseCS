@@ -15,5 +15,7 @@ namespace CustomerManagementPractiseCS.ViewModels
 
         [StringLength(1000)]
         public string? BioData { get; set; }
+
+        public string? UserId { get; set; }
     }
 }

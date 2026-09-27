@@ -1,0 +1,83 @@
+﻿@model CustomerManagementPractiseCS.ViewModels.CustomerActiveDetailsViewModel?
+
+@{
+    ViewData["Title"] = "My Data";
+}
+
+<h1>My Data</h1>
+
+@if (Model == null)
+{
+    <p>You don't have a customer profile yet.</p>
+    <a asp-controller="Customers" asp-action="Create">Create My Customer</a>
+}
+else
+{
+    var customer = Model.Customer;
+    var detail = Model.ActiveDetail;
+
+    <h2>@customer.Name</h2>
+
+    @if (detail != null && !string.IsNullOrEmpty(detail.ProfileImage))
+    {
+        <img src="@detail.ProfileImage" alt="@customer.Name" width="120" />
+    }
+
+    <dl>
+        <dt>Name</dt>
+        <dd>@customer.Name</dd>
+
+        <dt>Gender</dt>
+        <dd>@customer.Gender</dd>
+
+        <dt>Bio Data</dt>
+        <dd>@customer.BioData</dd>
+
+        @if (detail != null)
+        {
+            <dt>Phone</dt>
+            <dd>@detail.Phone</dd>
+
+            <dt>Email</dt>
+            <dd>@detail.Email</dd>
+
+            <dt>Date of Birth</dt>
+            <dd>@(detail.DateOfBirth?.ToString("yyyy-MM-dd"))</dd>
+
+            <dt>City</dt>
+            <dd>@detail.City</dd>
+
+            <dt>Country</dt>
+            <dd>@detail.Country</dd>
+
+            <dt>Address</dt>
+            <dd>@detail.Address</dd>
+        }
+        else
+        {
+            <dt>Details</dt>
+            <dd>No active detail record yet.</dd>
+        }
+    </dl>
+
+ <div class="flex">
+        <a asp-action="Details"
+       asp-route-id="@customer.Id"
+       class="btn btn-primary btn-sm">
+        Details
+    </a>
+
+    <a asp-action="Edit"
+       asp-route-id="@customer.Id"
+       class="btn btn-warning btn-sm">
+        Edit
+    </a>
+
+    <a asp-action="Delete"
+       asp-route-id="@customer.Id"
+       class="btn btn-danger btn-sm">
+        Delete
+    </a>
+ </div>
+
+}

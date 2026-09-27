@@ -1,4 +1,5 @@
 using CustomerManagementPractiseCS.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -6,10 +7,16 @@ namespace CustomerManagementPractiseCS.Controllers
 {
     public class HomeController : Controller
     {
+        [Authorize]
         public IActionResult Index()
         {
-            //return View();
-            return RedirectToAction("Index", "Customers");
+            // Role Based Redirect
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Index", "Customers");
+            }
+
+            return RedirectToAction("MyData", "Customers");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

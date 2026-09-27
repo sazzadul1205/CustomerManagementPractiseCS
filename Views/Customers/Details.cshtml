@@ -121,9 +121,18 @@ else
         Edit
     </a>
 
-    <a asp-action="Index" class="btn btn-secondary">
-        Back to List
-    </a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-controller="Customers" asp-action="Index" class="btn btn-secondary">
+            Back
+        </a>
+    }
+    else
+    {
+        <a asp-controller="Customers" asp-action="MyData" class="btn btn-secondary">
+            Back
+        </a>
+    }
 
     <a asp-controller="CustomerDetail"
        asp-action="Create"

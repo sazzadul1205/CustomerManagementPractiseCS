@@ -1,14 +1,19 @@
 ﻿@model List<CustomerManagementPractiseCS.ViewModels.CustomerActiveDetailsViewModel>
+@inject Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> UserManager
 
 @{
     ViewData["Title"] = "Customers";
+    var currentUserId = UserManager.GetUserId(User);
 }
 
 <h1>Customers</h1>
 
-<a asp-controller="Customers" asp-action="Create" class="btn btn-primary mb-3">
-    Create New Customer
-</a>
+@if (!Model.Any())
+{
+    <p class="text-muted">No customers have been added yet.</p>
+}
+else
+{
 
 <table class="table table-striped align-middle">
     <thead>
@@ -64,25 +69,19 @@
                 }
 
                 <td>
-                    <a asp-action="Details"
-                       asp-route-id="@customer.Id"
-                       class="btn btn-primary btn-sm">
-                        Details
-                    </a>
-
-                    <a asp-action="Edit"
-                       asp-route-id="@customer.Id"
-                       class="btn btn-warning btn-sm">
-                        Edit
-                    </a>
-
-                    <a asp-action="Delete"
-                       asp-route-id="@customer.Id"
-                       class="btn btn-danger btn-sm">
-                        Delete
-                    </a>
+                    @if (customer.UserId == currentUserId)
+                    {
+                        <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-sm btn-primary">Details</a>
+                        <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@customer.Id" class="btn btn-sm btn-danger">Delete</a>
+                    }
+                    else
+                    {
+                        <span class="text-muted fst-italic">Not owned by you</span>
+                    }
                 </td>
             </tr>
         }
     </tbody>
 </table>
+}

@@ -71,6 +71,12 @@ namespace CustomerManagementPractiseCS.Controllers
                 return RedirectToAction("Login");
             }
 
+            // Show the Identity Errors (Duplicate Email, Weak Password ...)
+            foreach (var error in result.Errors)
+            {
+                ModelState.AddModelError(string.Empty, error.Description);
+            }
+
             return View();
         }
 
@@ -88,10 +94,24 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Index", "Customers");
+                // The SignInManager needs the User object to check roles
+                var user = await _userManager.FindByEmailAsync(email);
+
+                // If the User is an Admin go to Index
+                if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
+                {
+                    return RedirectToAction("Index", "Customers");
+                }
+
+                // Otherwise (regular User) go to MyData
+                return RedirectToAction("MyData", "Customers");
             }
 
+            // Wrong Email or Password
+            ModelState.AddModelError(string.Empty, "Invalid email or password.");
+
             return View();
+
         }
 
         [HttpPost]

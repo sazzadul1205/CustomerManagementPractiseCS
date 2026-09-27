@@ -1,31 +1,67 @@
 ﻿using CustomerManagementPractiseCS.Data;
 using CustomerManagementPractiseCS.Models;
 using CustomerManagementPractiseCS.ViewModels;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
+    // Only Logged In Users May Touch Customer Details
+    [Authorize]
     public class CustomerDetailController : Controller
     {
         private readonly AppDbContext _context;
         private readonly IWebHostEnvironment _env; // This Alllowes me to Work with Files and paths 
+        private readonly UserManager<IdentityUser> _userManager;
+
+        // The Only Image Types we Allow to be Stored on the Server
+        private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
         // DI Injection
-        public CustomerDetailController(AppDbContext context, IWebHostEnvironment env)
+        public CustomerDetailController(AppDbContext context, IWebHostEnvironment env, UserManager<IdentityUser> userManager)
         {
             _context = context;
             _env = env;
+            _userManager = userManager;
+        }
+
+        // The Id of the Current User
+        private string? CurrentUserId => _userManager.GetUserId(User);
+
+        // Load a Customer by Id (null when it does Not Exist)
+        private Customer? GetCustomer(int customerId)
+        {
+            return _context.Customers.FirstOrDefault(x => x.Id == customerId);
+        }
+
+        // A Customer can Only be Managed by the User that Owns it
+        private bool CanManage(Customer? customer)
+        {
+            return customer != null && customer.UserId == CurrentUserId;
+        }
+
+        // The File Name Must Have an Image Extension (the "accept" attribute is Client Side Only)
+        private static bool IsAllowedImage(string fileName)
+        {
+            return AllowedImageExtensions.Contains(Path.GetExtension(fileName).ToLowerInvariant());
         }
 
         // GET: CustomerDetail/Create?customerId={id}
         public IActionResult Create(int customerId)
         {
-            // Get all the Customer Details With the CustomerId
-            var customer = _context.Customers.FirstOrDefault(x => x.Id == customerId);
+            // Get the Customer With the CustomerId
+            var customer = GetCustomer(customerId);
 
             if (customer == null)
             {
                 return NotFound();
+            }
+
+            // A Customer Detail can Only be Added by the Owner of the Customer
+            if (!CanManage(customer))
+            {
+                return Forbid();
             }
 
             // Pre-fill the CustomerId so the form knows which customer this belongs to
@@ -42,9 +78,23 @@ namespace CustomerManagementPractiseCS.Controllers
         public IActionResult Create(CustomerDetailsViewModel customerDetailVM, IFormFile? imageFile)
         {
             // chek if teh Customer is Valid
-            if (!_context.Customers.Any(c => c.Id == customerDetailVM.CustomerId))
+            var customer = GetCustomer(customerDetailVM.CustomerId);
+
+            if (customer == null)
             {
                 return NotFound();
+            }
+
+            // The Customer Detail can Only be Added by the Owner of the Customer
+            if (!CanManage(customer))
+            {
+                return Forbid();
+            }
+
+            // Reject any Upload that is Not a Real Image File
+            if (imageFile != null && imageFile.Length > 0 && !IsAllowedImage(imageFile.FileName))
+            {
+                ModelState.AddModelError("ProfileImage", "Only image files (.jpg, .jpeg, .png, .gif, .webp) are allowed.");
             }
 
             if (ModelState.IsValid)
@@ -104,6 +154,12 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
+            // Only the Owner of the Customer can Edit its Details
+            if (!CanManage(GetCustomer(customerDetail.CustomerId)))
+            {
+                return Forbid();
+            }
+
             // Map Entity → ViewModel
             var vm = new CustomerDetailsViewModel
             {
@@ -140,6 +196,18 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
+            // Only the Owner of the Customer can Edit its Details
+            if (!CanManage(GetCustomer(existing.CustomerId)))
+            {
+                return Forbid();
+            }
+
+            // Reject any Upload that is Not a Real Image File
+            if (imageFile != null && imageFile.Length > 0 && !IsAllowedImage(imageFile.FileName))
+            {
+                ModelState.AddModelError("ProfileImage", "Only image files (.jpg, .jpeg, .png, .gif, .webp) are allowed.");
+            }
+
             if (ModelState.IsValid)
             {
 
@@ -147,7 +215,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 if (customerDetailVM.IsActive)
                 {
                     // Get all the Customer Details But exclude the Current one 
-                    var others = _context.CustomersDetail.Where(x => x.CustomerId == customerDetailVM.CustomerId && x.Id != id).ToList();
+                    // Use the Stored CustomerId and Not the Posted one so it can not be Tampered With
+                    var others = _context.CustomersDetail.Where(x => x.CustomerId == existing.CustomerId && x.Id != id).ToList();
 
                     // Go Through each and Deactivate all
                     foreach (var other in others)
@@ -209,6 +278,12 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
+            // Only the Owner of the Customer can Change the Active Detail
+            if (!CanManage(GetCustomer(customerDetail.CustomerId)))
+            {
+                return Forbid();
+            }
+
             var otherDetails = _context.CustomersDetail.Where(x => x.CustomerId == customerDetail.CustomerId && x.Id != id).ToList();
 
             foreach (var other in otherDetails)
@@ -231,6 +306,12 @@ namespace CustomerManagementPractiseCS.Controllers
             if (customerDetail == null)
             {
                 return NotFound();
+            }
+
+            // Only the Owner of the Customer can Delete its Details
+            if (!CanManage(GetCustomer(customerDetail.CustomerId)))
+            {
+                return Forbid();
             }
 
             // Map Entity → ViewModel
@@ -261,6 +342,12 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
+            // Only the Owner of the Customer can Delete its Details
+            if (!CanManage(GetCustomer(customerDetail.CustomerId)))
+            {
+                return Forbid();
+            }
+
             // Get the Customer Id
             int customerId = customerDetail.CustomerId;
 
@@ -287,6 +374,12 @@ namespace CustomerManagementPractiseCS.Controllers
         {
             // No file was uploaded — nothing to save
             if (imageFile == null || imageFile.Length == 0)
+            {
+                return null;
+            }
+
+            // Extra Safety : Only Real Image Files may reach the web root
+            if (!IsAllowedImage(imageFile.FileName))
             {
                 return null;
             }

@@ -4,6 +4,7 @@ using CustomerManagementPractiseCS.Data;
 using CustomerManagementPractiseCS.Models;
 using CustomerManagementPractiseCS.ViewModels;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -11,30 +12,46 @@ namespace CustomerManagementPractiseCS.Controllers
     public class CustomersController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly UserManager<IdentityUser> _userManager;
 
-        // DI Injection
-        public CustomersController(AppDbContext context)
+        public CustomersController(AppDbContext context, UserManager<IdentityUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // Customer
+        // Admin Only : This Lists Every Customer in the System
+        [Authorize(Roles = "Admin")]
         public IActionResult Index()
         {
-            // Get the Customer with the Active Details Attached 
-            var customers = _context.Customers.Include(x => x.Details).Select(x => new CustomerActiveDetailsViewModel
-            {
-                Customer = x,
-                ActiveDetail = x.Details.FirstOrDefault(x => x.IsActive)
-            }).ToList();
+            // Get Every Customer with the Active Details Attached
+            var customers = _context.Customers
+                .Include(x => x.Details)
+                .Select(x => new CustomerActiveDetailsViewModel
+                {
+                    Customer = x,
+                    ActiveDetail = x.Details.FirstOrDefault(x => x.IsActive)
+                }).ToList();
 
-            // Build view models with the active detail picked out
-            //var Data = customers.Select(x => new CustomerActiveDetailsViewModel
-            //{
-            //    Customer = x,
-            //    ActiveDetail = x.Details.FirstOrDefault(x => x.IsActive), 
-            //}).ToList();
+            return View(customers);
+        }
 
+        public IActionResult MyData()
+        {
+            //User is a property automatically available in every controller(inherited from ControllerBase)
+            // Get the Current User Id Visa Manager 
+            string? userId = _userManager.GetUserId(User);
+
+            // Get the Customer With My User Id and then Including the Details and then Modfel Bainding 
+            var customers = _context.Customers
+                .Where(x => x.UserId == userId)
+                .Include(x => x.Details)
+                .Select(x => new CustomerActiveDetailsViewModel
+                {
+                    Customer = x,
+                    ActiveDetail = x.Details.FirstOrDefault(x => x.IsActive)
+                }).FirstOrDefault();
 
             return View(customers);
         }
@@ -42,6 +59,13 @@ namespace CustomerManagementPractiseCS.Controllers
         // Customer/Create
         public IActionResult Create()
         {
+            // A Regular User only ever Sees One Customer Profile (MyData)
+            // so Stop them from Creating a Second one that they can never see
+            if (!User.IsInRole("Admin") && _context.Customers.Any(x => x.UserId == _userManager.GetUserId(User)))
+            {
+                return RedirectToAction("MyData");
+            }
+
             return View();
         }
 
@@ -49,9 +73,17 @@ namespace CustomerManagementPractiseCS.Controllers
         [HttpPost]
         public IActionResult Create(CustomerViewModel customerVM)
         {
+            string? userId = _userManager.GetUserId(User);
+
             if (customerVM == null)
             {
                 return View();
+            }
+
+            // Same Guard as the GET : a Regular User gets Exactly One Profile
+            if (!User.IsInRole("Admin") && _context.Customers.Any(x => x.UserId == userId))
+            {
+                return RedirectToAction("MyData");
             }
 
             // Check oif the Model state is Matching the Validation
@@ -63,7 +95,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 {
                     Name = customerVM.Name,
                     Gender = customerVM.Gender,
-                    BioData = customerVM.BioData
+                    BioData = customerVM.BioData,
+                    UserId = userId
                 };
 
                 // Add the cutomer datas to the DB not pushed just staged
@@ -71,10 +104,14 @@ namespace CustomerManagementPractiseCS.Controllers
 
                 // Now pushed in async formayt there is one without async
                 _context.SaveChanges();
-                //_context.SaveChangesAsync();
 
-                // This Redairects to Index page
-                return RedirectToAction(nameof(Index));
+                // Role Based Redirect
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Index");
+                }
+
+                return RedirectToAction("MyData");
             }
 
             // If Fail return to create
@@ -85,6 +122,9 @@ namespace CustomerManagementPractiseCS.Controllers
         // Customer/{id}
         public IActionResult Details(int id)
         {
+            // Get the Current User Id
+            string? userId = _userManager.GetUserId(User);
+
             //var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
             var customer = _context.Customers.Include(cd => cd.Details).FirstOrDefault(x => x.Id == id);
 
@@ -92,17 +132,33 @@ namespace CustomerManagementPractiseCS.Controllers
             {
                 return NotFound();
             }
+
+            // Check if the Customer Belongs to the Current User
+            if (customer.UserId != userId)
+            {
+                return Forbid();
+            }
+
             return View(customer);
         }
 
         // Customer/Edit/{id}
         public IActionResult Edit(int id)
         {
+            // Get the Current User Id
+            string? userId = _userManager.GetUserId(User);
+
             var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
 
             if (customer == null)
             {
                 return NotFound();
+            }
+
+            // Check if the Customer Belongs to the Current User
+            if (customer.UserId != userId)
+            {
+                return Forbid();
             }
 
             // Map Entity → ViewModel
@@ -111,7 +167,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 Id = customer.Id,
                 Name = customer.Name,
                 Gender = customer.Gender,
-                BioData = customer.BioData
+                BioData = customer.BioData,
+                UserId = customer.UserId
             };
 
             return View(customerVM);
@@ -126,6 +183,9 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
+            // Get the Current User Id
+            string? userId = _userManager.GetUserId(User);
+
             // Get the Previous Customer Data
             var previousCustomer = _context.Customers.FirstOrDefault(x => x.Id == id);
 
@@ -133,6 +193,12 @@ namespace CustomerManagementPractiseCS.Controllers
             if (previousCustomer == null)
             {
                 return NotFound();
+            }
+
+            // Check if the Customer Belongs to the Current User
+            if (previousCustomer.UserId != userId)
+            {
+                return Forbid();
             }
 
             // If Data is Valid
@@ -143,10 +209,17 @@ namespace CustomerManagementPractiseCS.Controllers
                 previousCustomer.Name = customerVM.Name;
                 previousCustomer.Gender = customerVM.Gender;
                 previousCustomer.BioData = customerVM.BioData;
+                // UserId is NOT touched, Owner Never Changes
 
                 _context.SaveChanges();
 
-                return RedirectToAction("Index");
+                // Role Based Redirect
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Index");
+                }
+
+                return RedirectToAction("MyData");
             }
 
             return View(customerVM);
@@ -155,11 +228,20 @@ namespace CustomerManagementPractiseCS.Controllers
         // Customer/Delete/{id}
         public IActionResult Delete(int id)
         {
+            // Get the Current User Id
+            string? userId = _userManager.GetUserId(User);
+
             var customer = _context.Customers.FirstOrDefault(x => x.Id == id);
 
             if (customer == null)
             {
                 return NotFound();
+            }
+
+            // Check if the Customer Belongs to the Current User
+            if (customer.UserId != userId)
+            {
+                return Forbid();
             }
 
             // Map Entity → ViewModel
@@ -168,7 +250,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 Id = customer.Id,
                 Name = customer.Name,
                 Gender = customer.Gender,
-                BioData = customer.BioData
+                BioData = customer.BioData,
+                UserId = customer.UserId
             };
 
 
@@ -176,15 +259,24 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // POST: Customer/Delete/{id}
-        [HttpPost, ActionName("Delete")]    
+        [HttpPost, ActionName("Delete")]
         public IActionResult DeleteConfirm(int id)
         {
+            // Get the Current User Id
+            string? userId = _userManager.GetUserId(User);
+
             // Find the Customer with the Details Attached 
             var customer = _context.Customers.Include(c => c.Details).FirstOrDefault(x => x.Id == id);
 
             if (customer == null)
             {
                 return NotFound();
+            }
+
+            // Check if the Customer Belongs to the Current User
+            if (customer.UserId != userId)
+            {
+                return Forbid();
             }
 
             // Check if there is any Details
@@ -201,7 +293,13 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.SaveChanges();
 
-            return RedirectToAction("Index");
+            // Role Based Redirect
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Index");
+            }
+
+            return RedirectToAction("MyData");
         }
 
     }

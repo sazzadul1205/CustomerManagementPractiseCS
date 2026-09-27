@@ -37,8 +37,21 @@
         Save Changes
     </button>
 
-    <a asp-action="Index" class="btn btn-secondary">
-        Back to List
-    </a>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-controller="Customers" asp-action="Index" class="btn btn-secondary">
+            Back
+        </a>
+    }
+    else
+    {
+        <a asp-controller="Customers" asp-action="MyData" class="btn btn-secondary">
+            Back
+        </a>
+    }
 
 </form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
