@@ -3,9 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using CustomerManagementPractiseCS.Data;
 using CustomerManagementPractiseCS.Models;
 using CustomerManagementPractiseCS.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
+    [Authorize]
     public class CustomersController : Controller
     {
         private readonly AppDbContext _context;
