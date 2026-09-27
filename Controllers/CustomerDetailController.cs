@@ -1,5 +1,6 @@
 ﻿using CustomerManagementPractiseCS.Data;
 using CustomerManagementPractiseCS.Models;
+using CustomerManagementPractiseCS.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerManagementPractiseCS.Controllers
@@ -28,7 +29,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Pre-fill the CustomerId so the form knows which customer this belongs to
-            var detail = new CustomerDetail
+            var detail = new CustomerDetailsViewModel
             {
                 CustomerId = customerId
             };
@@ -38,16 +39,29 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: CustomerDetail/Create
         [HttpPost]
-        public IActionResult Create(CustomerDetail customerDetail, IFormFile? imageFile)
+        public IActionResult Create(CustomerDetailsViewModel customerDetailVM, IFormFile? imageFile)
         {
             // chek if teh Customer is Valid
-            if (!_context.Customers.Any(c => c.Id == customerDetail.CustomerId))
+            if (!_context.Customers.Any(c => c.Id == customerDetailVM.CustomerId))
             {
                 return NotFound();
             }
 
             if (ModelState.IsValid)
             {
+                // Map ViewModel → Entity
+                var customerDetail = new CustomerDetail
+                {
+                    CustomerId = customerDetailVM.CustomerId,
+                    Phone = customerDetailVM.Phone,
+                    Email = customerDetailVM.Email,
+                    DateOfBirth = customerDetailVM.DateOfBirth,
+                    City = customerDetailVM.City,
+                    Country = customerDetailVM.Country,
+                    Address = customerDetailVM.Address,
+                    IsActive = customerDetailVM.IsActive
+                };
+
                 // Save uploaded image, if any, and attach its path to the entity
                 string? savedPath = SaveImage(imageFile);
                 if (savedPath != null)
@@ -76,7 +90,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Validation failed
-            return View(customerDetail);
+            return View(customerDetailVM);
         }
 
 
@@ -90,35 +104,50 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            return View(customerDetail);
+            // Map Entity → ViewModel
+            var vm = new CustomerDetailsViewModel
+            {
+                Id = customerDetail.Id,
+                CustomerId = customerDetail.CustomerId,
+                Phone = customerDetail.Phone,
+                Email = customerDetail.Email,
+                ProfileImage = customerDetail.ProfileImage,
+                DateOfBirth = customerDetail.DateOfBirth,
+                City = customerDetail.City,
+                Country = customerDetail.Country,
+                Address = customerDetail.Address,
+                IsActive = customerDetail.IsActive
+            };
+
+            return View(vm);
         }
 
         // POST: CustomerDetail/Edit/5
         [HttpPost]
-        public IActionResult Edit(int id, CustomerDetail customerDetail, IFormFile? imageFile)
+        public IActionResult Edit(int id, CustomerDetailsViewModel customerDetailVM, IFormFile? imageFile)
         {
             // Route id must match the id on the submitted model
-            if (id != customerDetail.Id) 
-            { 
+            if (id != customerDetailVM.Id)
+            {
                 return NotFound();
             }
 
             // Get the Exsisting Details
             var existing = _context.CustomersDetail.FirstOrDefault(x => x.Id == id);
 
-            if (existing == null) 
-            { 
-                return NotFound(); 
+            if (existing == null)
+            {
+                return NotFound();
             }
 
             if (ModelState.IsValid)
             {
 
                 // If the new data is Checked as active 
-                if (customerDetail.IsActive)
+                if (customerDetailVM.IsActive)
                 {
                     // Get all the Customer Details But exclude the Current one 
-                    var others = _context.CustomersDetail.Where(x => x.CustomerId == customerDetail.CustomerId && x.Id != id).ToList();
+                    var others = _context.CustomersDetail.Where(x => x.CustomerId == customerDetailVM.CustomerId && x.Id != id).ToList();
 
                     // Go Through each and Deactivate all
                     foreach (var other in others)
@@ -137,7 +166,7 @@ namespace CustomerManagementPractiseCS.Controllers
                     if (!string.IsNullOrEmpty(existing.ProfileImage))
                     {
                         // Get the Old image Location
-                        string oldFile = Path.Combine(_env.WebRootPath,existing.ProfileImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                        string oldFile = Path.Combine(_env.WebRootPath, existing.ProfileImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
 
                         // Delete Location
                         if (System.IO.File.Exists(oldFile))
@@ -151,13 +180,13 @@ namespace CustomerManagementPractiseCS.Controllers
 
 
 
-                existing.Phone = customerDetail.Phone;
-                existing.Email = customerDetail.Email;
-                existing.DateOfBirth = customerDetail.DateOfBirth;
-                existing.City = customerDetail.City;
-                existing.Country = customerDetail.Country;
-                existing.Address = customerDetail.Address;
-                existing.IsActive = customerDetail.IsActive;
+                existing.Phone = customerDetailVM.Phone;
+                existing.Email = customerDetailVM.Email;
+                existing.DateOfBirth = customerDetailVM.DateOfBirth;
+                existing.City = customerDetailVM.City;
+                existing.Country = customerDetailVM.Country;
+                existing.Address = customerDetailVM.Address;
+                existing.IsActive = customerDetailVM.IsActive;
 
                 _context.SaveChanges();
 
@@ -165,7 +194,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Validation failed 
-            return View(customerDetail);
+            return View(customerDetailVM);
         }
 
 
@@ -175,8 +204,8 @@ namespace CustomerManagementPractiseCS.Controllers
         {
             var customerDetail = _context.CustomersDetail.FirstOrDefault(x => x.Id == id);
 
-            if (customerDetail == null) 
-            { 
+            if (customerDetail == null)
+            {
                 return NotFound();
             }
 
@@ -204,7 +233,22 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            return View(customerDetail);
+            // Map Entity → ViewModel
+            var vm = new CustomerDetailsViewModel
+            {
+                Id = customerDetail.Id,
+                CustomerId = customerDetail.CustomerId,
+                Phone = customerDetail.Phone,
+                Email = customerDetail.Email,
+                ProfileImage = customerDetail.ProfileImage,
+                DateOfBirth = customerDetail.DateOfBirth,
+                City = customerDetail.City,
+                Country = customerDetail.Country,
+                Address = customerDetail.Address,
+                IsActive = customerDetail.IsActive
+            };
+
+            return View(vm);
         }
 
         // POST: CustomerDetail/Delete/5
@@ -212,9 +256,9 @@ namespace CustomerManagementPractiseCS.Controllers
         public IActionResult DeleteConfirmed(int id)
         {
             var customerDetail = _context.CustomersDetail.FirstOrDefault(x => x.Id == id);
-            if (customerDetail == null) 
-            { 
-                return NotFound(); 
+            if (customerDetail == null)
+            {
+                return NotFound();
             }
 
             // Get the Customer Id
@@ -223,7 +267,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // DElete Imaeg 
             if (!string.IsNullOrEmpty(customerDetail.ProfileImage))
             {
-                string filePath = Path.Combine(_env.WebRootPath,customerDetail.ProfileImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+                string filePath = Path.Combine(_env.WebRootPath, customerDetail.ProfileImage.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
 
                 if (System.IO.File.Exists(filePath))
                 {

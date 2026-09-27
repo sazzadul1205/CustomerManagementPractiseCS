@@ -37,9 +37,9 @@ namespace CustomerManagementPractiseCS.Migrations
                     Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ProfileImage = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     DateOfBirth = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    City = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Country = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    Address = table.Column<string>(type: "nvarchar(250)", maxLength: 250, nullable: false),
+                    City = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Country = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>

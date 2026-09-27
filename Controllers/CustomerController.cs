@@ -20,17 +20,21 @@ namespace CustomerManagementPractiseCS.Controllers
         public IActionResult Index()
         {
             // Get the Customer with the Active Details Attached 
-            var customers = _context.Customers.Include(x => x.Details).ToList();
-
-            // Build view models with the active detail picked out
-            var Data = customers.Select(x => new CustomerViewModel
+            var customers = _context.Customers.Include(x => x.Details).Select(x => new CustomerActiveDetailsViewModel
             {
                 Customer = x,
-                ActiveDetail = x.Details.FirstOrDefault(x => x.IsActive), 
+                ActiveDetail = x.Details.FirstOrDefault(x => x.IsActive)
             }).ToList();
 
+            // Build view models with the active detail picked out
+            //var Data = customers.Select(x => new CustomerActiveDetailsViewModel
+            //{
+            //    Customer = x,
+            //    ActiveDetail = x.Details.FirstOrDefault(x => x.IsActive), 
+            //}).ToList();
 
-            return View(Data);
+
+            return View(customers);
         }
 
         // Customer/Create
@@ -41,11 +45,25 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: Customer/Create
         [HttpPost]
-        public IActionResult Create(Customer customer)
+        public IActionResult Create(CustomerViewModel customerVM)
         {
+            if (customerVM == null)
+            {
+                return View();
+            }
+
             // Check oif the Model state is Matching the Validation
             if (ModelState.IsValid)
             {
+
+                // Map ViewModel → Entity
+                var customer = new Customer
+                {
+                    Name = customerVM.Name,
+                    Gender = customerVM.Gender,
+                    BioData = customerVM.BioData
+                };
+
                 // Add the cutomer datas to the DB not pushed just staged
                 _context.Customers.Add(customer);
 
@@ -59,7 +77,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
             // If Fail return to create
 
-            return View();
+            return View(customerVM);
         }
 
         // Customer/{id}
@@ -84,14 +102,24 @@ namespace CustomerManagementPractiseCS.Controllers
             {
                 return NotFound();
             }
-            return View(customer);
+
+            // Map Entity → ViewModel
+            var customerVM = new CustomerViewModel
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Gender = customer.Gender,
+                BioData = customer.BioData
+            };
+
+            return View(customerVM);
         }
 
         // POST: Customer/Edit/{id}
         [HttpPost]
-        public IActionResult Edit(Customer customer, int id)
+        public IActionResult Edit(CustomerViewModel customerVM, int id)
         {
-            if (id != customer.Id)
+            if (id != customerVM.Id)
             {
                 return NotFound();
             }
@@ -110,16 +138,16 @@ namespace CustomerManagementPractiseCS.Controllers
             {
 
                 // Register Changes
-                previousCustomer.Name = customer.Name;
-                previousCustomer.Gender = customer.Gender;
-                previousCustomer.BioData = customer.BioData;
+                previousCustomer.Name = customerVM.Name;
+                previousCustomer.Gender = customerVM.Gender;
+                previousCustomer.BioData = customerVM.BioData;
 
                 _context.SaveChanges();
 
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Index");
             }
 
-            return View(customer);
+            return View(customerVM);
         }
 
         // Customer/Delete/{id}
@@ -132,9 +160,18 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            return View(customer);
-        }
+            // Map Entity → ViewModel
+            var customerVM = new CustomerViewModel
+            {
+                Id = customer.Id,
+                Name = customer.Name,
+                Gender = customer.Gender,
+                BioData = customer.BioData
+            };
 
+
+            return View(customerVM);
+        }
 
         // POST: Customer/Delete/{id}
         [HttpPost, ActionName("Delete")]    
@@ -162,7 +199,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.SaveChanges();
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
     }

@@ -8,12 +8,8 @@ namespace CustomerManagementPractiseCS.Controllers
     {
         public IActionResult Index()
         {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
+            //return View();
+            return RedirectToAction("Index", "Customers");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

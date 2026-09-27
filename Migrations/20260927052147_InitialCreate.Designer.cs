@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CustomerManagementPractiseCS.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260925165711_InitialCreate")]
+    [Migration("20260927052147_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -61,16 +61,16 @@ namespace CustomerManagementPractiseCS.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("nvarchar(250)");
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("City")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Country")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<int>("CustomerId")
                         .HasColumnType("int");
