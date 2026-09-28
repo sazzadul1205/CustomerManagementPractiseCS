@@ -6,7 +6,7 @@ namespace CustomerManagementPractiseCS.Controllers
 {
 
     // The UserManager, SignInManager, RoleManager Provaide the Async Version of there
-    // Methods Because its built with the mind thata there will be many users 
+    // Methods Because its built with the mind thata there will be many Login / Access Calls  
     public class AccountController : Controller
     {
         // IdentityUser is the built-in user class provided by Identity 
