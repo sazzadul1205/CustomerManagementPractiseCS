@@ -9,8 +9,14 @@
 
     <div class="mb-3">
         <label asp-for="Email" class="form-label"></label>
-        <input asp-for="Email" class="form-control" type="email" />
-        <span asp-validation-for="Email" class="text-danger"></span>
+        <input asp-for="Email"
+               class="form-control"
+               type="email"
+               readonly
+               disabled />
+        <small class="form-text text-muted">
+            Email cannot be changed.
+        </small>
     </div>
 
     <div class="mb-3">

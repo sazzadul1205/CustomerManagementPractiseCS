@@ -150,41 +150,29 @@ namespace CustomerManagementPractiseCS.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
-
+        
             var vm = new EditProfileViewModel
             {
                 Email = user.Email ?? string.Empty,
                 UserName = user.UserName ?? string.Empty,
                 PhoneNumber = user.PhoneNumber
             };
-
+        
             return View(vm);
         }
-
+        
         // POST: Account/EditProfile
         [HttpPost]
         public async Task<IActionResult> EditProfile(EditProfileViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);
-
+        
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
+        
 
-            // Email
-            if (user.Email != vm.Email)
-            {
-                var result = await _userManager.SetEmailAsync(user, vm.Email);
-                if (!result.Succeeded)
-                {
-                    foreach (var e in result.Errors)
-                        { 
-                        ModelState.AddModelError(string.Empty, e.Description); 
-                    }
-
-                    return View(vm);
-                }
-            }
-
+            vm.Email = user.Email ?? string.Empty;
+        
             // UserName
             if (user.UserName != vm.UserName)
             {
@@ -195,11 +183,11 @@ namespace CustomerManagementPractiseCS.Controllers
                     {
                         ModelState.AddModelError(string.Empty, e.Description);
                     }
-
+        
                     return View(vm);
                 }
             }
-
+        
             // Phone
             if (user.PhoneNumber != vm.PhoneNumber)
             {
@@ -210,14 +198,14 @@ namespace CustomerManagementPractiseCS.Controllers
                     {
                         ModelState.AddModelError(string.Empty, e.Description);
                     }
-
+        
                     return View(vm);
                 }
             }
-
-            // Refresh the Logibn SO everything is up to date
+        
+            // Refresh the login so everything is up to date
             await _signInManager.RefreshSignInAsync(user);
-
+        
             return RedirectToAction("Profile");
         }
 
