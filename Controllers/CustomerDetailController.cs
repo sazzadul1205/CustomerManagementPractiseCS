@@ -330,6 +330,7 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // POST: CustomerDetail/Delete/5
+        // POST: CustomerDetail/Delete/5
         [HttpPost, ActionName("Delete")]
         public IActionResult DeleteConfirmed(int id)
         {
@@ -341,17 +342,18 @@ namespace CustomerManagementPractiseCS.Controllers
 
             int customerId = customerDetail.CustomerId;
 
+            // Remember whether this record was the active one BEFORE we change it
+            bool wasActive = customerDetail.IsActive;
+
             // Soft delete
             customerDetail.Deleted = true;
-            customerDetail.IsActive= false;
+            customerDetail.IsActive = false;
             customerDetail.UpdatedAt = DateTime.UtcNow;
             customerDetail.UpdatedBy = CurrentUserId;
 
             // If this was the active one, promote another non-deleted detail
-            if (customerDetail.IsActive)
+            if (wasActive)
             {
-                customerDetail.IsActive = false;
-
                 var fallback = _context.CustomersDetail
                     .Where(x => x.CustomerId == customerId && x.Id != id && !x.Deleted)
                     .OrderByDescending(x => x.CreatedAt)
@@ -366,8 +368,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.SaveChanges();
 
             return RedirectToAction("Details", "Customers", new { id = customerId });
-        }       
-        
+        }
+
         // Image Upload Helper
         private string? SaveImage(IFormFile? imageFile)
         {

@@ -216,8 +216,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            // Check if the Customer Belongs to the Current User
-            if (previousCustomer.UserId != userId)
+            // Check if the Customer Belongs to the Current User or the User Is Admin
+            if (previousCustomer.UserId != userId && !User.IsInRole("Admin"))
             {
                 return RedirectToAction("AccessDenied", "Account");
             }
@@ -230,8 +230,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 previousCustomer.Name = customerVM.Name;
                 previousCustomer.Gender = customerVM.Gender;
                 previousCustomer.BioData = customerVM.BioData;
-                previousCustomer.UpdatedAt = DateTime.UtcNow;   
-                previousCustomer.UpdatedBy = userId;           
+                previousCustomer.UpdatedAt = DateTime.UtcNow;
+                previousCustomer.UpdatedBy = userId;
 
                 _context.SaveChanges();
 
