@@ -154,9 +154,9 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Check if the Customer Belongs to the Current User
-            if (customer.UserId != userId)
+            if (customer.UserId != userId && !User.IsInRole("Admin"))
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             return View(customer);
@@ -176,9 +176,10 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Check if the Customer Belongs to the Current User
-            if (customer.UserId != userId)
+            if (customer.UserId != userId && !User.IsInRole("Admin"))
+
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             // Map Entity → ViewModel
@@ -218,7 +219,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // Check if the Customer Belongs to the Current User
             if (previousCustomer.UserId != userId)
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             // If Data is Valid
@@ -259,10 +260,10 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            // Check if the Customer Belongs to the Current User
-            if (customer.UserId != userId)
+            // Check if the Customer Belongs to the Current User or the User Is Admin 
+            if (customer.UserId != userId && !User.IsInRole("Admin"))
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             // Map Entity → ViewModel
@@ -293,9 +294,9 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            if (customer.UserId != userId)
+            if (customer.UserId != userId && !User.IsInRole("Admin"))
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             // Soft delete customer + its (non-deleted) details

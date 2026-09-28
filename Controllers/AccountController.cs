@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using CustomerManagementPractiseCS.ViewModels;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CustomerManagementPractiseCS.Controllers
@@ -71,7 +72,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Show the Identity Errors (Duplicate Email, Weak Password ...)
+            // Show the Identity Errors (Duplicate Email, Weak Password and More)
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
@@ -119,6 +120,137 @@ namespace CustomerManagementPractiseCS.Controllers
         {
             await _signInManager.SignOutAsync();
             return RedirectToAction("Login");
+        }
+
+        public IActionResult AccessDenied()
+        {
+            return View();
+        }
+
+        // GET: Account/Profile
+        public async Task<IActionResult> Profile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            var vm = new ProfileViewModel
+            {
+                Id = user.Id,
+                Email = user.Email,
+                UserName = user.UserName,
+                PhoneNumber = user.PhoneNumber,
+                Roles = await _userManager.GetRolesAsync(user)
+            };
+
+            return View(vm);
+        }
+
+        // GET: Account/EditProfile
+        public async Task<IActionResult> EditProfile()
+        {
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            var vm = new EditProfileViewModel
+            {
+                Email = user.Email ?? string.Empty,
+                UserName = user.UserName ?? string.Empty,
+                PhoneNumber = user.PhoneNumber
+            };
+
+            return View(vm);
+        }
+
+        // POST: Account/EditProfile
+        [HttpPost]
+        public async Task<IActionResult> EditProfile(EditProfileViewModel vm)
+        {
+            if (!ModelState.IsValid) return View(vm);
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            // Email
+            if (user.Email != vm.Email)
+            {
+                var result = await _userManager.SetEmailAsync(user, vm.Email);
+                if (!result.Succeeded)
+                {
+                    foreach (var e in result.Errors)
+                        { 
+                        ModelState.AddModelError(string.Empty, e.Description); 
+                    }
+
+                    return View(vm);
+                }
+            }
+
+            // UserName
+            if (user.UserName != vm.UserName)
+            {
+                var result = await _userManager.SetUserNameAsync(user, vm.UserName);
+                if (!result.Succeeded)
+                {
+                    foreach (var e in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, e.Description);
+                    }
+
+                    return View(vm);
+                }
+            }
+
+            // Phone
+            if (user.PhoneNumber != vm.PhoneNumber)
+            {
+                var result = await _userManager.SetPhoneNumberAsync(user, vm.PhoneNumber);
+                if (!result.Succeeded)
+                {
+                    foreach (var e in result.Errors)
+                    {
+                        ModelState.AddModelError(string.Empty, e.Description);
+                    }
+
+                    return View(vm);
+                }
+            }
+
+            // Refresh the Logibn SO everything is up to date
+            await _signInManager.RefreshSignInAsync(user);
+
+            return RedirectToAction("Profile");
+        }
+
+        // GET: Account/ChangePassword
+        public IActionResult ChangePassword()
+        {
+            return View();
+        }
+
+        // POST: Account/ChangePassword
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel vm)
+        {
+            if (!ModelState.IsValid) return View(vm);
+
+            var user = await _userManager.GetUserAsync(User);
+            if (user == null) return NotFound();
+
+            var result = await _userManager.ChangePasswordAsync(user, vm.CurrentPassword, vm.NewPassword);
+
+            if (!result.Succeeded)
+            {
+                foreach (var e in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, e.Description);
+                }
+
+                return View(vm);
+            }
+
+            await _signInManager.RefreshSignInAsync(user);
+
+            return RedirectToAction("Profile");
         }
 
     }

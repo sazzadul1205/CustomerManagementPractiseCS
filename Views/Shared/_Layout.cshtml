@@ -50,10 +50,11 @@
                                 </span>
                             </li>
                             <li class="nav-item">
+                                <a class="nav-link text-dark" asp-controller="Account" asp-action="Profile">My Profile</a>
+                            </li>
+                            <li class="nav-item">
                                 <form asp-controller="Account" asp-action="Logout" method="post">
-                                    <button type="submit">
-                                        Logout
-                                    </button>
+                                    <button type="submit" class="btn btn-link nav-link text-dark">Logout</button>
                                 </form>
                             </li>
                         }

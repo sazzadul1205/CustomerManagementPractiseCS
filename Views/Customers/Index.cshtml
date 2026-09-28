@@ -26,6 +26,7 @@ else
             <th>Email</th>
             <th>City</th>
             <th>Country</th>
+              <th>Actions</th> 
         </tr>
     </thead>
 
@@ -66,6 +67,22 @@ else
                         No active detail record
                     </td>
                 }
+                  <td>
+
+                <a asp-controller="Customers"
+                   asp-action="Edit"
+                   asp-route-id="@customer.Id"
+                   class="btn btn-sm btn-warning">
+                    Edit
+                </a>
+
+                <a asp-controller="Customers"
+                   asp-action="Delete"
+                   asp-route-id="@customer.Id"
+                   class="btn btn-sm btn-danger">
+                    Delete
+                </a>
+            </td>
             </tr>
         }
     </tbody>

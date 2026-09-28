@@ -85,27 +85,25 @@ namespace CustomerManagementPractiseCS.Controllers
                 // One by One Go through every Customer and Delete it With its Details
                 foreach (var customer in customers)
                 {
-                // Check if there is any Details
-                if (customer.Details != null && customer.Details.Any())
-                {
-                    // One by One Go through all the Details and Delete
-                    foreach (var detail in customer.Details)
+                    // Check if there is any Details
+                    if (customer.Details != null && customer.Details.Any())
                     {
-                        _context.CustomersDetail.Remove(detail);
+                        // One by One Go through all the Details and Delete
+                        foreach (var detail in customer.Details)
+                        {
+                            _context.CustomersDetail.Remove(detail);
+                        }
                     }
+                    // Remove the Customer itself
+                    _context.Customers.Remove(customer);
                 }
-
-                // Remove the Customer itself
-                _context.Customers.Remove(customer);
-
                 _context.SaveChanges();
-                }
             }
 
             // Finally Delete the Identity User
             await _userManager.DeleteAsync(user);
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
     }
 }

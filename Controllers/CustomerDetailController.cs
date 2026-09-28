@@ -61,7 +61,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // A Customer Detail can Only be Added by the Owner of the Customer
             if (!CanManage(customer))
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             // Pre-fill the CustomerId so the form knows which customer this belongs to
@@ -88,7 +88,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // The Customer Detail can Only be Added by the Owner of the Customer
             if (!CanManage(customer))
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             // Reject any Upload that is Not a Real Image File
@@ -159,7 +159,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // Only the Owner of the Customer can Edit its Details
             if (!CanManage(GetCustomer(customerDetail.CustomerId)))
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             // Map Entity → ViewModel
@@ -201,7 +201,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // Only the Owner of the Customer can Edit its Details
             if (!CanManage(GetCustomer(existing.CustomerId)))
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             // Reject any Upload that is Not a Real Image File
@@ -275,7 +275,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // Only the Owner of the Customer can Change the Active Detail
             if (!CanManage(GetCustomer(customerDetail.CustomerId)))
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             var otherDetails = _context.CustomersDetail.Where(x => x.CustomerId == customerDetail.CustomerId && x.Id != id).ToList();
@@ -308,7 +308,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // Only the Owner of the Customer can Delete its Details
             if (!CanManage(GetCustomer(customerDetail.CustomerId)))
             {
-                return Forbid();
+                return RedirectToAction("AccessDenied", "Account");
             }
 
             // Map Entity → ViewModel
@@ -337,7 +337,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 .FirstOrDefault(x => x.Id == id && !x.Deleted);
 
             if (customerDetail == null) return NotFound();
-            if (!CanManage(GetCustomer(customerDetail.CustomerId))) return Forbid();
+            if (!CanManage(GetCustomer(customerDetail.CustomerId))) return RedirectToAction("AccessDenied", "Account");
 
             int customerId = customerDetail.CustomerId;
 
