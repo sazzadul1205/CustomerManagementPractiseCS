@@ -1,0 +1,34 @@
+﻿@model CustomerManagementPractiseCS.ViewModels.SocialLinkViewModels.SocialLinkDeleteViewModel
+
+@{
+    ViewData["Title"] = "Delete Social Link";
+}
+
+<h1 class="mb-4">Delete Social Link</h1>
+
+<div class="row">
+    <div class="col-md-8">
+
+        <div class="alert alert-danger">
+            Are you sure you want to delete this link? This action cannot be undone.
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="mb-1">@Model.Platform</h5>
+                <p class="mb-0">
+                    <a href="@Model.Url" target="_blank" rel="noopener">@Model.Url</a>
+                </p>
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                <a asp-controller="Profile" asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+
+    </div>
+</div>
