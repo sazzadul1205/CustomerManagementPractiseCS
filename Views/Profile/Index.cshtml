@@ -132,7 +132,7 @@ else
                 </div>
             </div>
 
-            <!-- Education Section -->
+            @* Education Section *@
             <div class="card shadow-sm mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <strong>Education</strong>
@@ -159,14 +159,63 @@ else
                                         }
                                         else if (edu.EndYear.HasValue)
                                         {
-                                         <span> - @edu.EndYear</span>
-                                         }
+                                            <span> - @edu.EndYear</span>
+                                        }
                                     </small>
                                 </div>
                                 <div class="d-flex gap-2 align-items-start">
                                     <a asp-controller="Education" asp-action="Edit" asp-route-id="@edu.Id"
                                        class="btn btn-sm btn-outline-primary">Edit</a>
                                     <a asp-controller="Education" asp-action="Delete" asp-route-id="@edu.Id"
+                                       class="btn btn-sm btn-outline-danger">Delete</a>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            @*  Experience Section *@
+            <div class="card shadow-sm mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Experience</strong>
+                    <a asp-controller="Experience" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
+                </div>
+                <div class="card-body">
+                    @if (Model.Experiences.Count == 0)
+                    {
+                        <p class="text-muted mb-0">No experience added yet.</p>
+                    }
+                    else
+                    {
+                        foreach (var exp in Model.Experiences)
+                        {
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <div>
+                                    <strong>@exp.Designation</strong>
+                                    <br />
+                                    <small>
+                                        @exp.CompanyName · @exp.EmploymentType
+                                        @if (!string.IsNullOrEmpty(exp.Location))
+                                        {
+                                            <span> · @exp.Location</span>
+                                        }
+                                        <br />
+                                        @exp.StartDate.ToString("MMM yyyy")
+                                        @if (exp.IsCurrent)
+                                        {
+                                            <span> - Present</span>
+                                        }
+                                        else if (exp.EndDate.HasValue)
+                                        {
+                                            <span> - @exp.EndDate.Value.ToString("MMM yyyy")</span>
+                                        }
+                                    </small>
+                                </div>
+                                <div class="d-flex gap-2 align-items-start">
+                                    <a asp-controller="Experience" asp-action="Edit" asp-route-id="@exp.Id"
+                                       class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <a asp-controller="Experience" asp-action="Delete" asp-route-id="@exp.Id"
                                        class="btn btn-sm btn-outline-danger">Delete</a>
                                 </div>
                             </div>

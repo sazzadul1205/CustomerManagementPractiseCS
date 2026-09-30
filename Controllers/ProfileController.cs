@@ -46,9 +46,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
                 Contacts = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList(),
 
-                Educations = _context.Educations
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList(),
+                Educations = _context.Educations.Where(x => x.PersonId == profileData.Id).ToList(),
 
                 Experiences = _context.Experiences
                     .Where(x => x.PersonId == profileData.Id)
