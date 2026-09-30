@@ -1,0 +1,66 @@
+﻿@model CustomerManagementPractiseCS.ViewModels.ContactViewModels.ContactCreateViewModel
+
+@{
+    ViewData["Title"] = "Add Contact";
+}
+
+<h1 class="mb-4">Add Contact</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contact Type</label>
+                            <select asp-for="ContactType" class="form-select">
+                                <option value="">-- Select Type --</option>
+                                <option value="Phone">Phone</option>
+                                <option value="Email">Email</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span asp-validation-for="ContactType" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Label</label>
+                            <select asp-for="Label" class="form-select">
+                                <option value="">-- Select Label --</option>
+                                <option value="Personal">Personal</option>
+                                <option value="Family">Family</option>
+                                <option value="Work">Work</option>
+                            </select>
+                            <span asp-validation-for="Label" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Value</label>
+                        <input asp-for="Value" class="form-control" />
+                        <span asp-validation-for="Value" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input asp-for="IsPrimary" class="form-check-input" />
+                        <label class="form-check-label">Mark as primary contact for this type</label>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Save Contact</button>
+                        <a asp-controller="Profile" asp-action="Index" class="btn btn-secondary">Cancel</a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

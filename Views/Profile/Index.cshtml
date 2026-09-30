@@ -4,7 +4,6 @@
     ViewData["Title"] = "My Profile";
 }
 
-@* header with Edit/Delete/Create buttons — unchanged *@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="mb-0">My Profile</h1>
 
@@ -23,7 +22,6 @@
 
 @if (Model == null)
 {
-    @* empty state — unchanged *@
     <div class="card shadow-sm">
         <div class="card-body text-center py-5">
             <p class="text-muted mb-3">No profile has been created yet.</p>
@@ -36,7 +34,7 @@ else
     <div class="row">
         <div class="col-md-8">
 
-            @* ---------- Basic Info ---------- *@
+            @* Basic Info *@
             <div class="card shadow-sm mb-3">
                 <div class="card-body">
                     <h3 class="mb-1">@Model.FullName</h3>
@@ -86,8 +84,47 @@ else
                                     <small>@address.Line1, @address.City, @address.Country</small>
                                 </div>
                                 <div class="d-flex gap-2 align-items-start">
-                                    <a asp-controller="Address" asp-action="Edit" asp-route-id="@address.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                                    <a asp-controller="Address" asp-action="Delete" asp-route-id="@address.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                                    <a asp-controller="Address" asp-action="Edit" asp-route-id="@address.Id"
+                                       class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <a asp-controller="Address" asp-action="Delete" asp-route-id="@address.Id"
+                                       class="btn btn-sm btn-outline-danger">Delete</a>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            @* Contacts *@
+            <div class="card shadow-sm mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Contacts</strong>
+                    <a asp-controller="Contact" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
+                </div>
+                <div class="card-body">
+                    @if (Model.Contacts.Count == 0)
+                    {
+                        <p class="text-muted mb-0">No contacts added yet.</p>
+                    }
+                    else
+                    {
+                        foreach (var contact in Model.Contacts)
+                        {
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <div>
+                                    <strong>@contact.ContactType</strong> · @contact.Label
+                                    @if (contact.IsPrimary)
+                                    {
+                                        <span class="badge bg-primary">Primary</span>
+                                    }
+                                    <br />
+                                    <small>@contact.Value</small>
+                                </div>
+                                <div class="d-flex gap-2 align-items-start">
+                                    <a asp-controller="Contact" asp-action="Edit" asp-route-id="@contact.Id"
+                                       class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <a asp-controller="Contact" asp-action="Delete" asp-route-id="@contact.Id"
+                                       class="btn btn-sm btn-outline-danger">Delete</a>
                                 </div>
                             </div>
                         }

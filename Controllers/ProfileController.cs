@@ -42,13 +42,9 @@ namespace CustomerManagementPractiseCS.Controllers
                 PhotoUrl = profileData.PhotoUrl,
                 Summary = profileData.Summary,
 
-                Addresses = _context.Addresses
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList(),
+                Addresses = _context.Addresses.Where(x => x.PersonId == profileData.Id).ToList(),
 
-                Contacts = _context.Contacts
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList(),
+                Contacts = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList(),
 
                 Educations = _context.Educations
                     .Where(x => x.PersonId == profileData.Id)
