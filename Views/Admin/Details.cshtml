@@ -1,0 +1,204 @@
+﻿@model CustomerManagementPractiseCS.ViewModels.AdminViewModels.AdminProfileDetailsViewModel
+
+@{
+    ViewData["Title"] = "Profile Details";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">Profile Details</h1>
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+
+        <!-- Basic Info -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-body">
+                <div class="text-center mb-3">
+                    @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+                    {
+                        <img src="@Model.PhotoUrl" alt="@Model.FullName"
+                             style="max-width:150px; max-height:150px; border-radius:50%; object-fit:cover;" />
+                    }
+                    else
+                    {
+                        <div style="width:150px; height:150px; border-radius:50%; background:#e9ecef; display:inline-flex; align-items:center; justify-content:center;">
+                            <span class="text-muted">No Photo</span>
+                        </div>
+                    }
+                </div>
+
+                <h3 class="mb-1 text-center">@Model.FullName</h3>
+                <p class="text-muted text-center mb-3">
+                    @Model.Gender / @Model.DateOfBirth.ToString("dd MMM yyyy")
+                </p>
+
+                @if (!string.IsNullOrEmpty(Model.BloodGroup))
+                {
+                    <p class="mb-2"><strong>Blood Group:</strong> @Model.BloodGroup</p>
+                }
+                @if (!string.IsNullOrEmpty(Model.Religion))
+                {
+                    <p class="mb-2"><strong>Religion:</strong> @Model.Religion</p>
+                }
+                @if (!string.IsNullOrEmpty(Model.Summary))
+                {
+                    <hr />
+                    <p class="mb-0">@Model.Summary</p>
+                }
+
+                <hr />
+                <p class="text-muted small mb-0">
+                    Created: @Model.CreatedAt.ToString("dd MMM yyyy HH:mm")
+                    @if (Model.UpdatedAt.HasValue)
+                    {
+                        <span> · Updated: @Model.UpdatedAt.Value.ToString("dd MMM yyyy HH:mm")</span>
+                    }
+                </p>
+            </div>
+        </div>
+
+        <!-- Addresses -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header"><strong>Addresses</strong></div>
+            <div class="card-body">
+                @if (Model.Addresses.Count == 0)
+                {
+                    <p class="text-muted mb-0">No addresses.</p>
+                }
+                else
+                {
+                    foreach (var address in Model.Addresses)
+                    {
+                        <div class="border-bottom py-2">
+                            <strong>@address.AddressType</strong>
+                            @if (address.IsPrimary)
+                            {
+                                <span class="badge bg-primary">Primary</span>
+                            }
+                            <br />
+                            <small>@address.Line1, @address.City@(string.IsNullOrEmpty(address.State) ? "" : ", " + address.State), @address.Country</small>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Contacts -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header"><strong>Contacts</strong></div>
+            <div class="card-body">
+                @if (Model.Contacts.Count == 0)
+                {
+                    <p class="text-muted mb-0">No contacts.</p>
+                }
+                else
+                {
+                    foreach (var contact in Model.Contacts)
+                    {
+                        <div class="border-bottom py-2">
+                            <strong>@contact.ContactType</strong> · @contact.Label
+                            @if (contact.IsPrimary)
+                            {
+                                <span class="badge bg-primary">Primary</span>
+                            }
+                            <br />
+                            <small>@contact.Value</small>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Education -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header"><strong>Education</strong></div>
+            <div class="card-body">
+                @if (Model.Educations.Count == 0)
+                {
+                    <p class="text-muted mb-0">No education entries.</p>
+                }
+                else
+                {
+                    foreach (var edu in Model.Educations)
+                    {
+                        <div class="border-bottom py-2">
+                            <strong>@edu.DegreeLevel — @edu.DegreeName</strong><br />
+                        <small>
+                                @edu.InstitutionName · @edu.StartYear
+                                @if (edu.IsOngoing)
+                                {
+                                    <span> - Ongoing</span>
+                                }
+                                else if (edu.EndYear.HasValue)
+                                {
+                                    <span> - @edu.EndYear</span>
+                                }
+                            </small>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Experience -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header"><strong>Experience</strong></div>
+            <div class="card-body">
+                @if (Model.Experiences.Count == 0)
+                {
+                    <p class="text-muted mb-0">No experience entries.</p>
+                }
+                else
+                {
+                    foreach (var exp in Model.Experiences)
+                    {
+                        <div class="border-bottom py-2">
+                            <strong>@exp.Designation</strong><br />
+                            <small>
+                                @exp.CompanyName · @exp.EmploymentType
+                                @if (!string.IsNullOrEmpty(exp.Location))
+                                {
+                                    <span> · @exp.Location</span>
+                                }
+                                <br />
+                                @exp.StartDate.ToString("MMM yyyy")
+                                @if (exp.IsCurrent)
+                                {
+                                    <span> - Present</span>
+                                }
+                                else if (exp.EndDate.HasValue)
+                                {
+                                    <span> - @exp.EndDate.Value.ToString("MMM yyyy")</span>
+                                }
+                            </small>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+        <!-- Social Links -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header"><strong>Social Links</strong></div>
+            <div class="card-body">
+                @if (Model.SocialLinks.Count == 0)
+                {
+                    <p class="text-muted mb-0">No links.</p>
+                }
+                else
+                {
+                    foreach (var link in Model.SocialLinks)
+                    {
+                        <div class="border-bottom py-2">
+                            <strong>@link.Platform</strong><br />
+                            <small><a href="@link.Url" target="_blank" rel="noopener">@link.Url</a></small>
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+
+    </div>
+</div>

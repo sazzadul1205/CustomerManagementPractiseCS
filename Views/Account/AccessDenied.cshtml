@@ -15,14 +15,14 @@
 
         @if (User.IsInRole("Admin"))
         {
-            <a asp-controller="Customers" asp-action="Index" class="btn btn-primary">
-                Go to Customers
+            <a asp-controller="Admin" asp-action="Index" class="btn btn-primary">
+                Go to Profiles
             </a>
         }
         else
         {
-            <a asp-controller="Customers" asp-action="MyData" class="btn btn-primary">
-                Go to My Data
+            <a asp-controller="Profile" asp-action="Index" class="btn btn-primary">
+                Go to My Profile
             </a>
         }
     }

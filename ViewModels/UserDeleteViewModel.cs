@@ -8,6 +8,6 @@
 
         public IList<string> Roles { get; set; } = new List<string>();
 
-        public int CustomerCount { get; set; }
+        public int ProfileCount { get; set; }
     }
 }

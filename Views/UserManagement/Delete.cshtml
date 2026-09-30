@@ -18,15 +18,15 @@
         <dt class="col-sm-2">Roles</dt>
         <dd class="col-sm-10">@string.Join(", ", Model.Roles)</dd>
 
-        <dt class="col-sm-2">Customers</dt>
-        <dd class="col-sm-10">@Model.CustomerCount</dd>
+        <dt class="col-sm-2">Profiles</dt>
+        <dd class="col-sm-10">@Model.ProfileCount</dd>
     </dl>
 
-    @if (Model.CustomerCount > 0)
+    @if (Model.ProfileCount > 0)
     {
         <div class="alert alert-warning">
-            This will also delete <strong>@Model.CustomerCount</strong> customer record(s)
-            and all their detail records. This cannot be undone.
+            This will also delete <strong>@Model.ProfileCount</strong> profile record(s)
+            and any associated photos. This cannot be undone.
         </div>
     }
 

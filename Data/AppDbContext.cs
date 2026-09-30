@@ -14,8 +14,6 @@ namespace CustomerManagementPractiseCS.Data
         }
 
         // Table Connections
-        public DbSet<Customer> Customers { get; set; }
-        public DbSet<CustomerDetail> CustomersDetail { get; set; }
         public DbSet<Person> Persons => Set<Person>();
         public DbSet<Address> Addresses => Set<Address>();
         public DbSet<Contact> Contacts => Set<Contact>();
