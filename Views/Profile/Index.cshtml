@@ -132,6 +132,49 @@ else
                 </div>
             </div>
 
+            <!-- Education Section -->
+            <div class="card shadow-sm mb-3">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Education</strong>
+                    <a asp-controller="Education" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
+                </div>
+                <div class="card-body">
+                    @if (Model.Educations.Count == 0)
+                    {
+                        <p class="text-muted mb-0">No education added yet.</p>
+                    }
+                    else
+                    {
+                        foreach (var edu in Model.Educations)
+                        {
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <div>
+                                    <strong>@edu.DegreeLevel — @edu.DegreeName</strong>
+                                    <br />
+                                    <small>
+                                        @edu.InstitutionName · @edu.StartYear
+                                        @if (edu.IsOngoing)
+                                        {
+                                            <span> - Ongoing</span>
+                                        }
+                                        else if (edu.EndYear.HasValue)
+                                        {
+                                         <span> - @edu.EndYear</span>
+                                         }
+                                    </small>
+                                </div>
+                                <div class="d-flex gap-2 align-items-start">
+                                    <a asp-controller="Education" asp-action="Edit" asp-route-id="@edu.Id"
+                                       class="btn btn-sm btn-outline-primary">Edit</a>
+                                    <a asp-controller="Education" asp-action="Delete" asp-route-id="@edu.Id"
+                                       class="btn btn-sm btn-outline-danger">Delete</a>
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
         </div>
     </div>
 }

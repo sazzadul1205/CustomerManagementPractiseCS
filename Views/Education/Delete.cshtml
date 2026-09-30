@@ -1,0 +1,52 @@
+﻿@model CustomerManagementPractiseCS.ViewModels.EducationViewModels.EducationDeleteViewModel
+
+@{
+    ViewData["Title"] = "Delete Education";
+}
+
+<h1 class="mb-4">Delete Education</h1>
+
+<div class="row">
+    <div class="col-md-8">
+
+        <div class="alert alert-danger">
+            Are you sure you want to delete this education entry? This action cannot be undone.
+        </div>
+
+        <div class="card shadow-sm mb-4">
+            <div class="card-body">
+                <h5 class="mb-1">@Model.DegreeLevel — @Model.DegreeName</h5>
+                <p class="text-muted mb-2">
+                    @Model.InstitutionName
+                    @if (!string.IsNullOrEmpty(Model.BoardOrUniversity))
+                    {
+                        <span> · @Model.BoardOrUniversity</span>
+                    }
+                </p>
+
+                <p class="mb-2">
+                    <strong>Years:</strong>
+                    @Model.StartYear
+                    @if (Model.IsOngoing)
+                    {
+                        <span> - Ongoing</span>
+                    }
+                    else if (Model.EndYear.HasValue)
+                    {
+                        <span> - @Model.EndYear</span>
+                    }
+                </p>
+
+            </div>
+        </div>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">Yes, Delete</button>
+                <a asp-controller="Profile" asp-action="Index" class="btn btn-secondary">Cancel</a>
+            </div>
+        </form>
+
+    </div>
+</div>

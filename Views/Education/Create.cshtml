@@ -1,0 +1,93 @@
+﻿@model CustomerManagementPractiseCS.ViewModels.EducationViewModels.EducationCreateViewModel
+
+@{
+    ViewData["Title"] = "Add Education";
+}
+
+<h1 class="mb-4">Add Education</h1>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <form asp-action="Create" method="post">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Degree Level</label>
+                            <select asp-for="DegreeLevel" class="form-select">
+                                <option value="">-- Select Level --</option>
+                                <option value="SSC">SSC</option>
+                                <option value="HSC">HSC</option>
+                                <option value="Diploma">Diploma</option>
+                                <option value="Bachelor">Bachelor</option>
+                                <option value="Master">Master</option>
+                                <option value="PhD">PhD</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <span asp-validation-for="DegreeLevel" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Degree Name</label>
+                            <input asp-for="DegreeName" class="form-control" />
+                            <span asp-validation-for="DegreeName" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Institution Name</label>
+                        <input asp-for="InstitutionName" class="form-control" />
+                        <span asp-validation-for="InstitutionName" class="text-danger"></span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Board or University</label>
+                        <input asp-for="BoardOrUniversity" class="form-control" />
+                        <span asp-validation-for="BoardOrUniversity" class="text-danger"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Start Year</label>
+                            <input asp-for="StartYear" type="number" class="form-control" />
+                            <span asp-validation-for="StartYear" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">End Year</label>
+                            <input asp-for="EndYear" type="number" class="form-control" />
+                            <span asp-validation-for="EndYear" class="text-danger"></span>
+                        </div>
+
+                        <div class="col-md-4 mb-3 d-flex align-items-center">
+                            <div class="form-check mt-4">
+                                <input asp-for="IsOngoing" class="form-check-input" />
+                                <label class="form-check-label">Currently Ongoing</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Result</label>
+                        <input asp-for="Result" class="form-control" placeholder="e.g. 3.75 or A+" />
+                        <span asp-validation-for="Result" class="text-danger"></span>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">Save Education</button>
+                        <a asp-controller="Profile" asp-action="Index" class="btn btn-secondary">Cancel</a>
+                    </div>
+
+                </form>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

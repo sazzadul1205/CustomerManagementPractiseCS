@@ -1,13 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace CustomerManagementPractiseCS.Models
+namespace CustomerManagementPractiseCS.ViewModels.EducationViewModels
 {
-    public class Education
+    public class EducationEditViewModel
     {
         public int Id { get; set; }
-
-        public int PersonId { get; set; }
-        public Person? Person { get; set; }
 
         [Required]
         [StringLength(30)]
@@ -24,19 +21,14 @@ namespace CustomerManagementPractiseCS.Models
         [StringLength(200)]
         public string? BoardOrUniversity { get; set; }
 
+        [Required]
         public int StartYear { get; set; }
+
         public int? EndYear { get; set; }
+
         public bool IsOngoing { get; set; } = false;
 
         [StringLength(20)]
         public string? Result { get; set; }
-
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-        [StringLength(450)]
-        public string? CreatedBy { get; set; }
-        public DateTime? UpdatedAt { get; set; }
-        [StringLength(450)]
-        public string? UpdatedBy { get; set; }
-        public bool Deleted { get; set; } = false;
     }
 }

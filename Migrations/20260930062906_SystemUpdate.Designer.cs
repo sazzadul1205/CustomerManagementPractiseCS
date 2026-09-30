@@ -286,10 +286,6 @@ namespace CustomerManagementPractiseCS.Migrations
                     b.Property<int?>("EndYear")
                         .HasColumnType("int");
 
-                    b.Property<string>("FieldOfStudy")
-                        .HasMaxLength(150)
-                        .HasColumnType("nvarchar(150)");
-
                     b.Property<string>("InstitutionName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -302,14 +298,6 @@ namespace CustomerManagementPractiseCS.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Result")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<decimal?>("ResultScale")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("ResultType")
-                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
