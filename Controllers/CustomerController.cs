@@ -72,11 +72,11 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: Customer/Create
         [HttpPost]
-        public IActionResult Create(CustomerViewModel customerVM)
+        public IActionResult Create(CustomerViewModel customerViewModel)
         {
             string? userId = _userManager.GetUserId(User);
 
-            if (customerVM == null)
+            if (customerViewModel == null)
             {
                 return View();
             }
@@ -96,9 +96,9 @@ namespace CustomerManagementPractiseCS.Controllers
                 if (existing != null)
                 {
                     // Reuse the row: restore + update
-                    existing.Name = customerVM.Name;
-                    existing.Gender = customerVM.Gender;
-                    existing.BioData = customerVM.BioData;
+                    existing.Name = customerViewModel.Name;
+                    existing.Gender = customerViewModel.Gender;
+                    existing.BioData = customerViewModel.BioData;
                     existing.Deleted = false;
                     existing.UpdatedAt = DateTime.UtcNow;
                     existing.UpdatedBy = userId;
@@ -108,9 +108,9 @@ namespace CustomerManagementPractiseCS.Controllers
                     // Map ViewModel → Entity
                     var customer = new Customer
                     {
-                        Name = customerVM.Name,
-                        Gender = customerVM.Gender,
-                        BioData = customerVM.BioData,
+                        Name = customerViewModel.Name,
+                        Gender = customerViewModel.Gender,
+                        BioData = customerViewModel.BioData,
                         UserId = userId,
                         CreatedAt = DateTime.UtcNow,
                         CreatedBy = userId
@@ -133,7 +133,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }            
             
             // If Fail return to create
-            return View(customerVM);
+            return View(customerViewModel);
         }
 
         // Customer/{id}
@@ -183,7 +183,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Map Entity → ViewModel
-            var customerVM = new CustomerViewModel
+            var customerViewModel = new CustomerViewModel
             {
                 Id = customer.Id,
                 Name = customer.Name,
@@ -192,14 +192,14 @@ namespace CustomerManagementPractiseCS.Controllers
                 UserId = customer.UserId
             };
 
-            return View(customerVM);
+            return View(customerViewModel);
         }
 
         // POST: Customer/Edit/{id}
         [HttpPost]
-        public IActionResult Edit(CustomerViewModel customerVM, int id)
+        public IActionResult Edit(CustomerViewModel customerViewModel, int id)
         {
-            if (id != customerVM.Id)
+            if (id != customerViewModel.Id)
             {
                 return NotFound();
             }
@@ -227,9 +227,9 @@ namespace CustomerManagementPractiseCS.Controllers
             {
 
                 // Register Changes
-                previousCustomer.Name = customerVM.Name;
-                previousCustomer.Gender = customerVM.Gender;
-                previousCustomer.BioData = customerVM.BioData;
+                previousCustomer.Name = customerViewModel.Name;
+                previousCustomer.Gender = customerViewModel.Gender;
+                previousCustomer.BioData = customerViewModel.BioData;
                 previousCustomer.UpdatedAt = DateTime.UtcNow;
                 previousCustomer.UpdatedBy = userId;
 
@@ -244,7 +244,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 return RedirectToAction("MyData");
             }
 
-            return View(customerVM);
+            return View(customerViewModel);
         }
 
         // Customer/Delete/{id}
@@ -267,7 +267,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Map Entity → ViewModel
-            var customerVM = new CustomerViewModel
+            var customerViewModel = new CustomerViewModel
             {
                 Id = customer.Id,
                 Name = customer.Name,
@@ -277,7 +277,7 @@ namespace CustomerManagementPractiseCS.Controllers
             };
 
 
-            return View(customerVM);
+            return View(customerViewModel);
         }
 
         [HttpPost, ActionName("Delete")]

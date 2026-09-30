@@ -75,10 +75,10 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: CustomerDetail/Create
         [HttpPost]
-        public IActionResult Create(CustomerDetailsViewModel customerDetailVM, IFormFile? imageFile)
+        public IActionResult Create(CustomerDetailsViewModel customerDetailViewModel, IFormFile? imageFile)
         {
             // chek if teh Customer is Valid
-            var customer = GetCustomer(customerDetailVM.CustomerId);
+            var customer = GetCustomer(customerDetailViewModel.CustomerId);
 
             if (customer == null)
             {
@@ -102,14 +102,14 @@ namespace CustomerManagementPractiseCS.Controllers
                 // Map ViewModel → Entity
                 var customerDetail = new CustomerDetail
                 {
-                    CustomerId = customerDetailVM.CustomerId,
-                    Phone = customerDetailVM.Phone,
-                    Email = customerDetailVM.Email,
-                    DateOfBirth = customerDetailVM.DateOfBirth,
-                    City = customerDetailVM.City,
-                    Country = customerDetailVM.Country,
-                    Address = customerDetailVM.Address,
-                    IsActive = customerDetailVM.IsActive,
+                    CustomerId = customerDetailViewModel.CustomerId,
+                    Phone = customerDetailViewModel.Phone,
+                    Email = customerDetailViewModel.Email,
+                    DateOfBirth = customerDetailViewModel.DateOfBirth,
+                    City = customerDetailViewModel.City,
+                    Country = customerDetailViewModel.Country,
+                    Address = customerDetailViewModel.Address,
+                    IsActive = customerDetailViewModel.IsActive,
                          CreatedAt = DateTime.UtcNow,     
                     CreatedBy = CurrentUserId        
                 };
@@ -142,7 +142,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Validation failed
-            return View(customerDetailVM);
+            return View(customerDetailViewModel);
         }
 
 
@@ -163,7 +163,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Map Entity → ViewModel
-            var vm = new CustomerDetailsViewModel
+            var ViewModel = new CustomerDetailsViewModel
             {
                 Id = customerDetail.Id,
                 CustomerId = customerDetail.CustomerId,
@@ -177,15 +177,15 @@ namespace CustomerManagementPractiseCS.Controllers
                 IsActive = customerDetail.IsActive
             };
 
-            return View(vm);
+            return View(ViewModel);
         }
 
         // POST: CustomerDetail/Edit/5
         [HttpPost]
-        public IActionResult Edit(int id, CustomerDetailsViewModel customerDetailVM, IFormFile? imageFile)
+        public IActionResult Edit(int id, CustomerDetailsViewModel customerDetailViewModel, IFormFile? imageFile)
         {
             // Route id must match the id on the submitted model
-            if (id != customerDetailVM.Id)
+            if (id != customerDetailViewModel.Id)
             {
                 return NotFound();
             }
@@ -212,7 +212,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (ModelState.IsValid)
             {
-                if (customerDetailVM.IsActive)
+                if (customerDetailViewModel.IsActive)
                 {
                     var others = _context.CustomersDetail
                         .Where(x => x.CustomerId == existing.CustomerId && x.Id != id && !x.Deleted)
@@ -241,13 +241,13 @@ namespace CustomerManagementPractiseCS.Controllers
                     existing.ProfileImage = newPath;
                 }
 
-                existing.Phone = customerDetailVM.Phone;
-                existing.Email = customerDetailVM.Email;
-                existing.DateOfBirth = customerDetailVM.DateOfBirth;
-                existing.City = customerDetailVM.City;
-                existing.Country = customerDetailVM.Country;
-                existing.Address = customerDetailVM.Address;
-                existing.IsActive = customerDetailVM.IsActive;
+                existing.Phone = customerDetailViewModel.Phone;
+                existing.Email = customerDetailViewModel.Email;
+                existing.DateOfBirth = customerDetailViewModel.DateOfBirth;
+                existing.City = customerDetailViewModel.City;
+                existing.Country = customerDetailViewModel.Country;
+                existing.Address = customerDetailViewModel.Address;
+                existing.IsActive = customerDetailViewModel.IsActive;
                 existing.UpdatedAt = DateTime.UtcNow;  
                 existing.UpdatedBy = CurrentUserId;    
 
@@ -257,7 +257,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
             
             // Validation failed 
-            return View(customerDetailVM);
+            return View(customerDetailViewModel);
         }
 
 
@@ -312,7 +312,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Map Entity → ViewModel
-            var vm = new CustomerDetailsViewModel
+            var ViewModel = new CustomerDetailsViewModel
             {
                 Id = customerDetail.Id,
                 CustomerId = customerDetail.CustomerId,
@@ -326,7 +326,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 IsActive = customerDetail.IsActive
             };
 
-            return View(vm);
+            return View(ViewModel);
         }
 
         // POST: CustomerDetail/Delete/5

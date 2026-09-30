@@ -47,8 +47,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 return BadRequest("You can't delete your own account here.");
             }
 
-            // Build a VM for the confirmation page
-            var vm = new UserDeleteViewModel
+            // Build a ViewModel for the confirmation page
+            var ViewModel = new UserDeleteViewModel
             {
                 Id = user.Id,
                 Email = user.Email,
@@ -56,7 +56,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 CustomerCount = _context.Customers.Count(c => c.UserId == user.Id)
             };
 
-            return View(vm);
+            return View(ViewModel);
         }
 
         // POST: UserManagement/Delete/{id}

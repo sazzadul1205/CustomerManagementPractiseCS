@@ -10,12 +10,14 @@ namespace CustomerManagementPractiseCS.Controllers
         public IActionResult Index()
         {
             // Role Based Redirect
-            if (User.IsInRole("Admin"))
-            {
-                return RedirectToAction("Index", "Customers");
-            }
+            //if (User.IsInRole("Admin"))
+            //{
+            //    return RedirectToAction("Index", "Customers");
+            //}
 
-            return RedirectToAction("MyData", "Customers");
+            //return RedirectToAction("MyData", "Customers");
+            return RedirectToAction("Index", "Profile");
+
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]

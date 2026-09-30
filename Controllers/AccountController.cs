@@ -102,11 +102,11 @@ namespace CustomerManagementPractiseCS.Controllers
                 // If the User is an Admin go to Index
                 if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                 {
-                    return RedirectToAction("Index", "Customers");
+                    return RedirectToAction("Index", "Profile");
                 }
 
                 // Otherwise (regular User) go to MyData
-                return RedirectToAction("MyData", "Customers");
+                return RedirectToAction("Index", "Profile");
             }
 
             // Wrong Email or Password
@@ -135,7 +135,7 @@ namespace CustomerManagementPractiseCS.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
 
-            var vm = new ProfileViewModel
+            var ViewModel = new ProfileViewModel
             {
                 Id = user.Id,
                 Email = user.Email,
@@ -144,7 +144,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 Roles = await _userManager.GetRolesAsync(user)
             };
 
-            return View(vm);
+            return View(ViewModel);
         }
 
         // GET: Account/EditProfile
@@ -154,33 +154,33 @@ namespace CustomerManagementPractiseCS.Controllers
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
         
-            var vm = new EditProfileViewModel
+            var ViewModel = new EditProfileViewModel
             {
                 Email = user.Email ?? string.Empty,
                 UserName = user.UserName ?? string.Empty,
                 PhoneNumber = user.PhoneNumber
             };
         
-            return View(vm);
+            return View(ViewModel);
         }
 
         // POST: Account/EditProfile
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> EditProfile(EditProfileViewModel vm)
+        public async Task<IActionResult> EditProfile(EditProfileViewModel ViewModel)
         {
-            if (!ModelState.IsValid) return View(vm);
+            if (!ModelState.IsValid) return View(ViewModel);
         
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
         
 
-            vm.Email = user.Email ?? string.Empty;
+            ViewModel.Email = user.Email ?? string.Empty;
         
             // UserName
-            if (user.UserName != vm.UserName)
+            if (user.UserName != ViewModel.UserName)
             {
-                var result = await _userManager.SetUserNameAsync(user, vm.UserName);
+                var result = await _userManager.SetUserNameAsync(user, ViewModel.UserName);
                 if (!result.Succeeded)
                 {
                     foreach (var e in result.Errors)
@@ -188,14 +188,14 @@ namespace CustomerManagementPractiseCS.Controllers
                         ModelState.AddModelError(string.Empty, e.Description);
                     }
         
-                    return View(vm);
+                    return View(ViewModel);
                 }
             }
         
             // Phone
-            if (user.PhoneNumber != vm.PhoneNumber)
+            if (user.PhoneNumber != ViewModel.PhoneNumber)
             {
-                var result = await _userManager.SetPhoneNumberAsync(user, vm.PhoneNumber);
+                var result = await _userManager.SetPhoneNumberAsync(user, ViewModel.PhoneNumber);
                 if (!result.Succeeded)
                 {
                     foreach (var e in result.Errors)
@@ -203,7 +203,7 @@ namespace CustomerManagementPractiseCS.Controllers
                         ModelState.AddModelError(string.Empty, e.Description);
                     }
         
-                    return View(vm);
+                    return View(ViewModel);
                 }
             }
         
@@ -223,14 +223,14 @@ namespace CustomerManagementPractiseCS.Controllers
         // POST: Account/ChangePassword
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel vm)
+        public async Task<IActionResult> ChangePassword(ChangePasswordViewModel ViewModel)
         {
-            if (!ModelState.IsValid) return View(vm);
+            if (!ModelState.IsValid) return View(ViewModel);
 
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
 
-            var result = await _userManager.ChangePasswordAsync(user, vm.CurrentPassword, vm.NewPassword);
+            var result = await _userManager.ChangePasswordAsync(user, ViewModel.CurrentPassword, ViewModel.NewPassword);
 
             if (!result.Succeeded)
             {
@@ -239,7 +239,7 @@ namespace CustomerManagementPractiseCS.Controllers
                     ModelState.AddModelError(string.Empty, e.Description);
                 }
 
-                return View(vm);
+                return View(ViewModel);
             }
 
             await _signInManager.RefreshSignInAsync(user);

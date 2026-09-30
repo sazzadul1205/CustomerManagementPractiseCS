@@ -1,0 +1,63 @@
+﻿@model CustomerManagementPractiseCS.ViewModels.Profile.ProfileIndexViewModel?
+
+@{
+    ViewData["Title"] = "My Profile";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="mb-0">My Profile</h1>
+
+    @if (Model == null)
+    {
+        <a asp-action="Create" class="btn btn-primary">Create Profile</a>
+    }
+    else
+    {
+        <div>
+            <a asp-action="Edit" class="btn btn-primary">Edit Profile</a>
+            <a asp-action="Delete" class="btn btn-danger">Delete Profile</a>
+        </div>
+    }
+</div>
+
+@if (Model == null)
+{
+    <div class="card shadow-sm">
+        <div class="card-body text-center py-5">
+            <p class="text-muted mb-3">
+                No profile has been created yet.
+            </p>
+            <a asp-action="Create" class="btn btn-primary">
+                Create My Profile
+            </a>
+        </div>
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h3 class="mb-1">@Model.FullName</h3>
+            <p class="text-muted mb-3">
+                @Model.Gender / @Model.DateOfBirth.ToString("dd MMM yyyy")
+            </p>
+
+            @* IsNullOrEmpty checks if the value is null or empty and if tue hide the field *@
+            @if (!string.IsNullOrEmpty(Model.BloodGroup))
+            {
+                <p class="mb-2"><strong>Blood Group:</strong> @Model.BloodGroup</p>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Religion))
+            {
+                <p class="mb-2"><strong>Religion:</strong> @Model.Religion</p>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.Summary))
+            {
+                <hr />
+                <p class="mb-0">@Model.Summary</p>
+            }
+        </div>
+    </div>
+}
