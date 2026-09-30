@@ -1,5 +1,6 @@
 ﻿using CustomerManagementPractiseCS.Data;
 using CustomerManagementPractiseCS.Models;
+using CustomerManagementPractiseCS.Services.Interfaces;
 using CustomerManagementPractiseCS.ViewModels.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -12,11 +13,13 @@ namespace CustomerManagementPractiseCS.Controllers
     {
         private readonly AppDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
+        private readonly IImageService _imageService;
 
-        public ProfileController(AppDbContext context, UserManager<IdentityUser> userManager)
+        public ProfileController(AppDbContext context, UserManager<IdentityUser> userManager, IImageService imageService)
         {
             _context = context;
             _userManager = userManager;
+            _imageService = imageService;
         }
 
         // GET: /Profile
@@ -81,12 +84,19 @@ namespace CustomerManagementPractiseCS.Controllers
                 DateOfBirth = ViewModel.DateOfBirth,
                 Religion = ViewModel.Religion,
                 BloodGroup = ViewModel.BloodGroup,
-                PhotoUrl = ViewModel.PhotoUrl,
                 Summary = ViewModel.Summary,
+
                 CreatedAt = DateTime.UtcNow,
                 CreatedBy = userId,
                 Deleted = false
             };
+
+            // Save the photo, if any, and store the path on the entity
+            string? photoPath = _imageService.SaveImage(ViewModel.PhotoFile, "profiles");
+            if (photoPath != null)
+            {
+                profileData.PhotoUrl = photoPath;
+            }
 
             _context.Persons.Add(profileData);
             _context.SaveChanges();
@@ -116,8 +126,9 @@ namespace CustomerManagementPractiseCS.Controllers
                 DateOfBirth = profileData.DateOfBirth,
                 Religion = profileData.Religion,
                 BloodGroup = profileData.BloodGroup,
-                PhotoUrl = profileData.PhotoUrl,
-                Summary = profileData.Summary
+                Summary = profileData.Summary,
+
+                CurrentPhotoUrl = profileData.PhotoUrl
             };
 
             return View(viewModel);
@@ -132,12 +143,9 @@ namespace CustomerManagementPractiseCS.Controllers
                 return View(ViewModel);
             }
 
-            // Get the Current User Id
             var userId = _userManager.GetUserId(User);
 
-            // Get the Existing Profile Data
             var profileData = _context.Persons.FirstOrDefault(x => x.Id == ViewModel.Id);
-
             if (profileData == null)
             {
                 return NotFound();
@@ -148,10 +156,17 @@ namespace CustomerManagementPractiseCS.Controllers
             profileData.DateOfBirth = ViewModel.DateOfBirth;
             profileData.Religion = ViewModel.Religion;
             profileData.BloodGroup = ViewModel.BloodGroup;
-            profileData.PhotoUrl = ViewModel.PhotoUrl;
             profileData.Summary = ViewModel.Summary;
             profileData.UpdatedAt = DateTime.UtcNow;
             profileData.UpdatedBy = userId;
+
+            // If a new file was uploaded, replace the old one
+            string? newPhotoPath = _imageService.SaveImage(ViewModel.PhotoFile, "profiles");
+            if (newPhotoPath != null)
+            {
+                _imageService.DeleteImage(profileData.PhotoUrl);
+                profileData.PhotoUrl = newPhotoPath;
+            }
 
             _context.SaveChanges();
 
@@ -207,6 +222,8 @@ namespace CustomerManagementPractiseCS.Controllers
             //profileData.Deleted = true;
             //profileData.UpdatedAt = DateTime.UtcNow;
             //profileData.UpdatedBy = userId;
+
+            _imageService.DeleteImage(profileData.PhotoUrl);
             _context.Persons.Remove(profileData);
 
             _context.SaveChanges();

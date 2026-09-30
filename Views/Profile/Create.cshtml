@@ -1,4 +1,4 @@
-﻿@model CustomerManagementPractiseCS.Models.Person
+﻿@model CustomerManagementPractiseCS.ViewModels.Profile.ProfileCreateViewModel;
 
 @{
     ViewData["Title"] = "Create My Profile";
@@ -11,7 +11,7 @@
         <div class="card shadow-sm">
             <div class="card-body">
 
-                <form asp-action="Create" method="post">
+                <form asp-action="Create" method="post" enctype="multipart/form-data">
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
                     <!-- Full Name -->
@@ -68,10 +68,11 @@
 
                     <!-- Photo URL -->
                     <div class="mb-3">
-                        <label asp-for="PhotoUrl" class="form-label"></label>
-                        <input asp-for="PhotoUrl" class="form-control" placeholder="/uploads/photos/..." />
-                        <span asp-validation-for="PhotoUrl" class="text-danger"></span>
-                        <small class="text-muted">Path only — file upload comes later.</small>
+                        <label class="form-label">Profile Photo</label>
+                        <input asp-for="PhotoFile" type="file" accept=".jpg,.jpeg,.png,.gif,.webp"
+                               class="form-control" />
+                        <span asp-validation-for="PhotoFile" class="text-danger"></span>
+                        <small class="text-muted">Allowed: .jpg, .jpeg, .png, .gif, .webp</small>
                     </div>
 
                     <!-- Summary -->

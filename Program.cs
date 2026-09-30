@@ -1,4 +1,6 @@
 using CustomerManagementPractiseCS.Data;
+using CustomerManagementPractiseCS.Services;
+using CustomerManagementPractiseCS.Services.Interfaces;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -34,6 +36,8 @@ builder.Services.ConfigureApplicationCookie(options =>
     options.LoginPath = "/Account/Login";
     options.AccessDeniedPath = "/Account/AccessDenied";
 });
+
+builder.Services.AddScoped<IImageService, ImageService>();
 
 var app = builder.Build();
 
