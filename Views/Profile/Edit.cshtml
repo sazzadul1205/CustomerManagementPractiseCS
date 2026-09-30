@@ -11,7 +11,7 @@
         <div class="card shadow-sm">
             <div class="card-body">
 
-                <form asp-action="Edit" method="post">
+                <form asp-action="Edit" method="post" enctype="multipart/form-data">
                     <input type="hidden" asp-for="Id" />
                     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -67,11 +67,21 @@
                         </div>
                     </div>
 
-                    <!-- Photo URL -->
+                    <!-- Profile Photo -->
                     <div class="mb-3">
-                        <label class="form-label">Photo URL</label>
-                        <input asp-for="PhotoUrl" class="form-control" placeholder="/uploads/photos/..." />
-                        <span asp-validation-for="PhotoUrl" class="text-danger"></span>
+                        <label class="form-label">Profile Photo</label>
+
+                        @if (!string.IsNullOrEmpty(Model.CurrentPhotoUrl))
+                        {
+                            <div class="mb-2">
+                                <img src="@Model.CurrentPhotoUrl" alt="Current photo"
+                                     style="max-width:120px; max-height:120px; border-radius:8px;" />
+                            </div>
+                        }
+
+                        <input asp-for="PhotoFile" type="file" accept=".jpg,.jpeg,.png,.gif,.webp"
+                               class="form-control" />
+                        <small class="text-muted">Leave empty to keep the current photo.</small>
                     </div>
 
                     <!-- Summary -->
