@@ -7,7 +7,6 @@ namespace CustomerManagementPractiseCS.Controllers
 {
     public class HomeController : Controller
     {
-        [Authorize]
         public IActionResult Index()
         {
             // Role Based Redirect

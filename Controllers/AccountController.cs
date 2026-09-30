@@ -1,4 +1,5 @@
 ﻿using CustomerManagementPractiseCS.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -128,6 +129,7 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: Account/Profile
+        [Authorize]
         public async Task<IActionResult> Profile()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -146,6 +148,7 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: Account/EditProfile
+        [Authorize]
         public async Task<IActionResult> EditProfile()
         {
             var user = await _userManager.GetUserAsync(User);
@@ -160,8 +163,9 @@ namespace CustomerManagementPractiseCS.Controllers
         
             return View(vm);
         }
-        
+
         // POST: Account/EditProfile
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> EditProfile(EditProfileViewModel vm)
         {
@@ -210,6 +214,7 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: Account/ChangePassword
+        [Authorize]
         public IActionResult ChangePassword()
         {
             return View();
@@ -217,6 +222,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: Account/ChangePassword
         [HttpPost]
+        [Authorize]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel vm)
         {
             if (!ModelState.IsValid) return View(vm);

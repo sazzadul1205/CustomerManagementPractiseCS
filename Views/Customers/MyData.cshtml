@@ -4,80 +4,145 @@
     ViewData["Title"] = "My Data";
 }
 
-<h1>My Data</h1>
+<h1 class="mb-4">My Data</h1>
 
 @if (Model == null)
 {
-    <p>You don't have a customer profile yet.</p>
-    <a asp-controller="Customers" asp-action="Create">Create My Customer</a>
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">No Customer Profile</h5>
+            <p class="card-text text-muted">
+                You don't have a customer profile yet.
+            </p>
+
+            <a asp-controller="Customers"
+               asp-action="Create"
+               class="btn btn-primary">
+                Create My Customer
+            </a>
+        </div>
+    </div>
 }
 else
 {
     var customer = Model.Customer;
     var detail = Model.ActiveDetail;
 
-    <h2>@customer.Name</h2>
+    <div class="card shadow-sm">
+        <div class="card-body">
 
-    @if (detail != null && !string.IsNullOrEmpty(detail.ProfileImage))
-    {
-        <img src="@detail.ProfileImage" alt="@customer.Name" width="120" />
-    }
+            <!-- Header -->
+            <div class="mb-4">
+                <h2 class="mb-1">@customer.Name</h2>
+                <p class="text-muted mb-0">Customer Information</p>
+            </div>
 
-    <dl>
-        <dt>Name</dt>
-        <dd>@customer.Name</dd>
+            <hr />
 
-        <dt>Gender</dt>
-        <dd>@customer.Gender</dd>
+            <!-- Basic Information -->
+            <h5 class="mb-3">Basic Information</h5>
 
-        <dt>Bio Data</dt>
-        <dd>@customer.BioData</dd>
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <strong>Name</strong>
+                    <div class="text-muted">@customer.Name</div>
+                </div>
 
-        @if (detail != null)
-        {
-            <dt>Phone</dt>
-            <dd>@detail.Phone</dd>
+                <div class="col-md-6">
+                    <strong>Gender</strong>
+                    <div class="text-muted">@customer.Gender</div>
+                </div>
 
-            <dt>Email</dt>
-            <dd>@detail.Email</dd>
+                <div class="col-12 mt-3">
+                    <strong>Bio Data</strong>
+                    <div class="text-muted">@customer.BioData</div>
+                </div>
+            </div>
 
-            <dt>Date of Birth</dt>
-            <dd>@(detail.DateOfBirth?.ToString("yyyy-MM-dd"))</dd>
+            <!-- Profile Image -->
+            @if (detail != null && !string.IsNullOrEmpty(detail.ProfileImage))
+            {
+                <div class="mb-4">
+                    <h5 class="mb-3">Profile Image</h5>
 
-            <dt>City</dt>
-            <dd>@detail.City</dd>
+                    <img src="@detail.ProfileImage"
+                         alt="@customer.Name"
+                         width="120"
+                         class="img-thumbnail" />
+                </div>
+            }
 
-            <dt>Country</dt>
-            <dd>@detail.Country</dd>
+            <!-- Contact / Details -->
+            <h5 class="mb-3">Contact & Details</h5>
 
-            <dt>Address</dt>
-            <dd>@detail.Address</dd>
-        }
-        else
-        {
-            <dt>Details</dt>
-            <dd>No active detail record yet.</dd>
-        }
-    </dl>
+            @if (detail != null)
+            {
+                <div class="row">
 
- <div class="flex">
-        <a asp-action="Details"
-       asp-route-id="@customer.Id"
-       class="btn btn-primary btn-sm">
-        Details
-    </a>
+                    <div class="col-md-6 mb-3">
+                        <strong>Phone</strong>
+                        <div class="text-muted">@detail.Phone</div>
+                    </div>
 
-    <a asp-action="Edit"
-       asp-route-id="@customer.Id"
-       class="btn btn-warning btn-sm">
-        Edit
-    </a>
+                    <div class="col-md-6 mb-3">
+                        <strong>Email</strong>
+                        <div class="text-muted">@detail.Email</div>
+                    </div>
 
-    <a asp-action="Delete"
-       asp-route-id="@customer.Id"
-       class="btn btn-danger btn-sm">
-        Delete
-    </a>
- </div>
+                    <div class="col-md-6 mb-3">
+                        <strong>Date of Birth</strong>
+                        <div class="text-muted">
+                            @(detail.DateOfBirth?.ToString("yyyy-MM-dd"))
+                        </div>
+                    </div>
 
+                    <div class="col-md-6 mb-3">
+                        <strong>City</strong>
+                        <div class="text-muted">@detail.City</div>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <strong>Country</strong>
+                        <div class="text-muted">@detail.Country</div>
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <strong>Address</strong>
+                        <div class="text-muted">@detail.Address</div>
+                    </div>
+
+                </div>
+            }
+            else
+            {
+                <p class="text-muted">
+                    No active detail record yet.
+                </p>
+            }
+
+            <hr />
+
+            <!-- Actions -->
+            <div class="d-flex gap-2">
+                <a asp-action="Details"
+                   asp-route-id="@customer.Id"
+                   class="btn btn-primary btn-sm">
+                    Details
+                </a>
+
+                <a asp-action="Edit"
+                   asp-route-id="@customer.Id"
+                   class="btn btn-warning btn-sm">
+                    Edit
+                </a>
+
+                <a asp-action="Delete"
+                   asp-route-id="@customer.Id"
+                   class="btn btn-danger btn-sm">
+                    Delete
+                </a>
+            </div>
+
+        </div>
+    </div>
 }
