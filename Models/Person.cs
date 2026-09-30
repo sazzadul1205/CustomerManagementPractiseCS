@@ -51,9 +51,6 @@ namespace CustomerManagementPractiseCS.Models
         public ICollection<Contact> Contacts { get; set; } = new List<Contact>();
         public ICollection<Education> Educations { get; set; } = new List<Education>();
         public ICollection<Experience> Experiences { get; set; } = new List<Experience>();
-        public ICollection<FamilyMember> FamilyMembers { get; set; } = new List<FamilyMember>();
-        public ICollection<Skill> Skills { get; set; } = new List<Skill>();
-        public ICollection<Hobby> Hobbies { get; set; } = new List<Hobby>();
         public ICollection<SocialLink> SocialLinks { get; set; } = new List<SocialLink>();
     }
 }

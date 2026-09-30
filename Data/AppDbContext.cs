@@ -21,9 +21,6 @@ namespace CustomerManagementPractiseCS.Data
         public DbSet<Contact> Contacts => Set<Contact>();
         public DbSet<Education> Educations => Set<Education>();
         public DbSet<Experience> Experiences => Set<Experience>();
-        public DbSet<FamilyMember> FamilyMembers => Set<FamilyMember>();
-        public DbSet<Skill> Skills => Set<Skill>();
-        public DbSet<Hobby> Hobbies => Set<Hobby>();
         public DbSet<SocialLink> SocialLinks => Set<SocialLink>();
     }
 }

@@ -48,25 +48,9 @@ namespace CustomerManagementPractiseCS.Controllers
 
                 Educations = _context.Educations.Where(x => x.PersonId == profileData.Id).ToList(),
 
-                Experiences = _context.Experiences
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList(),
+                Experiences = _context.Experiences.Where(x => x.PersonId == profileData.Id).ToList(),
 
-                FamilyMembers = _context.FamilyMembers
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList(),
-
-                Skills = _context.Skills
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList(),
-
-                Hobbies = _context.Hobbies
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList(),
-
-                SocialLinks = _context.SocialLinks
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList()
+                SocialLinks = _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToList()
             };
 
             return View(viewModel);

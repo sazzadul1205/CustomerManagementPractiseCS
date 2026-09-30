@@ -18,9 +18,6 @@ namespace CustomerManagementPractiseCS.ViewModels.Profile
         public List<Contact> Contacts { get; set; } = new();
         public List<Education> Educations { get; set; } = new();
         public List<Experience> Experiences { get; set; } = new();
-        public List<FamilyMember> FamilyMembers { get; set; } = new();
-        public List<Skill> Skills { get; set; } = new();
-        public List<Hobby> Hobbies { get; set; } = new();
         public List<SocialLink> SocialLinks { get; set; } = new();
     }
 }
