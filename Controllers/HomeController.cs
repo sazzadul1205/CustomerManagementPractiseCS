@@ -1,5 +1,4 @@
 using CustomerManagementPractiseCS.Models;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
@@ -9,6 +8,13 @@ namespace CustomerManagementPractiseCS.Controllers
     {
         public IActionResult Index()
         {
+            // Send admins to the admin panel
+            if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
+
+            // Regular users (and anonymous) go to their profile
             return RedirectToAction("Index", "Profile");
         }
 

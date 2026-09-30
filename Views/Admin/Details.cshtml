@@ -6,7 +6,10 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="mb-0">Profile Details</h1>
+    <div class="d-flex gap-2">
+    <a asp-controller="Profile" asp-action="Cv" asp-route-id="@Model.Id" class="btn btn-outline-secondary" target="_blank">View CV</a>
     <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>
 </div>
 
 <div class="row">
@@ -19,11 +22,11 @@
                     @if (!string.IsNullOrEmpty(Model.PhotoUrl))
                     {
                         <img src="@Model.PhotoUrl" alt="@Model.FullName"
-                             style="max-width:150px; max-height:150px; border-radius:50%; object-fit:cover;" />
+                             style="max-width:150px; max-height:150px;  object-fit:cover;" />
                     }
                     else
                     {
-                        <div style="width:150px; height:150px; border-radius:50%; background:#e9ecef; display:inline-flex; align-items:center; justify-content:center;">
+                        <div style="width:150px; height:150px;  background:#e9ecef; display:inline-flex; align-items:center; justify-content:center;">
                             <span class="text-muted">No Photo</span>
                         </div>
                     }

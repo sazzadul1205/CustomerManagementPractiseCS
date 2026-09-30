@@ -1,0 +1,215 @@
+@model CustomerManagementPractiseCS.ViewModels.Profile.ProfileCvViewModel
+
+@{
+    ViewData["Title"] = "CV - " + Model.FullName;
+}
+
+<div class="container py-4" style="max-width:900px;">
+
+    @*  HEADER  *@
+    <div class="card shadow-sm mb-4">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-3 text-center">
+                    @if (!string.IsNullOrEmpty(Model.PhotoUrl))
+                    {
+                        <img src="@Model.PhotoUrl" alt="@Model.FullName"
+                             style="width:150px; height:150px; " />
+                    }
+                    else
+                    {
+                        <div style="width:150px; height:150px; f; display:inline-flex; align-items:center; justify-content:center;">
+                            <span class="text-muted">No Photo</span>
+                        </div>
+                    }
+                </div>
+
+                <div class="col-md-9">
+                    <h1 class="mb-1">@Model.FullName</h1>
+                    <p class="text-muted mb-2">
+                          @Model.Gender · @Model.DateOfBirth.ToString("dd MMM yyyy")
+                    </p>
+
+                    @if (!string.IsNullOrEmpty(Model.Religion))
+                    {
+                        <p class="mb-1"><strong>Religion:</strong> @Model.Religion</p>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.BloodGroup))
+                    {
+                        <p class="mb-0"><strong>Blood Group:</strong> @Model.BloodGroup</p>
+                    }
+                </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Summary))
+            {
+                <hr />
+                <p class="mb-0">@Model.Summary</p>
+            }
+        </div>
+    </div>
+
+    @*  ADDRESSES  *@
+    @if (Model.Addresses.Count > 0)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Addresses</h5></div>
+            <div class="card-body">
+                @foreach (var address in Model.Addresses)
+                {
+                    <div class="mb-3">
+                        <strong>@address.AddressType</strong>
+                        @if (address.IsPrimary)
+                        {
+                            <span class="badge bg-primary">Primary</span>
+                        }
+                        <br />
+                        <span>@address.Line1</span><br />
+                        <span>
+                            @address.City@(string.IsNullOrEmpty(address.State) ? "" : ", " + address.State)
+                            @(string.IsNullOrEmpty(address.PostalCode) ? "" : " - " + address.PostalCode)
+                        </span><br />
+                        <span>@address.Country</span>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @*  CONTACTS  *@
+    @if (Model.Contacts.Count > 0)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Contact Information</h5></div>
+            <div class="card-body">
+                <table class="table table-sm mb-0">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Label</th>
+                            <th>Value</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var contact in Model.Contacts)
+                        {
+                            <tr>
+                                <td>@contact.ContactType</td>
+                                <td>@contact.Label</td>
+                                <td>@contact.Value</td>
+                                <td>
+                                    @if (contact.IsPrimary)
+                                    {
+                                        <span class="badge bg-primary">Primary</span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+
+    @*  EDUCATION  *@
+    @if (Model.Educations.Count > 0)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Education</h5></div>
+            <div class="card-body">
+                @foreach (var edu in Model.Educations)
+                {
+                    <div class="mb-3">
+                        <strong>@edu.DegreeLevel — @edu.DegreeName</strong>
+                        <br />
+                        <span class="text-muted">@edu.InstitutionName</span>
+                        @if (!string.IsNullOrEmpty(edu.BoardOrUniversity))
+                        {
+                            <span class="text-muted"> · @edu.BoardOrUniversity</span>
+                        }
+                        <br />
+                        <small>
+                            @edu.StartYear
+                            @if (edu.IsOngoing)
+                            {
+                                <span> - Ongoing</span>
+                            }
+                            else if (edu.EndYear.HasValue)
+                            {
+                                <span> - @edu.EndYear</span>
+                            }
+                        </small>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @*  EXPERIENCE  *@
+    @if (Model.Experiences.Count > 0)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Work Experience</h5></div>
+            <div class="card-body">
+                @foreach (var exp in Model.Experiences)
+                {
+                    <div class="mb-3">
+                        <strong>@exp.Designation</strong>
+                        <br />
+                        <span class="text-muted">
+                            @exp.CompanyName
+                            @if (!string.IsNullOrEmpty(exp.Department))
+                            {
+                                <span> · @exp.Department</span>
+                            }
+                            @if (!string.IsNullOrEmpty(exp.Location))
+                            {
+                                <span> · @exp.Location</span>
+                            }
+                        </span>
+                        <br />
+                        <small>
+                            @exp.EmploymentType ·
+                            @exp.StartDate.ToString("MMM yyyy")
+                            @if (exp.IsCurrent)
+                            {
+                                <span> - Present</span>
+                            }
+                            else if (exp.EndDate.HasValue)
+                            {
+                                <span> - @exp.EndDate.Value.ToString("MMM yyyy")</span>
+                            }
+                        </small>
+
+                        @if (!string.IsNullOrEmpty(exp.Responsibilities))
+                        {
+                            <p class="mt-2 mb-0">@exp.Responsibilities</p>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    @*  SOCIAL LINKS  *@
+    @if (Model.SocialLinks.Count > 0)
+    {
+        <div class="card shadow-sm mb-4">
+            <div class="card-header"><h5 class="mb-0">Social Links</h5></div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    @foreach (var link in Model.SocialLinks)
+                    {
+                        <li class="mb-2">
+                            <strong>@link.Platform:</strong>
+                            <a href="@link.Url" target="_blank">@link.Url</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    }
+
+</div>
+

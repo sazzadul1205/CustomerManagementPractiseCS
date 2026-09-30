@@ -99,13 +99,13 @@ namespace CustomerManagementPractiseCS.Controllers
                 // The SignInManager needs the User object to check roles
                 var user = await _userManager.FindByEmailAsync(email);
 
-                // If the User is an Admin go to Index
+                // Admins go to the admin panel
                 if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                 {
-                    return RedirectToAction("Index", "Profile");
+                    return RedirectToAction("Index", "Admin");
                 }
 
-                // Otherwise (regular User) go to MyData
+                // Regular users go to their profile
                 return RedirectToAction("Index", "Profile");
             }
 
@@ -153,14 +153,14 @@ namespace CustomerManagementPractiseCS.Controllers
         {
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
-        
+
             var ViewModel = new EditProfileViewModel
             {
                 Email = user.Email ?? string.Empty,
                 UserName = user.UserName ?? string.Empty,
                 PhoneNumber = user.PhoneNumber
             };
-        
+
             return View(ViewModel);
         }
 
@@ -170,13 +170,13 @@ namespace CustomerManagementPractiseCS.Controllers
         public async Task<IActionResult> EditProfile(EditProfileViewModel ViewModel)
         {
             if (!ModelState.IsValid) return View(ViewModel);
-        
+
             var user = await _userManager.GetUserAsync(User);
             if (user == null) return NotFound();
-        
+
 
             ViewModel.Email = user.Email ?? string.Empty;
-        
+
             // UserName
             if (user.UserName != ViewModel.UserName)
             {
@@ -187,11 +187,11 @@ namespace CustomerManagementPractiseCS.Controllers
                     {
                         ModelState.AddModelError(string.Empty, e.Description);
                     }
-        
+
                     return View(ViewModel);
                 }
             }
-        
+
             // Phone
             if (user.PhoneNumber != ViewModel.PhoneNumber)
             {
@@ -202,14 +202,14 @@ namespace CustomerManagementPractiseCS.Controllers
                     {
                         ModelState.AddModelError(string.Empty, e.Description);
                     }
-        
+
                     return View(ViewModel);
                 }
             }
-        
+
             // Refresh the login so everything is up to date
             await _signInManager.RefreshSignInAsync(user);
-        
+
             return RedirectToAction("Profile");
         }
 

@@ -230,5 +230,50 @@ namespace CustomerManagementPractiseCS.Controllers
 
             return RedirectToAction("Index", "Profile");
         }
+
+        // GET: /Profile/Cv/5
+        [AllowAnonymous]
+        public IActionResult Cv(int id)
+        {
+            var profileData = _context.Persons.FirstOrDefault(x => x.Id == id);
+
+            if (profileData == null)
+            {
+                return NotFound();
+            }
+
+            var viewModel = new ProfileCvViewModel
+            {
+                Id = profileData.Id,
+                FullName = profileData.FullName,
+                Gender = profileData.Gender,
+                DateOfBirth = profileData.DateOfBirth,
+                Religion = profileData.Religion,
+                BloodGroup = profileData.BloodGroup,
+                PhotoUrl = profileData.PhotoUrl,
+                Summary = profileData.Summary,
+
+                Addresses = _context.Addresses
+                    .Where(x => x.PersonId == profileData.Id)
+                    .ToList(),
+                Contacts = _context.Contacts
+                    .Where(x => x.PersonId == profileData.Id)
+                    .ToList(),
+                Educations = _context.Educations
+                    .Where(x => x.PersonId == profileData.Id)
+                    .OrderByDescending(x => x.StartYear)
+                    .ToList(),
+                Experiences = _context.Experiences
+                    .Where(x => x.PersonId == profileData.Id)
+                    .OrderByDescending(x => x.StartDate)
+                    .ToList(),
+                SocialLinks = _context.SocialLinks
+                    .Where(x => x.PersonId == profileData.Id)
+                    .ToList()
+            };
+
+            return View(viewModel);
+        }
     }
+
 }
