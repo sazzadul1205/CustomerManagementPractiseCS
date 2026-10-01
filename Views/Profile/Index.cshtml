@@ -33,6 +33,7 @@
 else
 {
     <div class="row">
+
         <div class="col-md-8">
 
             <div class="text-center mb-3">
@@ -276,5 +277,37 @@ else
             </div>
 
         </div>
+
+        @* Completeness card in the sidebar so it stays visible without scrolling *@
+        <div class="col-md-4">
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <h5 class="card-title mb-2">@Model.CompletenessLabel</h5>
+
+                    <div class="progress mb-2" role="progressbar"
+                         aria-label="Profile completeness"
+                         aria-valuenow="@Model.CompletenessPercentage"
+                         aria-valuemin="0" aria-valuemax="100">
+                        <div class="progress-bar" style="width: @Model.CompletenessPercentage%">
+                            @Model.CompletenessPercentage%
+                        </div>
+                    </div>
+
+                    <p class="text-muted mb-2">
+                        @Model.CompletedSections of @Model.TotalSections sections filled in
+                    </p>
+
+                    @if (Model.IsProfileComplete)
+                    {
+                        <p class="text-success mb-0">Your profile is complete.</p>
+                    }
+                    else
+                    {
+                        <p class="text-muted mb-0">Keep going — add the missing sections on the left.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
     </div>
 }

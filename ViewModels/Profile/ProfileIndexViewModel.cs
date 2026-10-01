@@ -13,6 +13,12 @@ namespace CustomerManagementPractiseCS.ViewModels.Profile
         public string? PhotoUrl { get; set; }
         public string? Summary { get; set; }
 
+        public int CompletedSections { get; set; }
+        public int TotalSections { get; set; } = 7;
+        public int CompletenessPercentage { get; set; }
+        public string CompletenessLabel { get; set; } = string.Empty;
+        public bool IsProfileComplete { get; set; }
+
         public List<Address> Addresses { get; set; } = new();
         public List<Contact> Contacts { get; set; } = new();
         public List<Education> Educations { get; set; } = new();

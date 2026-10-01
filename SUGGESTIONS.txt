@@ -1,0 +1,325 @@
+================================================================================
+PROJECT SUGGESTIONS / NEXT STEPS
+Customer Management PractiseCS  (Profile & CV Management System)
+================================================================================
+
+Written by: Intern (self-review while senior was busy)
+Date: October 2026
+Stack: ASP.NET Core MVC 10, EF Core 10, SQL Server, ASP.NET Core Identity, Bootstrap 5
+
+PURPOSE
+-------
+This file is NOT a to-do list handed down by the senior. It is my own review of
+the project, written while waiting for review time. Every item below is
+something I looked at in the actual code, with the file and line where I found
+it. Nothing here requires a rewrite or a big decision from the senior - they are
+all small, self-contained improvements I can start on my own.
+
+I am not changing any working code right now. This is only a proposal.
+
+
+================================================================================
+PART A - WHAT THE PROJECT ALREADY DOES WELL (do not break these)
+================================================================================
+
+1. Ownership checks on every edit/delete.
+   Every query in the child controllers matches BOTH the record id AND the
+   current user's profile id, e.g. AddressController.cs:145
+       _context.Addresses.FirstOrDefault(x => x.Id == ViewModel.Id
+                                              && x.PersonId == profileData.Id);
+   This means a user cannot edit or delete someone else's data even if they
+   change the id in the URL. Good pattern - keep using it everywhere.
+
+2. Image handling is behind an interface.
+   Services/Interfaces/IImageService.cs + Services/ImageService.cs, registered
+   in Program.cs:40. Upload logic is not scattered inside controllers.
+
+3. Audit fields on every entity.
+   CreatedAt, CreatedBy, UpdatedAt, UpdatedBy exist on all six models.
+
+4. FK cascade is already set up in the database.
+   Migrations/20261001060835_InitialCreate.cs:212 shows
+   onDelete: ReferentialAction.Cascade for Addresses -> Persons, and the same
+   for Contacts, Educations, Experiences, SocialLinks. The database will clean
+   up children even if the app forgets to.
+
+5. Identity is configured manually instead of AddDefaultIdentity.
+   Program.cs:29-38. This is intentional and lets us control the cookie paths.
+
+6. Validation is done properly on the views.
+   asp-validation-summary and asp-validation-for are used in the Create/Edit
+   views, and _ValidationScriptsPartial is included.
+
+7. .gitignore is already careful - it excludes wwwroot/uploads/ so user-uploaded
+   photos are never committed, and it blocks appsettings.Development.json so
+   real connection strings stay private.
+
+
+================================================================================
+PART B - SMALL FIXES (safe, low effort, I can do these immediately)
+================================================================================
+
+B1. Fix the .gitignore typo
+    File: .gitignore
+    Problem: line reads "*.suoEditProfileViewModel" - two ignore patterns got
+             merged into one. "*.suo" never gets ignored on its own, and
+             "EditProfileViewModel" is not a file pattern we want at all.
+    Fix: split into two lines:
+             *.suo
+             EditProfileViewModel
+    Why it matters: Visual Studio could start committing .suo files.
+
+B2. Enable the soft delete that is already written
+    File: Controllers/ProfileController.cs:244-247
+    Problem: every model has a Deleted flag (Person.cs:46, Address.cs:43, etc.)
+             and all four child delete actions hard delete. The soft delete code
+             is written but commented out.
+    Fix: decide one behaviour. Either uncomment it, or delete the unused
+         Deleted column so the schema does not lie.
+    Note: if soft delete is enabled, you ALSO need idea B3, otherwise deleted
+          rows will still show up in the CV.
+
+B3. Add a global query filter for Deleted
+    File: Data/AppDbContext.cs
+    Problem: if soft delete is switched on, nothing currently filters on
+             Deleted, so "deleted" records would still appear in the profile
+             page, the admin list, and the CV.
+    Fix: use HasQueryFilter in OnModelCreating, for example
+             modelBuilder.Entity<Person>().HasQueryFilter(x => !x.Deleted);
+         and the same for the other five entities. EF then adds "WHERE Deleted
+         = 0" automatically to every query.
+    Why it matters: this is the standard EF Core way to do soft delete and it
+    removes the need to remember the filter in every controller.
+
+B4. Remove the dead commented-out UserName block in AccountController
+    File: Controllers/AccountController.cs:160, 180-193
+    Problem: the UserName field is commented out in the view model build and a
+             whole SetUserNameAsync block is commented out in the POST. Dead
+             code that will confuse the next reader.
+    Fix: delete the commented block. (If usernames should be editable later,
+         that is a feature to raise with the senior, not to leave half-coded.)
+
+B5. Fix two broken style attributes in the views
+    Files: Views/Admin/Details.cshtml (photo + placeholder), Views/Admin/Index.cshtml,
+           Views/Profile/Index.cshtml, Views/Profile/Cv.cshtml
+    Problem: the earlier edit that removed the circular avatars left empty
+             double spaces and one broken CSS declaration, e.g.
+             Views/Profile/Cv.cshtml:21 has  style="width:150px; height:150px; f;"
+             - the stray "f;" is a typo and the whole style is invalid.
+    Fix: decide the avatar look (square is fine) and write one clean
+         style attribute. Right now the photos are stretched rectangles
+         because object-fit was removed but the width/height stayed.
+    Why it matters: this is visible on every page, so it is the first thing a
+         reviewer sees.
+
+B6. Make Register use a view model
+    File: Controllers/AccountController.cs:35 and Views/Account/Register.cshtml
+    Problem: Register takes bare string email and string password instead of a
+             view model, so it has no Confirm Password field and no
+             DataAnnotations on it.
+    Fix: add a RegisterViewModel with [Required], [EmailAddress],
+         [StringLength], [Compare] and [DataType(Password)] fields.
+    Why it matters: password confirmation is a normal expectation on a
+         register form.
+
+B7. Enable login lockout
+    File: Controllers/AccountController.cs:93
+    Problem: lockoutOnFailure: false, so there is no limit on failed attempts.
+    Fix: set it to true and optionally tune the Identity options in Program.cs
+         (MaxFailedAccessAttempts, DefaultLockoutTimeSpan). Program.cs has
+         commented-out examples of exactly this already (lines 20-25).
+
+B8. Fix the null warning CS8601
+    File: Controllers/ProfileController.cs:102 and Models/Person.cs:11
+    Problem: _userManager.GetUserId(User) returns string? but Person.UserId is
+             the target. We already made Person.UserId nullable (string?), so
+             the warning should be gone - if it still shows, then the model
+             change did not get saved or the build is stale.
+    Also: ProfileController.Create is [Authorize] on the controller, so userId
+    cannot be null in practice, but a null check would make that explicit.
+    Fix: confirm the build is clean; if not, revert Person.UserId to non-null
+         and add a guard:
+             if (userId is null) return Unauthorized();
+
+
+================================================================================
+PART C - SMALL FEATURES (good intern-sized work, clear value)
+================================================================================
+
+C1. Profile completeness percentage
+    Where: Views/Profile/Index.cshtml
+    Idea: count how many optional sections the user has filled (photo, summary,
+          at least one address, contact, education, experience, social link) and
+          show a progress bar, e.g. "Profile 60% complete".
+    Why it is good practice: nudges users to finish their profile, and it is
+          pure view-model work - no database change needed.
+
+C2. Print / Save as PDF button on the CV page
+    Where: Views/Profile/Cv.cshtml
+    Idea: a @media print stylesheet that hides the navbar and buttons, plus a
+         "Print" button that calls window.print(). The browser then offers
+         "Save as PDF". This makes the CV actually usable.
+    Effort: small - CSS plus one button. No backend change.
+
+C3. Search and filter on the admin profile list
+    Where: Controllers/AdminController.cs:22 and Views/Admin/Index.cshtml
+    Idea: the search/gender filter form used to exist in the view and was
+          removed, but AdminController.Index:34-35 still reads
+          ViewData["Search"] and ViewData["Gender"] into local variables that
+          are now unused.
+    Fix options: (a) bring the filter back and actually apply it in the
+    controller query, or (b) delete the two unused ViewData lines.
+    Note: option (a) is the better feature - admins will want it once there is
+          real data.
+
+C4. Sort sections on the profile page
+    Where: Views/Profile/Index.cshtml
+    Idea: the CV sorts education newest-first and experience newest-first
+          (ProfileController.cs:295-296), but the main profile page loads them
+          unordered (ProfileController.cs:54-62).
+    Fix: add the same OrderByDescending to the profile page queries so the two
+         screens agree. Very small change, easy to demo.
+
+C5. Confirmation toast after save
+    Where: ProfileController redirects, and Views/Shared/_Layout.cshtml
+    Idea: the redirects currently send the user back to Index with no feedback.
+          Add TempData["Success"] in the POST actions and a small Bootstrap
+          alert in the layout that reads and displays it.
+    Why it is good practice: standard MVC pattern, and it makes the app feel
+          finished rather than jumping silently between pages.
+
+C6. Sortable / paged admin user list
+    Where: Views/UserManagement/Index.cshtml
+    Idea: UserManagementController.Index currently does
+          _userManager.Users.ToList() - it loads every user with no paging and
+          no ordering.
+    Fix: order by email, and page it once the list is big.
+    Note: IdentityUserManager needs a custom store method for paging, so this
+          is slightly bigger than the others. Good stretch task.
+
+
+================================================================================
+PART D - THINGS TO ASK THE SENIOR ABOUT (do not start these alone)
+================================================================================
+
+These are decisions, not fixes. I am listing them so they are ready to discuss.
+
+D1. The CV page is public.
+    ProfileController.cs:272 is [AllowAnonymous], so anyone can read any CV by
+    changing the id in the URL: /Profile/Cv/1, /Profile/Cv/2, ...
+    Question: should a CV be public, or only visible to the owner and admins?
+    If it should be shareable, a share token would be safer than sequential
+    guessable ids.
+
+D2. The image upload checks the extension only.
+    Services/ImageService.cs:27 calls IsAllowedImage, which only looks at
+    Path.GetExtension (line 68-72). A file named photo.jpg is accepted without
+    checking what is actually inside it. There is also no file size limit.
+    Question: is this acceptable for an internal tool, or should we add a size
+    limit and check the real content type? I can implement either - just need
+    to know the limit we want.
+
+D3. User deletion is permanent.
+    UserManagementController.DeleteConfirmed removes the Identity user, all
+    their profiles, all child sections, and the photo file from disk. There is
+    no recycle bin.
+    Question: acceptable, or do we want a soft delete for users too?
+
+D4. No email confirmation or password reset.
+    Right now a user can register with any email address and there is no way to
+    recover a forgotten password. That needs an email sender (SMTP config) and
+    probably a third-party service.
+    Question: is this in scope for this project at all? It is the single
+    biggest feature gap, but it also needs infrastructure we may not have.
+
+D5. No automated tests.
+    There is no test project.
+    Question: is adding one wanted right now? I think xUnit plus
+    WebApplicationFactory for the controllers would be the most useful place to
+    start, and I can set it up if approved.
+
+
+================================================================================
+PART E - IF I GET MORE TIME (bigger, self-directed work)
+================================================================================
+
+E1. Stop duplicating code in the five child controllers.
+    AddressController, ContactController, EducationController,
+    ExperienceController and SocialLinkController are near-identical: the same
+    GetUserProfile lookup, the same redirect guard, the same Create/Edit/Delete
+    shape. Together that is roughly 1,100 lines with a lot of repetition.
+    Option: a small base class or a generic helper that resolves the current
+    user's profile and does the ownership check, so each controller only holds
+    its own field mapping.
+    Caution: this is a refactor, so it touches working code. I would do it
+    only after the small fixes in Part B are merged and stable, and only with
+    the senior's agreement. Doing it silently would be the wrong call.
+
+E2. N+1 query on the admin list.
+    AdminController.cs:36 projects City using
+        City = x.Addresses.Where(a => a.IsPrimary).Select(a => a.City).FirstOrDefault()
+    inside a Select over all persons. EF may translate this into one query, but
+    the pattern is worth checking with logging turned on. If it is N+1 it
+    becomes slow as the table grows.
+    Fix: verify with EF Core logging, and if needed add .Include(x => x.Addresses)
+    or split it into two simple queries.
+
+E3. Add a Language / Skill / Certification section.
+    These models existed and were removed earlier. A CV with skills and
+    languages is more complete, and the pattern to copy already exists five
+    times in the child controllers, so it is mostly repetition.
+    Note: needs a new migration.
+
+E4. Profile picture resizing before saving.
+    ImageService currently saves the uploaded file as-is, so a 5MB phone photo
+    is stored and served at full size.
+    Fix: add resizing/thumbnail logic in the service. Library options are
+    SixLabors.ImageSharp or the built-in System.Drawing (Windows-only).
+
+
+================================================================================
+PART F - MY SUGGESTED ORDER OF WORK
+================================================================================
+
+Start now, no approval needed (Part B, low risk):
+    1. B1  .gitignore typo
+    2. B5  broken CSS / avatar shapes (very visible)
+    3. B4  remove dead commented code
+    4. B7  enable login lockout
+    5. C4  sort education and experience on the profile page
+    6. C1  profile completeness bar
+    7. C2  print button on the CV
+    8. C5  success message after save
+    9. C3  bring back admin search and actually wire it up
+   10. B6  register view model with confirm password
+
+Then, once the above is stable:
+   11. B2 + B3 soft delete plus the global filter, as one decision
+   12. B8  confirm the CS8601 warning is gone
+
+Then raise with the senior (Part D) before touching:
+   13. D1 CV visibility
+   14. D2 upload size limit and real content-type check
+
+Bigger, only with agreement:
+   15. C6  paged admin user list
+   16. E2  check the admin list for N+1
+   17. E1  refactor the five child controllers (last, and only agreed)
+
+
+================================================================================
+NOTES ON HOW THIS WAS WRITTEN
+================================================================================
+
+- Nothing in this file changes the behaviour of the application as it stands.
+- Part A is my own list of things I think are already good, so the review does
+  not read as only criticism.
+- Parts B and C are safe, local, reversible changes. Each one can be committed
+  on its own branch and reverted if the senior disagrees.
+- Part D is deliberately questions, not proposals - those need a decision from
+  someone senior and I should not guess.
+- Part E is real refactoring or new features that touch working code, so it is
+  listed as "if there is time and agreement", not as a plan.
+
+File and line references were checked against the current code at the time of
+writing. Line numbers will move as soon as any of the above changes land.

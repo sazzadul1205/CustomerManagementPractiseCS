@@ -14,12 +14,18 @@ namespace CustomerManagementPractiseCS.Controllers
         private readonly AppDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
         private readonly IImageService _imageService;
+        private readonly IProfileCompletenessService _completenessService;
 
-        public ProfileController(AppDbContext context, UserManager<IdentityUser> userManager, IImageService imageService)
+        public ProfileController(
+            AppDbContext context,
+            UserManager<IdentityUser> userManager,
+            IImageService imageService,
+            IProfileCompletenessService completenessService)
         {
             _context = context;
             _userManager = userManager;
             _imageService = imageService;
+            _completenessService = completenessService;
         }
 
         // GET: /Profile
@@ -61,6 +67,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
                 SocialLinks = _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToList()
             };
+
+            _completenessService.Fill(viewModel);
 
             return View(viewModel);
         }

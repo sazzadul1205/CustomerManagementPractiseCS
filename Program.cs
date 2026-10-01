@@ -38,6 +38,7 @@ builder.Services.ConfigureApplicationCookie(options =>
 });
 
 builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IProfileCompletenessService, ProfileCompletenessService>();
 
 var app = builder.Build();
 
