@@ -4,7 +4,16 @@
     ViewData["Title"] = "CV - " + Model.FullName;
 }
 
-<div class="container py-4" style="max-width:900px;">
+@* Print Button *@
+<div class="container d-print-none mt-3" style="max-width:900px;">
+    <button type="button"
+            class="btn btn-primary"
+            onclick="window.print()">
+        Save as PDF
+    </button>
+</div>
+
+<div class="container py-4 cv-page" style="max-width:900px;">
 
     @*  HEADER  *@
     <div class="card shadow-sm mb-4">
@@ -13,12 +22,15 @@
                 <div class="col-md-3 text-center">
                     @if (!string.IsNullOrEmpty(Model.PhotoUrl))
                     {
-                        <img src="@Model.PhotoUrl" alt="@Model.FullName"
-                             style="width:150px; height:150px; " />
+                        <img src="@Model.PhotoUrl"
+                             alt="@Model.FullName"
+                             class="cv-photo"
+                             style="width:150px; height:150px; object-fit:cover; border-radius:50%;" />
                     }
                     else
                     {
-                        <div style="width:150px; height:150px; f; display:inline-flex; align-items:center; justify-content:center;">
+                        <div class="cv-photo-placeholder"
+                             style="width:150px; height:150px; display:inline-flex; align-items:center; justify-content:center; border:1px solid #ccc; border-radius:50%;">
                             <span class="text-muted">No Photo</span>
                         </div>
                     }
@@ -27,7 +39,7 @@
                 <div class="col-md-9">
                     <h1 class="mb-1">@Model.FullName</h1>
                     <p class="text-muted mb-2">
-                          @Model.Gender · @Model.DateOfBirth.ToString("dd MMM yyyy")
+                        @Model.Gender · @Model.DateOfBirth.ToString("dd MMM yyyy")
                     </p>
 
                     @if (!string.IsNullOrEmpty(Model.Religion))
@@ -52,7 +64,7 @@
     @*  ADDRESSES  *@
     @if (Model.Addresses.Count > 0)
     {
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm mb-4 cv-section">
             <div class="card-header"><h5 class="mb-0">Addresses</h5></div>
             <div class="card-body">
                 @foreach (var address in Model.Addresses)
@@ -61,7 +73,7 @@
                         <strong>@address.AddressType</strong>
                         @if (address.IsPrimary)
                         {
-                            <span class="badge bg-primary">Primary</span>
+                            <span class="badge bg-primary d-print-none">Primary</span>
                         }
                         <br />
                         <span>@address.Line1</span><br />
@@ -79,7 +91,7 @@
     @*  CONTACTS  *@
     @if (Model.Contacts.Count > 0)
     {
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm mb-4 cv-section">
             <div class="card-header"><h5 class="mb-0">Contact Information</h5></div>
             <div class="card-body">
                 <table class="table table-sm mb-0">
@@ -88,7 +100,7 @@
                             <th>Type</th>
                             <th>Label</th>
                             <th>Value</th>
-                            <th></th>
+                            <th class="d-print-none"></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -98,7 +110,7 @@
                                 <td>@contact.ContactType</td>
                                 <td>@contact.Label</td>
                                 <td>@contact.Value</td>
-                                <td>
+                                <td class="d-print-none">
                                     @if (contact.IsPrimary)
                                     {
                                         <span class="badge bg-primary">Primary</span>
@@ -115,7 +127,7 @@
     @*  EDUCATION  *@
     @if (Model.Educations.Count > 0)
     {
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm mb-4 cv-section">
             <div class="card-header"><h5 class="mb-0">Education</h5></div>
             <div class="card-body">
                 @foreach (var edu in Model.Educations)
@@ -149,7 +161,7 @@
     @*  EXPERIENCE  *@
     @if (Model.Experiences.Count > 0)
     {
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm mb-4 cv-section">
             <div class="card-header"><h5 class="mb-0">Work Experience</h5></div>
             <div class="card-body">
                 @foreach (var exp in Model.Experiences)
@@ -195,7 +207,7 @@
     @*  SOCIAL LINKS  *@
     @if (Model.SocialLinks.Count > 0)
     {
-        <div class="card shadow-sm mb-4">
+        <div class="card shadow-sm mb-4 cv-section">
             <div class="card-header"><h5 class="mb-0">Social Links</h5></div>
             <div class="card-body">
                 <ul class="list-unstyled mb-0">
@@ -212,4 +224,3 @@
     }
 
 </div>
-

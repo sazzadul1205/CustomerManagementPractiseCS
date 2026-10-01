@@ -29,3 +29,69 @@ body {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
   text-align: start;
 }
+
+@media print {
+
+    /* 1. Hide the site navigation and footer */
+    header,
+    nav,
+    footer,
+    .navbar {
+        display: none !important;
+    }
+
+    /* 2. Hide anything else marked as non-printable */
+    .d-print-none {
+        display: none !important;
+    }
+
+    /* 3. Reset body spacing and force black text on white */
+    body {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        color: #000;
+        font-size: 11pt;
+    }
+
+    /* 4. Make the CV fill the printed page */
+    .cv-page {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+
+    /* 5. Remove card shadows and the rounded border look */
+    .card {
+        box-shadow: none !important;
+        border: 1px solid #ccc !important;
+        border-radius: 0 !important;
+        margin-bottom: 12pt !important;
+    }
+
+    .card-header {
+        background: #f2f2f2 !important;
+        border-bottom: 1px solid #ccc !important;
+    }
+
+    /* 6. Keep whole sections on one page where possible */
+    .cv-section {
+        page-break-inside: avoid;
+    }
+
+    /* 7. Don't strand a heading at the bottom of a page */
+    h1, h2, h3, h4, h5 {
+        page-break-after: avoid;
+    }
+
+    /* 8. Links: print as plain black text, not blue underlines */
+    a {
+        color: #000 !important;
+        text-decoration: none !important;
+    }
+
+    /* 9. Muted text should still be readable in grey/black */
+    .text-muted {
+        color: #444 !important;
+    }
+}
