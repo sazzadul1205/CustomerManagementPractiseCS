@@ -157,7 +157,7 @@ namespace CustomerManagementPractiseCS.Controllers
             var ViewModel = new EditProfileViewModel
             {
                 Email = user.Email ?? string.Empty,
-                UserName = user.UserName ?? string.Empty,
+                //UserName = user.UserName ?? string.Empty,
                 PhoneNumber = user.PhoneNumber
             };
 
@@ -177,20 +177,20 @@ namespace CustomerManagementPractiseCS.Controllers
 
             ViewModel.Email = user.Email ?? string.Empty;
 
-            // UserName
-            if (user.UserName != ViewModel.UserName)
-            {
-                var result = await _userManager.SetUserNameAsync(user, ViewModel.UserName);
-                if (!result.Succeeded)
-                {
-                    foreach (var e in result.Errors)
-                    {
-                        ModelState.AddModelError(string.Empty, e.Description);
-                    }
+            //// UserName
+            //if (user.UserName != ViewModel.UserName)
+            //{
+            //    var result = await _userManager.SetUserNameAsync(user, ViewModel.UserName);
+            //    if (!result.Succeeded)
+            //    {
+            //        foreach (var e in result.Errors)
+            //        {
+            //            ModelState.AddModelError(string.Empty, e.Description);
+            //        }
 
-                    return View(ViewModel);
-                }
-            }
+            //        return View(ViewModel);
+            //    }
+            //}
 
             // Phone
             if (user.PhoneNumber != ViewModel.PhoneNumber)
