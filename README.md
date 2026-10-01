@@ -1,99 +1,325 @@
-# Customer Management System
+# Profile & CV Management System
 
-A web-based customer management application built with ASP.NET Core MVC, Entity Framework Core, and SQL Server.
+> A web-based profile management and CV builder built with **ASP.NET Core MVC**, **Entity Framework Core**, and **SQL Server**.
+
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![ASP.NET Core](https://img.shields.io/badge/ASP.NET%20Core-MVC-512BD4?logo=dotnet&logoColor=white)](https://learn.microsoft.com/aspnet/core/mvc/overview)
+[![EF Core](https://img.shields.io/badge/EF%20Core-10.0.12-512BD4?logo=nuget&logoColor=white)](https://learn.microsoft.com/ef/core/)
+[![SQL Server](https://img.shields.io/badge/SQL%20Server-Express-CC2927?logo=microsoftsqlserver&logoColor=white)](https://www.microsoft.com/sql-server)
+[![Bootstrap](https://img.shields.io/badge/Bootstrap-5-7952B3?logo=bootstrap&logoColor=white)](https://getbootstrap.com/)
+[![License](https://img.shields.io/badge/license-see%20LICENSE.txt-blue)](LICENSE.txt)
+
+Every registered user owns exactly **one profile**, composed of related sections — addresses, contacts,
+education, experience, and social links. That profile can be rendered as a single, shareable, print-friendly
+**CV page**.
+
+---
+
+## Table of Contents
+
+- [Overview](#overview)
+- [Features](#features)
+  - [Authentication & Accounts](#authentication--accounts)
+  - [Profile Management](#profile-management)
+  - [Administration](#administration-admin-role-only)
+  - [Data & Infrastructure](#data--infrastructure)
+- [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Data Model](#data-model)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Usage](#usage)
+- [Routes Reference](#routes-reference)
+- [Image Uploads](#image-uploads)
+- [Security Notes](#security-notes)
+- [Known Limitations & Roadmap](#known-limitations--roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Overview
+
+This application solves a simple problem: **one person, one profile, many sections, one CV.**
+
+Instead of scattering personal details across documents, each user builds a structured profile once and the
+system assembles it into a consolidated CV. Administrators get a read-only bird's-eye view of every profile
+and a user-management console, with strict ownership enforcement ensuring users can only ever touch their own
+data.
+
+---
 
 ## Features
 
-- **User Authentication** — Register, login, logout, and profile management (change password, edit profile)
-- **Role-Based Access Control**
-  - **Admin** — View all customers, manage users, assign roles
-  - **User** — View and manage only their own customer data
-- **Customer Management (CRUD)** — Create, read, update, and delete customer records
-- **Customer Details** — Store and manage detailed information for each customer
-- **Soft Delete** — Deleted records are retained in the database (marked, not removed)
-- **Audit Trail** — Track who created and updated records, with timestamps
-- **Responsive UI** — Built with Bootstrap 5
+### Authentication & Accounts
 
-## Technologies
+| Feature                       | Description                                                                                                                                                          |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Register / Login / Logout** | Email + password via ASP.NET Core Identity (PBKDF2 hashing)                                                                                                          |
+| **First-user-is-admin**       | The first registered account is automatically assigned the `Admin` role; every subsequent account receives `User`. Both roles are created on demand at registration. |
+| **My Account**                | View account info and roles, change phone number, change password                                                                                                    |
+| **Custom auth cookie**        | `/Account/Login` and `/Account/AccessDenied` paths configured explicitly                                                                                             |
+| **Role-based routing**        | Admins are redirected to the admin panel on login, from the home page, and from `My Profile`                                                                         |
 
-- .NET 10 / ASP.NET Core MVC
-- Entity Framework Core 10
-- SQL Server
-- ASP.NET Core Identity
-- Bootstrap
+### Profile Management
+
+**Core profile CRUD** — one profile per user, holding personal details, gender, date of birth, religion,
+blood group, and a professional summary.
+
+**Photo upload** — validated image uploads with unique GUID filenames; the previous file is deleted from disk
+when replaced.
+
+**Related section CRUD** — each section supports a full Create / Edit / Delete cycle and is always scoped to
+the signed-in user's own profile:
+
+| Section          | Fields                                                                                                  | Special Behavior                                                                   |
+| ---------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| **Addresses**    | Typed address entries                                                                                   | Single `IsPrimary` flag per profile — setting one automatically unset's the others |
+| **Contacts**     | Type (email, phone, etc.), value                                                                        | Same single-primary rule as addresses                                              |
+| **Education**    | Degree level, degree, institution, board/university, year range, ongoing flag, result                   | Sorted newest first on the CV                                                      |
+| **Experience**   | Company, designation, department, employment type, location, date range, current flag, responsibilities | Sorted newest first on the CV                                                      |
+| **Social Links** | Platform + validated URL                                                                                | URL format validated on input                                                      |
+
+**CV page** — `/Profile/Cv/{id}` renders one consolidated, print-friendly document pulling together the
+profile, all addresses, contacts, education, experience, and social links. Reachable from both **My Profile**
+and the admin **Details** page.
+
+**Cascade delete** — deleting a profile removes all of its related sections and its photo from disk.
+
+### Administration (`Admin` role only)
+
+- **All Profiles** — every profile in the system with photo, gender, DOB, blood group, primary city, and creation date
+- **Profile Details** — full read-only view of any profile and all of its sections, with a direct link to its CV
+- **User Management** — list all users and delete an account along with its profiles, related sections, and photo.
+  Self-deletion is blocked.
+
+### Data & Infrastructure
+
+- **Ownership enforcement** — every edit/delete query matches both the requested record ID _and_ the current
+  user's profile ID, so users cannot touch other people's data
+- **Audit fields** — `CreatedAt` / `CreatedBy` / `UpdatedAt` / `UpdatedBy` on every entity
+- **Service layer** — image handling lives behind `IImageService` and is injected via DI rather than inlined
+  in controllers
+- **Responsive UI** — Bootstrap 5 with a shared layout and navbar
+
+---
+
+## Tech Stack
+
+| Technology                         | Version          |
+| ---------------------------------- | ---------------- |
+| .NET                               | 10.0 (`net10.0`) |
+| ASP.NET Core MVC                   | 10.0             |
+| Entity Framework Core (SQL Server) | 10.0.12          |
+| ASP.NET Core Identity              | 10.0.12          |
+| Bootstrap                          | 5                |
+
+---
 
 ## Project Structure
 
 ```text
 ├── Controllers/
-│   ├── AccountController.cs      # Auth (login, register, logout, profile)
-│   ├── CustomerController.cs     # Customer CRUD
-│   ├── CustomerDetailController.cs
-│   ├── HomeController.cs
-│   └── UserManagementController.cs
+│   ├── AccountController.cs         # Register, login, logout, account, change password
+│   ├── HomeController.cs            # Entry point; routes admins to the admin panel
+│   ├── ProfileController.cs         # Profile CRUD + CV view
+│   ├── AddressController.cs         # Address CRUD (owned by current user)
+│   ├── ContactController.cs         # Contact CRUD (owned by current user)
+│   ├── EducationController.cs       # Education CRUD (owned by current user)
+│   ├── ExperienceController.cs      # Experience CRUD (owned by current user)
+│   ├── SocialLinkController.cs      # Social link CRUD (owned by current user)
+│   ├── AdminController.cs           # [Admin] profile list + details
+│   └── UserManagementController.cs  # [Admin] user list + delete
 ├── Data/
-│   └── AppDbContext.cs           # EF Core + Identity DbContext
+│   └── AppDbContext.cs              # IdentityDbContext + Persons/Addresses/Contacts/
+│                                    # Educations/Experiences/SocialLinks DbSets
 ├── Models/
-│   ├── Customer.cs
-│   ├── CustomerDetail.cs
+│   ├── Person.cs                    # Root profile entity + navigation collections
+│   ├── Address.cs
+│   ├── Contact.cs
+│   ├── Education.cs
+│   ├── Experience.cs
+│   ├── SocialLink.cs
 │   └── ErrorViewModel.cs
+├── Services/
+│   ├── ImageService.cs              # Save / delete / validate uploaded images
+│   └── Interfaces/
+│       └── IImageService.cs
 ├── ViewModels/
+│   ├── Profile/                     # Create, Edit, Delete, Index, Cv view models
+│   ├── AddressViewModels/           # Create, Edit, Delete
+│   ├── ContactViewModels/
+│   ├── EducationViewModels/
+│   ├── ExperienceViewModels/
+│   ├── SocialLinkViewModels/
+│   ├── AdminViewModels/             # Profile list + details
+│   ├── ProfileViewModel.cs          # Account profile
+│   ├── EditProfileViewModel.cs
+│   ├── ChangePasswordViewModel.cs
+│   └── UserDeleteViewModel.cs
 ├── Views/
-│   ├── Account/
-│   ├── Customers/
-│   ├── CustomerDetail/
-│   ├── Home/
-│   ├── Shared/
-│   └── UserManagement/
-├── wwwroot/                      # Static files (CSS, JS, lib, uploads)
-├── Migrations/
+│   ├── Account/                     # Login, Register, Profile, EditProfile, ChangePassword, AccessDenied
+│   ├── Home/                        # Index
+│   ├── Profile/                     # Create, Edit, Delete, Index, Cv
+│   ├── Address/                     # Create, Edit, Delete
+│   ├── Contact/
+│   ├── Education/
+│   ├── Experience/
+│   ├── SocialLink/
+│   ├── Admin/                       # Index, Details
+│   ├── UserManagement/              # Index, Delete
+│   └── Shared/                      # _Layout, _ValidationScriptsPartial, Error
+├── Migrations/                      # EF Core migrations (InitialCreate)
+├── wwwroot/                         # Static files, uploads/profiles for profile photos
 ├── appsettings.json
 └── Program.cs
 ```
 
+---
+
+## Data Model
+
+```mermaid
+erDiagram
+    ApplicationUser ||--o| Person : "owns one"
+    Person ||--o{ Address : has
+    Person ||--o{ Contact : has
+    Person ||--o{ Education : has
+    Person ||--o{ Experience : has
+    Person ||--o{ SocialLink : has
+```
+
+```text
+Person (1) ──┬── (N) Address
+             ├── (N) Contact
+             ├── (N) Education
+             ├── (N) Experience
+             └── (N) SocialLink
+```
+
+- `Person.UserId` links a profile to its owning ASP.NET Core Identity user.
+- All child entities carry a `PersonId` foreign key plus the audit fields
+  `CreatedAt` / `CreatedBy` / `UpdatedAt` / `UpdatedBy`.
+
+---
+
 ## Prerequisites
 
-- .NET 10 SDK
-- SQL Server (LocalDB or SQL Server Express)
+- [.NET 10 SDK](https://dotnet.microsoft.com/download)
+- **SQL Server Express** or **LocalDB** — the default connection targets `localhost\SQLEXPRESS`
+- Optional: the [`dotnet-ef`](https://learn.microsoft.com/ef/core/cli/dotnet) global tool for managing migrations
 
-## Setup
+---
 
-1. **Clone and restore**
+## Getting Started
 
-   ```bash
-   dotnet restore
-   ```
+### 1. Restore packages
 
-2. **Configure the database connection** (optional)
+```bash
+dotnet restore
+```
 
-   Edit `appsettings.json` and update the `DefaultConnection` string if needed.
-   The default uses a local SQL Server Express instance:
+### 2. Configure the database connection
 
-   ```text
-   Server=localhost\SQLEXPRESS;Database=CustomerManagementDb;Trusted_Connection=True;TrustServerCertificate=True;
-   ```
+Edit `appsettings.json` if your SQL Server instance differs. The default:
 
-3. **Apply migrations**
+```text
+Server=localhost\SQLEXPRESS;Database=CustomerManagementDb;Trusted_Connection=True;TrustServerCertificate=True;
+```
 
-   ```bash
-   dotnet ef database update
-   ```
+A commented-out **LocalDB** connection string is included as an alternative.
 
-4. **Run the application**
+### 3. Apply migrations
 
-   ```bash
-   dotnet run
-   ```
+```bash
+dotnet ef database update
+```
 
-   The app starts on `http://localhost:5258` and/or `https://localhost:7061`.
+### 4. Run the application
+
+```bash
+dotnet run
+```
+
+With the default `https` launch profile, the app is available at:
+
+- <https://localhost:7061>
+- <http://localhost:5258>
+
+---
 
 ## Usage
 
-1. Navigate to the application in your browser.
-2. **Register** a new account or **Login** with existing credentials.
-3. The first registered user can be assigned the **Admin** role (via the database or a setup script) to access admin features.
-4. As an **Admin**, you can manage all customers and users, and assign roles.
-5. As a regular **User**, you can view and manage only the customers you created.
+1. **Open the app** in a browser.
+2. **Register** — the very first account created becomes an **Admin**; all later accounts become **Users**.
+   The `Admin` and `User` roles are created automatically.
+3. **Log in** — admins land on the profile list, regular users land on their own profile.
+4. **As a User**, go to **My Profile** and create your profile (photo optional). From there you can add
+   addresses, contacts, education, experience, and social links, then open **View CV** to see the consolidated
+   document.
+5. **As an Admin**, use **Profiles** to browse every profile and open its details or CV, and **Users** to
+   manage accounts.
+
+---
+
+## Routes Reference
+
+| Route                 | Access        | Purpose                          |
+| --------------------- | ------------- | -------------------------------- |
+| `/`                   | Public        | Entry point; redirects by role   |
+| `/Profile`            | Authenticated | Current user's profile dashboard |
+| `/Profile/Cv/{id}`    | Public        | Rendered CV for a profile        |
+| `/Admin`              | Admin         | All profiles                     |
+| `/Admin/Details/{id}` | Admin         | Full profile details             |
+| `/UserManagement`     | Admin         | All users                        |
+| `/Account/Login`      | Public        | Login                            |
+| `/Account/Register`   | Public        | Register                         |
+
+---
+
+## Image Uploads
+
+Profile photos are handled by `IImageService`:
+
+- **Allowed extensions:** `.jpg`, `.jpeg`, `.png`, `.gif`, `.webp`
+- **Storage location:** `wwwroot/uploads/profiles/`
+- **Naming:** each file receives a GUID-based name, so uploads never collide
+- **Cleanup:** replacing or deleting a profile photo removes the previous file from disk
+
+---
+
+## Security Notes
+
+- **Ownership enforcement** is applied at the query level — edit and delete operations match on both the
+  record ID _and_ the current user's profile ID.
+- **Password storage** uses ASP.NET Core Identity's PBKDF2 hashing.
+- **Role separation** — administrative controllers are protected with `[Authorize(Roles = "Admin")]`.
+- **Self-deletion is blocked** in the user-management console.
+- ⚠️ **The CV page is currently `[AllowAnonymous]`** — any CV is reachable by ID without logging in.
+  See [Known Limitations](#known-limitations--roadmap).
+
+---
+
+## Known Limitations & Roadmap
+
+| Item                   | Status / Notes                                                                                                                                                                                              |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Soft delete**        | `Deleted` flags exist on the entity classes, but current delete actions perform **hard deletes**. The soft-delete block in `ProfileController.DeleteConfirmed` is commented out and ready to be re-enabled. |
+| **Public CV access**   | `ProfileController.Cv` is marked `[AllowAnonymous]`, so any CV is reachable by ID without authentication. Consider requiring auth or adding a share token.                                                  |
+| **Registration input** | `AccountController.Register` accepts a plain `email` and `password` rather than a dedicated view model.                                                                                                     |
+| **Tests**              | No automated test project is included yet.                                                                                                                                                                  |
+
+---
+
+## Contributing
+
+1. Fork the repository and create a feature branch: `git checkout -b feature/my-change`
+2. Follow the existing patterns — view models per action, service layer for cross-cutting concerns,
+   and ownership checks on every user-scoped query.
+3. Keep migrations focused and descriptively named.
+4. Open a pull request describing the change and how it was verified.
+
+---
 
 ## License
 

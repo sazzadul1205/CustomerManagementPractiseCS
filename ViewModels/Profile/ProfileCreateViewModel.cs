@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Microsoft.AspNetCore.Http;
 
 namespace CustomerManagementPractiseCS.ViewModels.Profile
 {
@@ -25,8 +24,6 @@ namespace CustomerManagementPractiseCS.ViewModels.Profile
 
         [StringLength(2000)]
         public string? Summary { get; set; }
-
-        // Photo upload
         public IFormFile? PhotoFile { get; set; }
     }
 }

@@ -4,7 +4,6 @@ namespace CustomerManagementPractiseCS.ViewModels.Profile
 {
     public class ProfileCvViewModel
     {
-        // Basic info
         public int Id { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Gender { get; set; } = string.Empty;
@@ -14,7 +13,6 @@ namespace CustomerManagementPractiseCS.ViewModels.Profile
         public string? PhotoUrl { get; set; }
         public string? Summary { get; set; }
 
-        // Children
         public List<Address> Addresses { get; set; } = new();
         public List<Contact> Contacts { get; set; } = new();
         public List<Education> Educations { get; set; } = new();

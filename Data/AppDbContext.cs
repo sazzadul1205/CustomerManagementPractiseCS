@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Data
 {
-    // Instead of DbContext we use the IdentityDbContext this adds the Identitiy Assets
+    // Instead of DbContext we use the IdentityDbContext this adds the Identity Assets
     public class AppDbContext: IdentityDbContext  
     {
 

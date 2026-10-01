@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc;
 namespace CustomerManagementPractiseCS.Controllers
 {
 
-    // The UserManager, SignInManager, RoleManager Provaide the Async Version of there
-    // Methods Because its built with the mind thata there will be many Login / Access Calls  
+    // The UserManager, SignInManager, RoleManager Provide the Async Version of there
+    // Methods Because its built with the mind that there will be many Login / Access Calls  
     public class AccountController : Controller
     {
         // IdentityUser is the built-in user class provided by Identity 
@@ -30,7 +30,7 @@ namespace CustomerManagementPractiseCS.Controllers
             return View();
         }
 
-        // The Task Represents a Async Funtion that can return a value 
+        // The Task Represents a Async Function that can return a value 
         [HttpPost]
         public async Task<IActionResult> Register(string email, string password)
         {
@@ -91,7 +91,7 @@ namespace CustomerManagementPractiseCS.Controllers
         public async Task<IActionResult> Login(string email, string password)
         {
             var result = await _signInManager.PasswordSignInAsync(email, password, isPersistent: false, lockoutOnFailure: false);
-            // isPersistent: is to Controle how Log the Auth Cookie Stayes False: Current Browser Session.
+            // isPersistent: is to Control how Log the Auth Cookie Stays False: Current Browser Session.
             // lockoutOnFailure: is the built in multi login attempt login Locker 
 
             if (result.Succeeded)
@@ -243,7 +243,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
 
-            // Takes the Curent Password and New Password  
+            // Takes the Current Password and New Password  
             var result = await _userManager.ChangePasswordAsync(user, ViewModel.CurrentPassword, ViewModel.NewPassword);
 
             // If Result Fails
@@ -256,7 +256,7 @@ namespace CustomerManagementPractiseCS.Controllers
                     ModelState.AddModelError(string.Empty, e.Description);
                 }
 
-                // Return Error with the Previous Faild Data 
+                // Return Error with the Previous Failed Data 
                 return View(ViewModel);
             }
 

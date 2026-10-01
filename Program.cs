@@ -14,9 +14,9 @@ builder.Services.AddDbContext<AppDbContext>(
         builder.Configuration.GetConnectionString("DefaultConnection")));
 
 //builder.Services.AddDefaultIdentity<IdentityUser>() // Register a Service for DI Injection 
-//    .AddEntityFrameworkStores<AppDbContext>(); // It sayes to My EFCore where to Store data 
+//    .AddEntityFrameworkStores<AppDbContext>(); // It says to My EFCore where to Store data 
 
-// IF i want to Customize the Lockout time ans Cookiwe Duraion 
+// IF i want to Customize the Lockout time ans Cookie Duration 
 //builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 //{
 //    options.Lockout.MaxFailedAccessAttempts = 5;
@@ -25,12 +25,12 @@ builder.Services.AddDbContext<AppDbContext>(
 //.AddEntityFrameworkStores<AppDbContext>();
 
 
-// i didint use DefaultIdentity Because i would not like to sue the MS Default System 
+// i did not use DefaultIdentity Because i would not like to sue the MS Default System 
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
-    .AddDefaultTokenProviders(); // This Provaides me the Token Genarator and Validator of Idntity
+    .AddDefaultTokenProviders(); // This Provides me the Token Generator and Validator of Identity
 
-// Thsi Provaides the Customaization of the Authentication Cookie 
+// This Provides the Customization of the Authentication Cookie 
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.LoginPath = "/Account/Login";
@@ -52,7 +52,7 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseRouting();
 
-app.UseAuthentication(); // Askes Who is the User
+app.UseAuthentication(); // Asks Who is the User
 app.UseAuthorization(); // Asks can the user Access 
 
 app.MapStaticAssets();

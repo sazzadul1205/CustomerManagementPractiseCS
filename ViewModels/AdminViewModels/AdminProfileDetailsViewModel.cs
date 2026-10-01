@@ -4,9 +4,8 @@ namespace CustomerManagementPractiseCS.ViewModels.AdminViewModels
 {
     public class AdminProfileDetailsViewModel
     {
-        // Basic info
         public int Id { get; set; }
-        public string UserId { get; set; } = string.Empty;
+        public string? UserId { get; set; } = string.Empty;
         public string FullName { get; set; } = string.Empty;
         public string Gender { get; set; } = string.Empty;
         public DateOnly DateOfBirth { get; set; }
@@ -16,8 +15,6 @@ namespace CustomerManagementPractiseCS.ViewModels.AdminViewModels
         public string? Summary { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
-
-        // Children
         public List<Address> Addresses { get; set; } = new();
         public List<Contact> Contacts { get; set; } = new();
         public List<Education> Educations { get; set; } = new();

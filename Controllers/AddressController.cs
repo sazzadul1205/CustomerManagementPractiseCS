@@ -99,7 +99,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 return RedirectToAction("Index", "Profile");
             }
 
-            // Get the Address that Belongs to the Current Profile and validate the Provaided id 
+            // Get the Address that Belongs to the Current Profile and validate the Provided id 
             var addressData = _context.Addresses.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (addressData == null)

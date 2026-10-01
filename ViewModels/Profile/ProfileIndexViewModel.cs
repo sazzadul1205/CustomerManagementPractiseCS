@@ -4,7 +4,6 @@ namespace CustomerManagementPractiseCS.ViewModels.Profile
 {
     public class ProfileIndexViewModel
     {
-        // Basic info
         public int Id { get; set; }
         public string FullName { get; set; } = string.Empty;
         public string Gender { get; set; } = string.Empty;
