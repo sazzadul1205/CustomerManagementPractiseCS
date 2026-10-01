@@ -130,6 +130,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Persons.Add(profileData);
             _context.SaveChanges();
 
+            TempData["Success"] = "Profile created successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -200,6 +202,8 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             _context.SaveChanges();
+
+            TempData["Success"] = "Profile updated successfully.";
 
             return RedirectToAction("Index", "Profile");
         }
@@ -272,6 +276,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Persons.Remove(profileData);
 
             _context.SaveChanges();
+
+            TempData["Success"] = "Profile deleted successfully.";
 
             return RedirectToAction("Index", "Profile");
         }

@@ -74,6 +74,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Experiences.Add(experienceData);
             _context.SaveChanges();
 
+            TempData["Success"] = "Experience added successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -156,6 +158,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.SaveChanges();
 
+            TempData["Success"] = "Experience updated successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -221,6 +225,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.Experiences.Remove(experienceData);
             _context.SaveChanges();
+
+            TempData["Success"] = "Experience deleted successfully.";
 
             return RedirectToAction("Index", "Profile");
         }

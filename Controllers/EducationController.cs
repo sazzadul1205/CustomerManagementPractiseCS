@@ -73,6 +73,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Educations.Add(educationData);
             _context.SaveChanges();
 
+            TempData["Success"] = "Education added successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -152,6 +154,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.SaveChanges();
 
+            TempData["Success"] = "Education updated successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -216,6 +220,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.Educations.Remove(educationData);
             _context.SaveChanges();
+
+            TempData["Success"] = "Education deleted successfully.";
 
             return RedirectToAction("Index", "Profile");
         }

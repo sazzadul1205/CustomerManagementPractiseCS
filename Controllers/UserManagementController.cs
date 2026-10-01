@@ -110,6 +110,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             await _userManager.DeleteAsync(user);
 
+            TempData["Success"] = "User deleted successfully.";
+
             return RedirectToAction("Index");
         }
     }

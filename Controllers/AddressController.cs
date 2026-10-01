@@ -84,6 +84,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Addresses.Add(addressData);
             _context.SaveChanges();
 
+            TempData["Success"] = "Address added successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
         // GET: /Address/Edit/5
@@ -173,6 +175,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.SaveChanges();
 
+            TempData["Success"] = "Address updated successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -236,6 +240,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.Addresses.Remove(addressData);
             _context.SaveChanges();
+
+            TempData["Success"] = "Address deleted successfully.";
 
             return RedirectToAction("Index", "Profile");
         }

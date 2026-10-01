@@ -149,10 +149,28 @@
         </nav>
     </header>
 
+@* We are Getting the Temp data because of the ASP.NET MVC Automatically is providing the TempData  *@
+    @if (TempData["Success"] != null)
+    {
+        <div class="container mt-3">
+            <div class="alert alert-success alert-dismissible fade show shadow-sm"
+                role="alert">
+                @TempData["Success"]
+    
+                <button type="button"
+                        class="btn-close"
+                        data-bs-dismiss="alert"
+                        aria-label="Close">
+                </button>
+            </div>
+        </div>
+    }
 
     <!-- Page Content -->
     <div class="container">
         <main role="main" class="pb-4">
+
+            
             @RenderBody()
         </main>
     </div>
@@ -167,6 +185,16 @@
             asp-append-version="true"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
+
+    <script>
+        // Auto-dismiss any alert marked data-auto-dismiss after 4 seconds
+        setTimeout(function () {
+            document.querySelectorAll('.alert-dismissible').forEach(function (el) {
+                var alert = bootstrap.Alert.getOrCreateInstance(el);
+                alert.close();
+            });
+        }, 4000);
+    </script>
 
 </body>
 </html>

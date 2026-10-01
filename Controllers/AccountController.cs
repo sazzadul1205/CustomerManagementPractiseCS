@@ -70,6 +70,8 @@ namespace CustomerManagementPractiseCS.Controllers
                     await _userManager.AddToRoleAsync(user, "Admin");
                 }
 
+                TempData["Success"] = "Account created successfully. Please log in.";
+
                 return RedirectToAction("Login");
             }
 
@@ -102,10 +104,12 @@ namespace CustomerManagementPractiseCS.Controllers
                 // Admins go to the admin panel
                 if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
                 {
+                    TempData["Success"] = "Welcome back!";
                     return RedirectToAction("Index", "Admin");
                 }
 
                 // Regular users go to their profile
+                TempData["Success"] = "Welcome back!";
                 return RedirectToAction("Index", "Profile");
             }
 
@@ -120,6 +124,9 @@ namespace CustomerManagementPractiseCS.Controllers
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();
+
+            TempData["Success"] = "You have been logged out.";
+
             return RedirectToAction("Login");
         }
 
@@ -210,6 +217,8 @@ namespace CustomerManagementPractiseCS.Controllers
             // Refresh the login so everything is up to date
             await _signInManager.RefreshSignInAsync(user);
 
+            TempData["Success"] = "Phone number updated successfully.";
+
             return RedirectToAction("Profile");
         }
 
@@ -261,6 +270,8 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             await _signInManager.RefreshSignInAsync(user);
+
+            TempData["Success"] = "Password changed successfully.";
 
             return RedirectToAction("Profile");
         }

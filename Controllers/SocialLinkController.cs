@@ -67,6 +67,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.SocialLinks.Add(socialLinkData);
             _context.SaveChanges();
 
+            TempData["Success"] = "Social link added successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -135,6 +137,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.SaveChanges();
 
+            TempData["Success"] = "Social link updated successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -193,6 +197,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.SocialLinks.Remove(socialLinkData);
             _context.SaveChanges();
+
+            TempData["Success"] = "Social link deleted successfully.";
 
             return RedirectToAction("Index", "Profile");
         }

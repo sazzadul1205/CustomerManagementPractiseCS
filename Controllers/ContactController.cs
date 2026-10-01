@@ -80,6 +80,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Contacts.Add(contactData);
             _context.SaveChanges();
 
+            TempData["Success"] = "Contact added successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -164,6 +166,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.SaveChanges();
 
+            TempData["Success"] = "Contact updated successfully.";
+
             return RedirectToAction("Index", "Profile");
         }
 
@@ -225,6 +229,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             _context.Contacts.Remove(contactData);
             _context.SaveChanges();
+
+            TempData["Success"] = "Contact deleted successfully.";
 
             return RedirectToAction("Index", "Profile");
         }
