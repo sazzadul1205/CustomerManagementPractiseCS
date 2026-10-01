@@ -27,6 +27,12 @@ namespace CustomerManagementPractiseCS.Controllers
         {
             var userId = _userManager.GetUserId(User);
 
+            // Send admins to the admin panel
+            if (User.IsInRole("Admin"))
+            {
+                return RedirectToAction("Index", "Admin");
+            }
+
             var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
 
             if (profileData == null)
@@ -62,6 +68,15 @@ namespace CustomerManagementPractiseCS.Controllers
         // GET: /Profile/Create
         public IActionResult Create()
         {
+            var userId = _userManager.GetUserId(User);
+
+            // Check if i already have a profile,
+            bool hasProfile = _context.Persons.Any(x => x.UserId == userId);
+            if (hasProfile)
+            {
+                return RedirectToAction("Index");
+            }
+
             return View();
         }
 
@@ -75,6 +90,12 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             var userId = _userManager.GetUserId(User);
+
+            bool hasProfile = _context.Persons.Any(x => x.UserId == userId);
+            if (hasProfile)
+            {
+                return RedirectToAction("Index");
+            }
 
             var profileData = new Person
             {
@@ -145,7 +166,9 @@ namespace CustomerManagementPractiseCS.Controllers
 
             var userId = _userManager.GetUserId(User);
 
-            var profileData = _context.Persons.FirstOrDefault(x => x.Id == ViewModel.Id);
+            // The ID must match AND it must belong to me
+            // Find the First Profile where the Id matches the viewmodel id and also match it with userid from the logged in user to see if all is right 
+            var profileData = _context.Persons.FirstOrDefault(x => x.Id == ViewModel.Id && x.UserId == userId);
             if (profileData == null)
             {
                 return NotFound();

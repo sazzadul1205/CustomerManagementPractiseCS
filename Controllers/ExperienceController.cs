@@ -91,8 +91,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Experience that Belongs to the Current Profile
-            var experienceData = _context.Experiences
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var experienceData = _context.Experiences.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (experienceData == null)
             {
@@ -136,8 +135,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Experience that Belongs to the Current Profile
-            var experienceData = _context.Experiences
-                .FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var experienceData = _context.Experiences.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (experienceData == null)
             {
@@ -175,8 +173,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Experience that Belongs to the Current Profile
-            var experienceData = _context.Experiences
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var experienceData = _context.Experiences.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (experienceData == null)
             {
@@ -215,8 +212,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Experience that Belongs to the Current Profile
-            var experienceData = _context.Experiences
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var experienceData = _context.Experiences.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (experienceData == null)
             {

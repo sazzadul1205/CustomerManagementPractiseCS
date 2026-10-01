@@ -46,7 +46,7 @@ namespace CustomerManagementPractiseCS.Models
 
         public bool Deleted { get; set; } = false;
 
-        // Inharited Ones 
+      
         public ICollection<Address> Addresses { get; set; } = new List<Address>();
         public ICollection<Contact> Contacts { get; set; } = new List<Contact>();
         public ICollection<Education> Educations { get; set; } = new List<Education>();

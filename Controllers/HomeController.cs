@@ -9,7 +9,7 @@ namespace CustomerManagementPractiseCS.Controllers
         public IActionResult Index()
         {
             // Send admins to the admin panel
-            if (User.Identity != null && User.Identity.IsAuthenticated && User.IsInRole("Admin"))
+            if (User.IsInRole("Admin"))
             {
                 return RedirectToAction("Index", "Admin");
             }

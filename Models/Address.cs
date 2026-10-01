@@ -33,7 +33,7 @@ namespace CustomerManagementPractiseCS.Models
 
         public bool IsPrimary { get; set; } = false;
 
-        // audit
+
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         [StringLength(450)]
         public string? CreatedBy { get; set; }

@@ -57,9 +57,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // If this is Marked Primary, Demote the Others of the Same Type
             if (ViewModel.IsPrimary)
             {
-                var others = _context.Contacts
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList();
+                var others = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList();
 
                 foreach (var other in others)
                 {
@@ -99,8 +97,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Contact that Belongs to the Current Profile
-            var contactData = _context.Contacts
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var contactData = _context.Contacts.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (contactData == null)
             {
@@ -219,8 +216,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Contact that Belongs to the Current Profile
-            var contactData = _context.Contacts
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var contactData = _context.Contacts.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (contactData == null)
             {

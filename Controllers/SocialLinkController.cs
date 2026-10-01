@@ -84,8 +84,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the SocialLink that Belongs to the Current Profile
-            var socialLinkData = _context.SocialLinks
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var socialLinkData = _context.SocialLinks.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (socialLinkData == null)
             {
@@ -122,8 +121,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the SocialLink that Belongs to the Current Profile
-            var socialLinkData = _context.SocialLinks
-                .FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var socialLinkData = _context.SocialLinks.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (socialLinkData == null)
             {
@@ -154,8 +152,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the SocialLink that Belongs to the Current Profile
-            var socialLinkData = _context.SocialLinks
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var socialLinkData = _context.SocialLinks.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (socialLinkData == null)
             {
@@ -187,8 +184,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the SocialLink that Belongs to the Current Profile
-            var socialLinkData = _context.SocialLinks
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var socialLinkData = _context.SocialLinks.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (socialLinkData == null)
             {

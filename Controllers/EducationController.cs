@@ -90,8 +90,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Education that Belongs to the Current Profile
-            var educationData = _context.Educations
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var educationData = _context.Educations.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (educationData == null)
             {
@@ -134,8 +133,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Education that Belongs to the Current Profile
-            var educationData = _context.Educations
-                .FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var educationData = _context.Educations.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (educationData == null)
             {
@@ -171,8 +169,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Education that Belongs to the Current Profile
-            var educationData = _context.Educations
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var educationData = _context.Educations.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (educationData == null)
             {
@@ -210,8 +207,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Education that Belongs to the Current Profile
-            var educationData = _context.Educations
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var educationData = _context.Educations.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (educationData == null)
             {

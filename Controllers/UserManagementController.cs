@@ -79,7 +79,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 return BadRequest("You can't delete your own account here.");
             }
 
-            // Get the Person (profile) for this user
+            // Get the profile
             var profiles = _context.Persons.Where(p => p.UserId == user.Id).ToList();
 
             if (profiles.Count > 0)
@@ -92,7 +92,6 @@ namespace CustomerManagementPractiseCS.Controllers
                 _context.SaveChanges();
             }
 
-            // Finally Delete the Identity User
             await _userManager.DeleteAsync(user);
 
             return RedirectToAction("Index");

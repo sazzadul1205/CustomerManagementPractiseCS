@@ -225,20 +225,38 @@ namespace CustomerManagementPractiseCS.Controllers
         [Authorize]
         public async Task<IActionResult> ChangePassword(ChangePasswordViewModel ViewModel)
         {
-            if (!ModelState.IsValid) return View(ViewModel);
+            if (!ModelState.IsValid) 
+            { 
+                return View(ViewModel);
+            }
+
+            if (ViewModel.NewPassword != ViewModel.ConfirmPassword)
+            {
+                ModelState.AddModelError("", "Passwords do not match.");
+                return View(ViewModel);
+            }
 
             var user = await _userManager.GetUserAsync(User);
-            if (user == null) return NotFound();
 
+            if (user == null) { 
+                return NotFound(); 
+            }
+
+
+            // Takes the Curent Password and New Password  
             var result = await _userManager.ChangePasswordAsync(user, ViewModel.CurrentPassword, ViewModel.NewPassword);
 
+            // If Result Fails
             if (!result.Succeeded)
             {
+                // Go through all the Errors
                 foreach (var e in result.Errors)
                 {
+                    // Add Errors to the Model State 
                     ModelState.AddModelError(string.Empty, e.Description);
                 }
 
+                // Return Error with the Previous Faild Data 
                 return View(ViewModel);
             }
 
