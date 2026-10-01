@@ -9,7 +9,7 @@ namespace CustomerManagementPractiseCS.Models
 
         [Required]
         [StringLength(450)]
-        public string UserId { get; set; } = string.Empty;
+        public string? UserId { get; set; } = string.Empty;
 
         [Required]
         [StringLength(150)]

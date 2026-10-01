@@ -167,7 +167,7 @@ namespace CustomerManagementPractiseCS.Controllers
             var userId = _userManager.GetUserId(User);
 
             // The ID must match AND it must belong to me
-            // Find the First Profile where the Id matches the viewmodel id and also match it with userid from the logged in user to see if all is right 
+            // Find the First Profile where the Id matches the view model id and also match it with userid from the logged in user to see if all is right 
             var profileData = _context.Persons.FirstOrDefault(x => x.Id == ViewModel.Id && x.UserId == userId);
             if (profileData == null)
             {
@@ -232,8 +232,8 @@ namespace CustomerManagementPractiseCS.Controllers
             // Get the Current User Id
             var userId = _userManager.GetUserId(User);
 
-            // Get the Existing Profile Data
-            var profileData = _context.Persons.FirstOrDefault(x => x.Id == id);
+            // Get the Existing Profile Data Also Check the Ownership 
+            var profileData = _context.Persons.FirstOrDefault(x => x.Id == id && x.UserId == userId);
 
             if (profileData == null)
             {
@@ -245,6 +245,20 @@ namespace CustomerManagementPractiseCS.Controllers
             //profileData.Deleted = true;
             //profileData.UpdatedAt = DateTime.UtcNow;
             //profileData.UpdatedBy = userId;
+
+            // Connected 
+            var addresses = _context.Addresses.Where(x => x.PersonId == profileData.Id).ToList();
+            var contacts = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList();
+            var educations = _context.Educations.Where(x => x.PersonId == profileData.Id).ToList();
+            var experiences = _context.Experiences.Where(x => x.PersonId == profileData.Id).ToList();
+            var socialLinks = _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToList();
+
+            // RemoveRange is used primarily for a list of objects so we do not have to parse one by one and delete    
+            _context.Contacts.RemoveRange(contacts);
+            _context.Experiences.RemoveRange(experiences);
+            _context.Educations.RemoveRange(educations);
+            _context.Addresses.RemoveRange(addresses);
+            _context.SocialLinks.RemoveRange(socialLinks);
 
             _imageService.DeleteImage(profileData.PhotoUrl);
             _context.Persons.Remove(profileData);
@@ -276,23 +290,11 @@ namespace CustomerManagementPractiseCS.Controllers
                 PhotoUrl = profileData.PhotoUrl,
                 Summary = profileData.Summary,
 
-                Addresses = _context.Addresses
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList(),
-                Contacts = _context.Contacts
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList(),
-                Educations = _context.Educations
-                    .Where(x => x.PersonId == profileData.Id)
-                    .OrderByDescending(x => x.StartYear)
-                    .ToList(),
-                Experiences = _context.Experiences
-                    .Where(x => x.PersonId == profileData.Id)
-                    .OrderByDescending(x => x.StartDate)
-                    .ToList(),
-                SocialLinks = _context.SocialLinks
-                    .Where(x => x.PersonId == profileData.Id)
-                    .ToList()
+                Addresses = _context.Addresses.Where(x => x.PersonId == profileData.Id).ToList(),
+                Contacts = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList(),
+                Educations = _context.Educations.Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartYear).ToList(),
+                Experiences = _context.Experiences.Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartDate).ToList(),
+                SocialLinks = _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToList()
             };
 
             return View(viewModel);

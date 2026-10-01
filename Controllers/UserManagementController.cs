@@ -86,7 +86,23 @@ namespace CustomerManagementPractiseCS.Controllers
             {
                 foreach (var profile in profiles)
                 {
+                    // Delete the Connected Errors First 
+                    var addresses = _context.Addresses.Where(x => x.PersonId == profile.Id).ToList();
+                    var contacts = _context.Contacts.Where(x => x.PersonId == profile.Id).ToList();
+                    var educations = _context.Educations.Where(x => x.PersonId == profile.Id).ToList();
+                    var experiences = _context.Experiences.Where(x => x.PersonId == profile.Id).ToList();
+                    var socialLinks = _context.SocialLinks.Where(x => x.PersonId == profile.Id).ToList();
+
+                    _context.Addresses.RemoveRange(addresses);
+                    _context.Contacts.RemoveRange(contacts);
+                    _context.Educations.RemoveRange(educations);
+                    _context.Experiences.RemoveRange(experiences);
+                    _context.SocialLinks.RemoveRange(socialLinks);
+
+                    // Delete the profile image
                     _imageService.DeleteImage(profile.PhotoUrl);
+
+                    // Now remove the profile itself
                     _context.Persons.Remove(profile);
                 }
                 _context.SaveChanges();
