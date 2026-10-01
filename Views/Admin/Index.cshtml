@@ -2,19 +2,59 @@
 
 @{
     ViewData["Title"] = "All Profiles";
-    var search = ViewData["Search"] as string;
-    var gender = ViewData["Gender"] as string;
+
+    // Read the current filter values from the query string so the form stays filled
+    var search = Context.Request.Query["search"].ToString();
+    var gender = Context.Request.Query["gender"].ToString();
+    var hasFilter = !string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(gender);
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="mb-0">All Profiles</h1>
+    @* <span class="text-muted">@Model.Count profile(s)</span> *@
+</div>
+
+@* Filter form *@
+<div class="card shadow-sm mb-3">
+    <div class="card-body">
+        <form method="get" asp-action="Index" class="row g-2 align-items-end">
+            <div class="col-md-6">
+                <label for="search" class="form-label">Search by name</label>
+                <input type="text" id="search" name="search" value="@search" class="form-control"
+                       placeholder="e.g. John" />
+            </div>
+
+            <div class="col-md-4">
+                <label for="gender" class="form-label">Gender</label>
+                <select id="gender" name="gender" class="form-select">
+                    <option value="" selected="@(gender != "Male" && gender != "Female" && gender != "Other")">-- All --</option>
+                    <option value="Male" selected="@(gender == "Male")">Male</option>
+                    <option value="Female" selected="@(gender == "Female")">Female</option>
+                    <option value="Other" selected="@(gender == "Other")">Other</option>
+                </select>
+            </div>
+
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                <a asp-action="Index" class="btn btn-secondary w-100">Clear</a>
+            </div>
+        </form>
+    </div>
 </div>
 
 @if (Model.Count == 0)
 {
     <div class="card shadow-sm">
         <div class="card-body text-center py-5">
-            <p class="text-muted mb-0">No profiles match your filter.</p>
+            @if (hasFilter)
+            {
+                <p class="text-muted mb-3">No profiles match your filter.</p>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear filter</a>
+            }
+            else
+            {
+                <p class="text-muted mb-0">No profiles yet.</p>
+            }
         </div>
     </div>
 }

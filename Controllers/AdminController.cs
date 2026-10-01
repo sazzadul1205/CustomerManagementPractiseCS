@@ -3,6 +3,7 @@ using CustomerManagementPractiseCS.ViewModels.AdminViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -19,23 +20,38 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Admin
-        public IActionResult Index()
+        public IActionResult Index(string search, string gender)
         {
-            var profiles = _context.Persons
-                .OrderByDescending(x => x.CreatedAt)
-                .Select(x => new AdminProfileListViewModel
-                {
-                    Id = x.Id,
-                    UserId = x.UserId,
-                    FullName = x.FullName,
-                    Gender = x.Gender,
-                    DateOfBirth = x.DateOfBirth,
-                    BloodGroup = x.BloodGroup,
-                    Religion = x.Religion,
-                    PhotoUrl = x.PhotoUrl,
-                    City = x.Addresses.Where(a => a.IsPrimary).Select(a => a.City).FirstOrDefault(),
-                    CreatedAt = x.CreatedAt
-                })
+            // AsQueryable() is used when a Developer Wants to Daynamically Querry a Entity it is used for sorting, filtering and more 
+            var querry = _context.Persons.AsQueryable();
+
+            // If the search (name) filetr is not null it will search via the given "search" Content 
+            if (!string.IsNullOrEmpty(search))
+            {
+                // Contains() checks whether a string contains a particular piece of text.
+                querry = querry.Where(x => x.FullName.Contains(search));
+            }
+
+            // If the Gender Is Provaided then
+            if (!string.IsNullOrEmpty(gender))
+            {
+                querry = querry.Where(x => x.Gender == gender);
+            }
+
+
+            var profiles = querry.OrderByDescending(x => x.CreatedAt).Select(x => new AdminProfileListViewModel
+            {
+                Id = x.Id,
+                UserId = x.UserId,
+                FullName = x.FullName,
+                Gender = x.Gender,
+                DateOfBirth = x.DateOfBirth,
+                BloodGroup = x.BloodGroup,
+                Religion = x.Religion,
+                PhotoUrl = x.PhotoUrl,
+                City = x.Addresses.Where(a => a.IsPrimary).Select(a => a.City).FirstOrDefault(),
+                CreatedAt = x.CreatedAt
+            })
                 .ToList();
 
             return View(profiles);
