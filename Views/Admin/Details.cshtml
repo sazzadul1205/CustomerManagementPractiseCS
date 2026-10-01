@@ -21,12 +21,11 @@
                 <div class="text-center mb-3">
                     @if (!string.IsNullOrEmpty(Model.PhotoUrl))
                     {
-                        <img src="@Model.PhotoUrl" alt="@Model.FullName"
-                             style="max-width:150px; max-height:150px;  object-fit:cover;" />
+                        <img src="@Model.PhotoUrl" alt="@Model.FullName" class="avatar" />
                     }
                     else
                     {
-                        <div style="width:150px; height:150px;  background:#e9ecef; display:inline-flex; align-items:center; justify-content:center;">
+                        <div class="avatar-placeholder">
                             <span class="text-muted">No Photo</span>
                         </div>
                     }
