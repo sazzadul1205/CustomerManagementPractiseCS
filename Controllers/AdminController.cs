@@ -83,8 +83,15 @@ namespace CustomerManagementPractiseCS.Controllers
 
                 Addresses = _context.Addresses.Where(x => x.PersonId == person.Id).ToList(),
                 Contacts = _context.Contacts.Where(x => x.PersonId == person.Id).ToList(),
-                Educations = _context.Educations.Where(x => x.PersonId == person.Id).ToList(),
-                Experiences = _context.Experiences.Where(x => x.PersonId == person.Id).ToList(),
+                Educations = _context.Educations
+                    .Where(x => x.PersonId == person.Id)
+                    .OrderByDescending(x => x.StartYear)
+                    .ToList(),
+
+                Experiences = _context.Experiences
+                    .Where(x => x.PersonId == person.Id)
+                    .OrderByDescending(x => x.StartDate)
+                    .ToList(),
                 SocialLinks = _context.SocialLinks.Where(x => x.PersonId == person.Id).ToList()
             };
 
