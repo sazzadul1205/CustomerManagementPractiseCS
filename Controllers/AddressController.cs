@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace CustomerManagementPractiseCS.Controllers
 {
     [Authorize]
-    public class AddressController: Controller
+    public class AddressController : Controller
     {
         private readonly AppDbContext _context;
         private readonly UserManager<IdentityUser> _userManager;
@@ -33,7 +33,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
             return View();
         }
-        
+
         public IActionResult List(int personId)
         {
             var userId = _userManager.GetUserId(User);
@@ -121,7 +121,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             // Get the Address that Belongs to the Current Profile and validate the Provided id 
@@ -129,7 +130,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (addressData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Address not found.");
             }
 
             var viewModel = new AddressEditViewModel
@@ -144,12 +146,14 @@ namespace CustomerManagementPractiseCS.Controllers
                 IsPrimary = addressData.IsPrimary
             };
 
-            return View(viewModel);
+            // return View(viewModel);
+            // return Ok(viewModel);
+            return PartialView("_AddressEditForm", viewModel);
         }
 
         // POST: /Address/Edit/5
         [HttpPost]
-        public IActionResult Edit(AddressEditViewModel ViewModel)
+        public IActionResult Edit([FromBody] AddressEditViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -158,12 +162,14 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             if (!ModelState.IsValid)
             {
-                return View(ViewModel);
+                // return View(ViewModel);
+                return BadRequest(ModelState);
             }
 
             // Get  the address whose ID matches the requested address ID AND whose PersonId matches the current users profile ID.
@@ -171,7 +177,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (addressData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Address not found.");
             }
 
             // If this is Marked Primary, then uncheck all the others 
@@ -200,7 +207,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             TempData["Success"] = "Address updated successfully.";
 
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok();
         }
 
         // GET: /Address/Delete/5
@@ -213,7 +221,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             // Get the Address that Belongs to the Current Profile
@@ -221,7 +230,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (addressData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Address not found.");
             }
 
             var viewModel = new AddressDeleteViewModel
@@ -236,12 +246,13 @@ namespace CustomerManagementPractiseCS.Controllers
                 IsPrimary = addressData.IsPrimary
             };
 
-            return View(viewModel);
+            // return View(viewModel);
+            return PartialView("_AddressDeleteForm", viewModel);
         }
 
         // POST: /Address/Delete/5
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed([FromBody] AddressDeleteViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -250,15 +261,22 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             // Get the Address that Belongs to the Current Profile
-            var addressData = _context.Addresses.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var addressData = _context.Addresses.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (addressData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Address not found.");
             }
 
             _context.Addresses.Remove(addressData);
@@ -266,7 +284,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             TempData["Success"] = "Address deleted successfully.";
 
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok();
         }
     }
 }

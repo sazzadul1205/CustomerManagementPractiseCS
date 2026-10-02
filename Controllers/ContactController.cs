@@ -117,7 +117,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             // Get the Contact that Belongs to the Current Profile
@@ -125,7 +126,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (contactData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Contact not found.");
             }
 
             var viewModel = new ContactEditViewModel
@@ -137,12 +139,13 @@ namespace CustomerManagementPractiseCS.Controllers
                 IsPrimary = contactData.IsPrimary
             };
 
-            return View(viewModel);
+            // return View(viewModel);
+            return PartialView("_ContactEditForm", viewModel);
         }
 
         // POST: /Contact/Edit/5
         [HttpPost]
-        public IActionResult Edit(ContactEditViewModel ViewModel)
+        public IActionResult Edit([FromBody] ContactEditViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -151,12 +154,14 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             if (!ModelState.IsValid)
             {
-                return View(ViewModel);
+                // return View(ViewModel);
+                return BadRequest(ModelState);
             }
 
             // Get the Contact that Belongs to the Current Profile
@@ -165,7 +170,9 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (contactData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Contact not found.");
+
             }
 
             // If this is Marked Primary, Demote the Others of the Same Type
@@ -190,7 +197,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             TempData["Success"] = "Contact updated successfully.";
 
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok();
         }
 
         // GET: /Contact/Delete/5
@@ -203,7 +211,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             // Get the Contact that Belongs to the Current Profile
@@ -212,7 +221,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (contactData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Contact not found.");
             }
 
             var viewModel = new ContactDeleteViewModel
@@ -224,12 +234,13 @@ namespace CustomerManagementPractiseCS.Controllers
                 IsPrimary = contactData.IsPrimary
             };
 
-            return View(viewModel);
+            // return View(viewModel);
+            return PartialView("_ContactDeleteForm", viewModel);
         }
 
         // POST: /Contact/Delete/5
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed([FromBody] ContactDeleteViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -238,15 +249,22 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             // Get the Contact that Belongs to the Current Profile
-            var contactData = _context.Contacts.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var contactData = _context.Contacts.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (contactData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Contact not found.");
             }
 
             _context.Contacts.Remove(contactData);
@@ -254,7 +272,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             TempData["Success"] = "Contact deleted successfully.";
 
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok();
         }
     }
 }

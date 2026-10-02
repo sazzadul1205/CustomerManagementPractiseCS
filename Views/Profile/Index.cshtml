@@ -290,6 +290,34 @@ else
             </div>
         </div>
 
+        @* Contact Edit Modal *@
+        <div class="modal fade" id="contactEditModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Contact</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="contactEditModalBody"></div>
+                </div>
+            </div>
+        </div>
+
+        @* Contact Delete Modal *@
+        <div class="modal fade" id="contactDeleteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Contact</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="contactDeleteModalBody"></div>
+                </div>
+            </div>
+        </div>
+
+      
+
         @* Models - Address Create Model *@
         <div class="modal fade" id="addressCreateModal" tabindex="-1">
             <div class="modal-dialog">
@@ -308,6 +336,40 @@ else
                                  model="new CustomerManagementPractiseCS.ViewModels.AddressViewModels.AddressCreateViewModel()" />
                     </div>
         
+                </div>
+            </div>
+        </div>
+
+        @* Address Edit Modal *@
+        <div class="modal fade" id="addressEditModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Address</h5>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="modal">
+                        </button>
+                    </div>
+
+                    <div class="modal-body" id="addressEditModalBody"></div>
+
+                </div>
+            </div>
+        </div>
+
+        @* Address Delete Modal *@
+        <div class="modal fade" id="addressDeleteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Address</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body" id="addressDeleteModalBody"></div>
+
                 </div>
             </div>
         </div>
@@ -350,10 +412,8 @@ else
                 });
         }
 
-
         // Load addresses when the page opens
         fetchAddresses();
-
 
         // Submit Address Create form
         document.getElementById('addressCreateModal').addEventListener('submit', function (e) {
@@ -409,6 +469,99 @@ else
 
                 });
 
+        });
+
+        // Edit Address
+        document.addEventListener('click', function (e) {
+            // closest() finds the nearest parent element that matches your selector
+            const btn = e.target.closest('[data-address-id]');
+            if (!btn) return;
+
+
+            const addressId = btn.getAttribute('data-address-id');
+
+            const body = document.getElementById('addressEditModalBody');
+
+            body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
+
+            axios.get('@Url.Action("Edit", "Address")', { params: { id: addressId } })
+                .then(function (response) {
+                    body.innerHTML = response.data;
+
+                    bootstrap.Modal
+                        .getOrCreateInstance(document.getElementById('addressEditModal'))
+                        .show();
+                })
+                .catch(function (error) {
+                    console.error('Error fetching address details:', error);
+                    body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
+                });
+        });
+
+        // Submit Address Edit form
+        document.getElementById('addressEditModal').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const addressData = {
+                id: parseInt(document.getElementById('EditId').value, 10),
+                addressType: document.getElementById('EditAddressType').value,
+                line1: document.getElementById('EditLine1').value,
+                city: document.getElementById('EditCity').value,
+                state: document.getElementById('EditState').value,
+                postalCode: document.getElementById('EditPostalCode').value,
+                country: document.getElementById('EditCountry').value,
+                isPrimary: document.getElementById('EditIsPrimary').checked
+            };
+
+            axios.post('@Url.Action("Edit", "Address")', addressData)
+                .then(function () {
+                    bootstrap.Modal.getInstance(document.getElementById('addressEditModal')).hide();
+                    fetchAddresses();
+                })
+                .catch(function (err) { console.error(err); });
+        });
+    
+        // Delete Address
+        document.addEventListener('click', function (e) {
+            // closest() finds the nearest parent element that matches your selector
+            const btn = e.target.closest('[data-address-delete-id]');
+            if (!btn) return;
+
+            const addressId = btn.getAttribute('data-address-delete-id');
+            const body = document.getElementById('addressDeleteModalBody');
+
+            body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
+
+            axios.get('@Url.Action("Delete", "Address")', { params: { id: addressId } })
+                .then(function (response) {
+                    body.innerHTML = response.data;
+
+                    bootstrap.Modal
+                        .getOrCreateInstance(document.getElementById('addressDeleteModal'))
+                        .show();
+                })
+                .catch(function (error) {
+                    console.error('Error fetching address details:', error);
+                    body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
+                });
+        });
+
+        // Submit Address Delete form
+        document.getElementById('addressDeleteModal').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const id = parseInt(document.getElementById('DeleteId').value);
+
+            axios.post('@Url.Action("Delete", "Address")', { id: id })
+                .then(function () {
+                    bootstrap.Modal
+                        .getInstance(document.getElementById('addressDeleteModal'))
+                        .hide();
+                    fetchAddresses();
+                })
+                .catch(function (error) {
+                    console.error('Error deleting address:', error);
+                });
         });
     </script>
     <script>
@@ -476,6 +629,94 @@ else
 
                     console.error('Error submitting contact:', error);
 
+                });
+        });
+
+        // Edit Contact Modal
+        document.addEventListener('click', function (e) {
+             // closest() finds the nearest parent element that matches your selector
+            const btn = e.target.closest('[data-contact-id]');
+            if (!btn) return;
+
+            const contactId = btn.getAttribute('data-contact-id');
+            const body = document.getElementById('contactEditModalBody');
+
+            body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
+
+            axios.get('@Url.Action("Edit", "Contact")', { params: { id: contactId } })
+                .then(function (response) {
+                    body.innerHTML = response.data;
+
+                    bootstrap.Modal
+                        .getOrCreateInstance(document.getElementById('contactEditModal'))
+                        .show();
+                })
+                .catch(function (error) {
+                    console.error('Error fetching contact details:', error);
+                    body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
+                });
+        });
+
+        // Submit Contact Edit form
+        document.getElementById('contactEditModal').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const contactData = {
+                id: parseInt(document.getElementById('EditContactId').value, 10),
+                contactType: document.getElementById('EditContactType').value,
+                label: document.getElementById('EditLabel').value,
+                value: document.getElementById('EditValue').value,
+                isPrimary: document.getElementById('EditContactIsPrimary').checked
+            };
+
+            axios.post('@Url.Action("Edit", "Contact")', contactData)
+                .then(function () {
+                    bootstrap.Modal.getInstance(document.getElementById('contactEditModal')).hide();
+                    fetchContacts();
+                })
+                .catch(function (err) { console.error(err); });
+        });
+
+        // Delete Contact Modal
+        document.addEventListener('click', function (e) {
+             // closest() finds the nearest parent element that matches your selector
+            const btn = e.target.closest('[data-contact-delete-id]');
+            if (!btn) return;
+
+            const contactId = btn.getAttribute('data-contact-delete-id');
+            const body = document.getElementById('contactDeleteModalBody');
+
+            body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
+
+            axios.get('@Url.Action("Delete", "Contact")', { params: { id: contactId } })
+                .then(function (response) {
+                    body.innerHTML = response.data;
+
+                    bootstrap.Modal
+                        .getOrCreateInstance(document.getElementById('contactDeleteModal'))
+                        .show();
+                })
+                .catch(function (error) {
+                    console.error('Error fetching contact details:', error);
+                    body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
+                });
+        });
+
+        // Submit Contact Delete form
+        document.getElementById('contactDeleteModal').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const id = parseInt(document.getElementById('DeleteContactId').value);
+
+            axios.post('@Url.Action("Delete", "Contact")', { id: id })
+                .then(function () {
+                    bootstrap.Modal
+                        .getInstance(document.getElementById('contactDeleteModal'))
+                        .hide();
+                    fetchContacts();
+                })
+                .catch(function (error) {
+                    console.error('Error deleting contact:', error);
                 });
         });
     </script>

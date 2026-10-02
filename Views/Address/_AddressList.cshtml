@@ -19,10 +19,14 @@ else
                 <small>@addr.Line1, @addr.City, @addr.State @addr.PostalCode, @addr.Country</small>
             </div>
             <div class="d-flex gap-2 align-items-start">
-                <a asp-controller="Address" asp-action="Edit" asp-route-id="@addr.Id"
-                   class="btn btn-sm btn-outline-primary">Edit</a>
-                <a asp-controller="Address" asp-action="Delete" asp-route-id="@addr.Id"
-                   class="btn btn-sm btn-outline-danger">Delete</a>
+                @* <a asp-controller="Address" asp-action="Edit" asp-route-id="@addr.Id"
+                   class="btn btn-sm btn-outline-primary">Edit</a> *@
+                <button type="button" class="btn btn-sm btn-outline-primary" data-address-id="@addr.Id">
+                    Edit
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-address-delete-id="@addr.Id">
+                    Delete
+                </button>
             </div>
         </div>
     }
