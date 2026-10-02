@@ -316,7 +316,6 @@ else
             </div>
         </div>
 
-      
 
         @* Models - Address Create Model *@
         <div class="modal fade" id="addressCreateModal" tabindex="-1">
@@ -384,9 +383,267 @@ else
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
         <script>
-        function fetchAddresses() {
+            // Function to fetch addresses and update the container
+            function fetchAddresses() {
+                // Get the container element and set its content to a loading message
+                $('#addresses-container').html('<p class="text-muted mb-0">Loading addresses...</p>');
 
-            const container = document.getElementById('addresses-container');
+                // Send a GET request to the AddressController's List action
+                axios.get('@Url.Action("List", "Address")')
+                    .then(function (response) {
+                        // On success, replace the container's content with the response data
+                        $('#addresses-container').html(response.data);
+                    })
+                    .catch(function (error) {
+                        // On error, log the error and show an error message in the container
+                        console.error(error);
+                        $('#addresses-container').html('<p class="text-danger mb-0">Failed to load addresses.</p>');
+                    });
+            }
+
+            // Call the fetchAddresses function when the page loads
+            fetchAddresses();
+
+            // Submit Address Create form using jQuery
+            $('#addressCreateModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const addressData = {
+                    addressType: $('#AddressType').val(),
+                    line1: $('#Line1').val(),
+                    city: $('#City').val(),
+                    state: $('#State').val(),
+                    postalCode: $('#PostalCode').val(),
+                    country: $('#Country').val(),
+                    isPrimary: $('#IsPrimary').is(':checked')
+                };
+
+                // Send POST request
+                axios.post('@Url.Action("Create", "Address")', addressData)
+                    .then(function (response) {
+                        // Close the modal and refresh the address list
+                        bootstrap.Modal.getInstance(document.getElementById('addressCreateModal')).hide();
+                        fetchAddresses();
+                    })
+                    .catch(function (error) {
+                        console.error('Error submitting address:', error);
+                    });
+            });
+
+            // Open and populate the Address Edit modal when an edit button is clicked
+            $(document).on('click', '[data-address-id]', function () {  // [data-address-id] is the selector for the edit button
+
+                // Get the address ID from the clicked button's data attribute
+                const addressId = $(this).data('address-id');
+
+                // Set the modal body to a loading message while fetching the address details
+                $('#addressEditModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Edit", "Address")', { params: { id: addressId } })
+                    .then(function (response) {
+
+                        // On success, populate the modal body with the fetched address details
+                        $('#addressEditModalBody').html(response.data);
+
+                        // Show the modal after populating it
+                        bootstrap.Modal
+                            .getOrCreateInstance(document.getElementById('addressEditModal'))
+                            .show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching address details:', error);
+                        $('#addressEditModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Address Edit form using jQuery
+            $('#addressEditModal').on('submit', function (e) {
+                e.preventDefault();
+
+                // Get values from the forms
+                const addressData = {
+                    id: parseInt($('#EditId').val(), 10),
+                    addressType: $('#EditAddressType').val(),
+                    line1: $('#EditLine1').val(),
+                    city: $('#EditCity').val(),
+                    state: $('#EditState').val(),
+                    postalCode: $('#EditPostalCode').val(),
+                    country: $('#EditCountry').val(),
+                    isPrimary: $('#EditIsPrimary').is(':checked')
+                };
+
+                axios.post('@Url.Action("Edit", "Address")', addressData)
+                    .then(function () {
+                        // Close the modal and refresh the address list after successful edit
+                        bootstrap.Modal.getInstance(document.getElementById('addressEditModal')).hide();
+                        fetchAddresses();
+                    })
+                    .catch(function (err) { console.error(err); });
+            });
+
+            // Delete Address modal open and populate
+            $(document).on('click', '[data-address-delete-id]', function () { // [data-address-delete-id] is the selector for the delete button
+            
+                // Get the address ID from the clicked button's data attribute
+                const addressId = $(this).data('address-delete-id');
+
+                // Set the modal body to a loading message while fetching the address details
+                $('#addressDeleteModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Delete", "Address")', { params: { id: addressId } })
+                    .then(function (response) {
+                        // On success, populate the modal body with the fetched address details
+                        $('#addressDeleteModalBody').html(response.data);
+
+                        // Show the modal after populating it
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('addressDeleteModal')).show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching address details:', error);
+                        $('#addressDeleteModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Address Delete form using jQuery
+            $('#addressDeleteModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const id = parseInt($('#DeleteId').val());
+
+                axios.post('@Url.Action("Delete", "Address")', { id: id })
+                    .then(function () {
+                        // Close the modal and refresh the address list after successful deletion
+                        bootstrap.Modal.getInstance(document.getElementById('addressDeleteModal')).hide();
+                        fetchAddresses();
+                    })
+                    .catch(function (error) {
+                        console.error('Error deleting address:', error);
+                    });
+            });
+        </script>
+        <script>  
+            // Function to fetch addresses and update the container
+            function fetchContacts() {
+                $('#contacts-container').html('<p class="text-muted mb-0">Loading contacts…</p>');
+
+                axios.get('@Url.Action("List", "Contact")')
+                    .then(function (response) {
+                        $('#contacts-container').html(response.data);
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        $('#contacts-container').html('<p class="text-danger mb-0">Failed to load contacts.</p>');
+                    });
+            }
+
+            // Call the fetchContacts function when the page loads
+            fetchContacts();
+
+            // Submit Contact Create form using jQuery
+            $('#contactCreateModal').on('submit', function (e) {
+                e.preventDefault();
+
+                // Get values from the form
+                const contactData = {
+                    contactType: $('#ContactType').val(),
+                    label: $('#Label').val(),
+                    value: $('#Value').val(),
+                    isPrimary: $('#ContactIsPrimary').is(':checked')
+                };
+
+                axios.post('@Url.Action("Create", "Contact")', contactData)
+                    .then(function () {
+                        bootstrap.Modal.getInstance(document.getElementById('contactCreateModal')).hide();
+                        fetchContacts();
+                    })
+                    .catch(function (error) {
+                        console.error('Error submitting contact:', error);
+                    });
+            });
+
+            // Open and populate the Contact Edit modal when an edit button is clicked
+            $(document).on('click', '[data-contact-id]', function () {
+                const contactId = $(this).data('contact-id');
+
+                $('#contactEditModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Edit", "Contact")', { params: { id: contactId } })
+                    .then(function (response) {
+                        $('#contactEditModalBody').html(response.data);
+
+                        bootstrap.Modal
+                            .getOrCreateInstance(document.getElementById('contactEditModal'))
+                            .show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching contact details:', error);
+                        $('#contactEditModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Contact Edit form using jQuery
+            $('#contactEditModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const contactData = {
+                    id: parseInt($('#EditContactId').val(), 10),
+                    contactType: $('#EditContactType').val(),
+                    label: $('#EditLabel').val(),
+                    value: $('#EditValue').val(),
+                    isPrimary: $('#EditContactIsPrimary').is(':checked')
+                };
+
+                axios.post('@Url.Action("Edit", "Contact")', contactData)
+                    .then(function () {
+                        bootstrap.Modal.getInstance(document.getElementById('contactEditModal')).hide();
+                        fetchContacts();
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                    });
+            });
+
+            // Open and populate the Contact Delete modal when a delete button is clicked
+            $(document).on('click', '[data-contact-delete-id]', function () {
+                const contactId = $(this).data('contact-delete-id');
+
+                $('#contactDeleteModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Delete", "Contact")', { params: { id: contactId } })
+                    .then(function (response) {
+                        $('#contactDeleteModalBody').html(response.data);
+
+                        bootstrap.Modal
+                            .getOrCreateInstance(document.getElementById('contactDeleteModal'))
+                            .show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching contact details:', error);
+                        $('#contactDeleteModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Contact Delete form using jQuery
+            $('#contactDeleteModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const id = parseInt($('#DeleteContactId').val(), 10);
+
+                axios.post('@Url.Action("Delete", "Contact")', { id: id })
+                    .then(function () {
+                        bootstrap.Modal.getInstance(document.getElementById('contactDeleteModal')).hide();
+                        fetchContacts();
+                    })
+                    .catch(function (error) {
+                        console.error('Error deleting contact:', error);
+                    });
+            });
+        </script>
+
+        @* <script>
+            function fetchAddresses() {
+
+                const container = document.getElementById('addresses-container');
 
                 container.innerHTML = '<p class="text-muted mb-0">Loading addresses...</p>';
 
@@ -450,18 +707,18 @@ else
                         const modal =
                             bootstrap.Modal.getInstance(modalElement);
 
-                    // Close modal
-                    modal.hide();
+                        // Close modal
+                        modal.hide();
 
-                    // Reload address list
-                    fetchAddresses();
+                        // Reload address list
+                        fetchAddresses();
 
-                })
-                .catch(function (error) {
+                    })
+                    .catch(function (error) {
 
-                    console.error('Error submitting address:', error);
+                        console.error('Error submitting address:', error);
 
-                });
+                    });
 
             });
 
@@ -557,6 +814,7 @@ else
                         console.error('Error deleting address:', error);
                     });
             });
+
         </script>
         <script>
             function fetchContacts() {
@@ -710,6 +968,7 @@ else
                         console.error('Error deleting contact:', error);
                     });
             });
-        </script>
+
+        </script> *@
     }
 }
