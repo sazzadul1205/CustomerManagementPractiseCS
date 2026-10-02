@@ -56,7 +56,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Contact/Create
         [HttpPost]
-        public IActionResult Create(ContactCreateViewModel ViewModel)
+        public IActionResult Create([FromBody] ContactCreateViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -65,12 +65,14 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             if (!ModelState.IsValid)
             {
-                return View(ViewModel);
+                // return View(ViewModel);
+                return BadRequest(ModelState);
             }
 
             // If this is Marked Primary, Demote the Others of the Same Type
@@ -101,7 +103,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             TempData["Success"] = "Contact added successfully.";
 
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok();
         }
 
         // GET: /Contact/Edit/5

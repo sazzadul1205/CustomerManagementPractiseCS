@@ -4,6 +4,7 @@
     ViewData["Title"] = "My Profile";
 }
 
+@* Header *@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="mb-0">My Profile</h1>
 
@@ -21,6 +22,7 @@
     }
 </div>
 
+@* Content *@
 @if (Model == null)
 {
     <div class="card shadow-sm">
@@ -33,9 +35,10 @@
 else
 {
     <div class="row">
-
+        @* Main Content *@
         <div class="col-md-8">
 
+            @* Profile Photo *@
             <div class="text-center mb-3">
                 @if (!string.IsNullOrEmpty(Model.PhotoUrl))
                 {
@@ -80,9 +83,14 @@ else
             <div class="card shadow-sm mb-3" id="addresses-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <strong>Addresses</strong>
-                    <a asp-controller="Address" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
+                    @* <a asp-controller="Address" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a> *@
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#addressCreateModal">
+                        + Add
+                    </button>
                 </div>
-              <div class="card-body" id="addresses-container"></div>
+
+                <div class="card-body" id="addresses-container"></div>
             </div>
 
             @* Contacts *@
@@ -90,12 +98,17 @@ else
 
             @* Contacts - loaded via axios from ContactController.List *@
             <div class="card shadow-sm mb-3">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <strong>Contacts</strong>
-        <a asp-controller="Contact" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
-    </div>
-     <div class="card-body" id="contacts-container"></div>
-    </div>
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <strong>Contacts</strong>
+                    @* <a asp-controller="Contact" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a> *@
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#contactCreateModal">
+                        + Add
+                    </button>
+                </div>
+
+                <div class="card-body" id="contacts-container"></div>
+            </div>
 
             @* Education *@
             <div class="card shadow-sm mb-3">
@@ -232,10 +245,8 @@ else
                 <div class="card-body">
                     <h5 class="card-title mb-2">@Model.CompletenessLabel</h5>
 
-                    <div class="progress mb-2" role="progressbar"
-                         aria-label="Profile completeness"
-                         aria-valuenow="@Model.CompletenessPercentage"
-                         aria-valuemin="0" aria-valuemax="100">
+                    <div class="progress mb-2" role="progressbar" aria-label="Profile completeness"
+                         aria-valuenow="@Model.CompletenessPercentage" aria-valuemin="0" aria-valuemax="100">
                         <div class="progress-bar" style="width: @Model.CompletenessPercentage%">
                             @Model.CompletenessPercentage%
                         </div>
@@ -257,47 +268,215 @@ else
             </div>
         </div>
 
+        @* Models - Contact Create Model *@
+        <div class="modal fade" id="contactCreateModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                
+                    @* Header *@
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Contact</h5>
+        
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+        
+                    @* Body *@
+                    <div class="modal-body">
+                        <partial name="~/Views/Contact/_ContactCreateForm.cshtml"
+                                 model="new CustomerManagementPractiseCS.ViewModels.ContactViewModels.ContactCreateViewModel()" />
+                    </div>
+        
+                </div>
+            </div>
+        </div>
+
+        @* Models - Address Create Model *@
+        <div class="modal fade" id="addressCreateModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                
+                    @* Header *@
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Address</h5>
+        
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+        
+                    @* Body *@
+                    <div class="modal-body">
+                        <partial name="~/Views/Address/_AddressCreateForm.cshtml"
+                                 model="new CustomerManagementPractiseCS.ViewModels.AddressViewModels.AddressCreateViewModel()" />
+                    </div>
+        
+                </div>
+            </div>
+        </div>
+
     </div>
 }
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script>
-        (function () {
-            var container = document.getElementById('addresses-container');
-            var profileId = @Model.Id;
+        function fetchAddresses() {
 
-            container.innerHTML = '<p class="text-muted mb-0">Loading addresses…</p>';
+            const container = document.getElementById('addresses-container');
+            const profileId = @Model.Id;
+
+            if (!profileId) {
+                container.innerHTML = '<p class="text-muted mb-0">No profile ID available.</p>';
+                return;
+            }
+
+            container.innerHTML = '<p class="text-muted mb-0">Loading addresses...</p>';
 
             axios.get('@Url.Action("List", "Address")', {
-                params: { personId: profileId }
+                params: {
+                    personId: profileId
+                }
             })
-            .then(function (response) {
-                container.innerHTML = response.data;
-            })
-            .catch(function (error) {
-                console.error(error);
-                container.innerHTML = '<p class="text-danger mb-0">Failed to load addresses.</p>';
-            });
-        })();
+                .then(function (response) {
+
+                    container.innerHTML = response.data;
+
+                })
+                .catch(function (error) {
+
+                    console.error(error);
+
+                    container.innerHTML =
+                        '<p class="text-danger mb-0">Failed to load addresses.</p>';
+
+                });
+        }
+
+
+        // Load addresses when the page opens
+        fetchAddresses();
+
+
+        // Submit Address Create form
+        document.getElementById('addressCreateModal').addEventListener('submit', function (e) {
+
+            e.preventDefault();
+
+            // Get values from the form
+            const addressType = document.getElementById('AddressType').value;
+            const line1 = document.getElementById('Line1').value;
+            const city = document.getElementById('City').value;
+            const state = document.getElementById('State').value;
+            const postalCode = document.getElementById('PostalCode').value;
+            const country = document.getElementById('Country').value;
+            const isPrimary = document.getElementById('IsPrimary').checked;
+
+
+            // Create the JSON object
+            const addressData = {
+                addressType: addressType,
+                line1: line1,
+                city: city,
+                state: state,
+                postalCode: postalCode,
+                country: country,
+                isPrimary: isPrimary
+            };
+
+
+            // Send POST request
+            axios.post(
+                '@Url.Action("Create", "Address")',
+                addressData
+            )
+                .then(function (response) {
+
+                    // Get the Bootstrap modal
+                    const modalElement =
+                        document.getElementById('addressCreateModal');
+
+                    const modal =
+                        bootstrap.Modal.getInstance(modalElement);
+
+                    // Close modal
+                    modal.hide();
+
+                    // Reload address list
+                    fetchAddresses();
+
+                })
+                .catch(function (error) {
+
+                    console.error('Error submitting address:', error);
+
+                });
+
+        });
     </script>
-     <script>
-        (function () {
-            var container = document.getElementById('contacts-container');
-            var profileId = @Model.Id;
+    <script>
+        function fetchContacts() {
+            const container = document.getElementById('contacts-container');
+            const profileId = @Model.Id;
 
             container.innerHTML = '<p class="text-muted mb-0">Loading contacts…</p>';
 
             axios.get('@Url.Action("List", "Contact")', {
                 params: { personId: profileId }
             })
-            .then(function (response) {
-                container.innerHTML = response.data;
-            })
-            .catch(function (error) {
-                console.error(error);
-                container.innerHTML = '<p class="text-danger mb-0">Failed to load contacts.</p>';
-            });
-        })();
+                .then(function (response) {
+                    container.innerHTML = response.data;
+                })
+                .catch(function (error) {
+                    console.error(error);
+                    container.innerHTML = '<p class="text-danger mb-0">Failed to load contacts.</p>';
+                });
+        }
+
+        // Fetch contacts when the page loads
+        fetchContacts();
+
+        // Submit Contact Create form
+        document.getElementById('contactCreateModal').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            // Get values from the form
+            const contactType = document.getElementById('ContactType').value;
+            const label = document.getElementById('Label').value;
+            const value = document.getElementById('Value').value;
+            const isPrimary = document.getElementById('IsPrimary').checked;
+
+            // Create the JSON object
+            const contactData = {
+                contactType: contactType,
+                label: label,
+                value: value,
+                isPrimary: isPrimary
+            };
+
+            // Send POST request
+            axios.post(
+                '@Url.Action("Create", "Contact")',
+                contactData
+            )
+                .then(function (response) {
+
+                    // Get the Bootstrap modal
+                    const modalElement =
+                        document.getElementById('contactCreateModal');
+
+                    const modal =
+                        bootstrap.Modal.getInstance(modalElement);
+
+                    // Close modal
+                    modal.hide();
+
+                    // Reload contact list
+                    fetchContacts();
+
+                })
+                .catch(function (error) {
+
+                    console.error('Error submitting contact:', error);
+
+                });
+        });
     </script>
 }

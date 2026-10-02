@@ -55,7 +55,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Address/Create
         [HttpPost]
-        public IActionResult Create(AddressCreateViewModel ViewModel)
+        public IActionResult Create([FromBody] AddressCreateViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -64,12 +64,14 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             if (!ModelState.IsValid)
             {
-                return View(ViewModel);
+                // return View(ViewModel);
+                return BadRequest(ModelState);
             }
 
             // If this is Marked Primary, then uncheck all the others 
@@ -105,8 +107,10 @@ namespace CustomerManagementPractiseCS.Controllers
 
             TempData["Success"] = "Address added successfully.";
 
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok();
         }
+
         // GET: /Address/Edit/5
         public IActionResult Edit(int id)
         {
