@@ -1,0 +1,29 @@
+﻿@model List<CustomerManagementPractiseCS.Models.Contact>
+
+@if (!Model.Any())
+{
+    <p class="text-muted mb-0">No contacts added yet.</p>
+}
+else
+{
+    foreach (var c in Model)
+    {
+        <div class="d-flex justify-content-between border-bottom py-2">
+            <div>
+                <strong>@c.ContactType</strong>
+                @if (c.IsPrimary)
+                {
+                    <span class="badge bg-primary">Primary</span>
+                }
+                <br />
+                <small>@c.Value</small>
+            </div>
+            <div class="d-flex gap-2 align-items-start">
+                <a asp-controller="Contact" asp-action="Edit" asp-route-id="@c.Id"
+                   class="btn btn-sm btn-outline-primary">Edit</a>
+                <a asp-controller="Contact" asp-action="Delete" asp-route-id="@c.Id"
+                   class="btn btn-sm btn-outline-danger">Delete</a>
+            </div>
+        </div>
+    }
+}

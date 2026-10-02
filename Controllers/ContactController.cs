@@ -35,6 +35,25 @@ namespace CustomerManagementPractiseCS.Controllers
             return View();
         }
 
+        public IActionResult List(int personId)
+        {
+            var userId = _userManager.GetUserId(User);
+
+            // Get the Profile that Belongs to the Current User
+            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+
+            // Here we return not found because this is for partial view
+            if (profileData == null)
+            {
+                return NotFound();
+            }
+
+            var contact = _context.Contacts.Where(x => x.PersonId == personId).ToList();
+
+            // Return the partial
+            return PartialView("_ContactList", contact);
+        }
+
         // POST: /Contact/Create
         [HttpPost]
         public IActionResult Create(ContactCreateViewModel ViewModel)

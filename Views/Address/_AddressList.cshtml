@@ -1,0 +1,29 @@
+﻿@model List<CustomerManagementPractiseCS.Models.Address>
+
+@if (!Model.Any())
+{
+    <p class="text-muted mb-0">No addresses added yet.</p>
+}
+else
+{
+    foreach (var addr in Model)
+    {
+        <div class="d-flex justify-content-between border-bottom py-2">
+            <div>
+                <strong>@addr.AddressType</strong>
+                @if (addr.IsPrimary)
+                {
+                    <span class="badge bg-primary">Primary</span>
+                }
+                <br />
+                <small>@addr.Line1, @addr.City, @addr.State @addr.PostalCode, @addr.Country</small>
+            </div>
+            <div class="d-flex gap-2 align-items-start">
+                <a asp-controller="Address" asp-action="Edit" asp-route-id="@addr.Id"
+                   class="btn btn-sm btn-outline-primary">Edit</a>
+                <a asp-controller="Address" asp-action="Delete" asp-route-id="@addr.Id"
+                   class="btn btn-sm btn-outline-danger">Delete</a>
+            </div>
+        </div>
+    }
+}

@@ -1,0 +1,37 @@
+﻿@model CustomerManagementPractiseCS.ViewModels.Profile.ProfileIndexViewModel
+
+<div class="card shadow-sm mb-3">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Contacts</strong>
+        <a asp-controller="Contact" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
+    </div>
+    <div class="card-body">
+        @if (Model.Contacts.Count == 0)
+        {
+            <p class="text-muted mb-0">No contacts added yet.</p>
+        }
+        else
+        {
+            foreach (var contact in Model.Contacts)
+            {
+                <div class="d-flex justify-content-between border-bottom py-2">
+                    <div>
+                        <strong>@contact.ContactType</strong> · @contact.Label
+                        @if (contact.IsPrimary)
+                        {
+                            <span class="badge bg-primary">Primary</span>
+                        }
+                        <br />
+                        <small>@contact.Value</small>
+                    </div>
+                    <div class="d-flex gap-2 align-items-start">
+                        <a asp-controller="Contact" asp-action="Edit" asp-route-id="@contact.Id"
+                           class="btn btn-sm btn-outline-primary">Edit</a>
+                        <a asp-controller="Contact" asp-action="Delete" asp-route-id="@contact.Id"
+                           class="btn btn-sm btn-outline-danger">Delete</a>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

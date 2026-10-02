@@ -74,78 +74,28 @@ else
             </div>
 
             @* Addresses *@
-            <div class="card shadow-sm mb-3">
+            @* <partial name="_Addresses" model="Model" />*@
+
+            @* Addresses - loaded via axios from AddressController.List *@
+            <div class="card shadow-sm mb-3" id="addresses-card">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <strong>Addresses</strong>
                     <a asp-controller="Address" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
                 </div>
-                <div class="card-body">
-                    @if (Model.Addresses.Count == 0)
-                    {
-                        <p class="text-muted mb-0">No addresses added yet.</p>
-                    }
-                    else
-                    {
-                        @foreach (var address in Model.Addresses)
-                        {
-                            <div class="d-flex justify-content-between border-bottom py-2">
-                                <div>
-                                    <strong>@address.AddressType</strong>
-                                    @if (address.IsPrimary)
-                                    {
-                                        <span class="badge bg-primary">Primary</span>
-                                    }
-                                    <br />
-                                    <small>@address.Line1, @address.City, @address.Country</small>
-                                </div>
-                                <div class="d-flex gap-2 align-items-start">
-                                    <a asp-controller="Address" asp-action="Edit" asp-route-id="@address.Id"
-                                       class="btn btn-sm btn-outline-primary">Edit</a>
-                                    <a asp-controller="Address" asp-action="Delete" asp-route-id="@address.Id"
-                                       class="btn btn-sm btn-outline-danger">Delete</a>
-                                </div>
-                            </div>
-                        }
-                    }
-                </div>
+              <div class="card-body" id="addresses-container"></div>
             </div>
 
             @* Contacts *@
+            @*<partial name="_Contacts" model="Model" />*@
+
+            @* Contacts - loaded via axios from ContactController.List *@
             <div class="card shadow-sm mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <strong>Contacts</strong>
-                    <a asp-controller="Contact" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
-                </div>
-                <div class="card-body">
-                    @if (Model.Contacts.Count == 0)
-                    {
-                        <p class="text-muted mb-0">No contacts added yet.</p>
-                    }
-                    else
-                    {
-                        foreach (var contact in Model.Contacts)
-                        {
-                            <div class="d-flex justify-content-between border-bottom py-2">
-                                <div>
-                                    <strong>@contact.ContactType</strong> · @contact.Label
-                                    @if (contact.IsPrimary)
-                                    {
-                                        <span class="badge bg-primary">Primary</span>
-                                    }
-                                    <br />
-                                    <small>@contact.Value</small>
-                                </div>
-                                <div class="d-flex gap-2 align-items-start">
-                                    <a asp-controller="Contact" asp-action="Edit" asp-route-id="@contact.Id"
-                                       class="btn btn-sm btn-outline-primary">Edit</a>
-                                    <a asp-controller="Contact" asp-action="Delete" asp-route-id="@contact.Id"
-                                       class="btn btn-sm btn-outline-danger">Delete</a>
-                                </div>
-                            </div>
-                        }
-                    }
-                </div>
-            </div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <strong>Contacts</strong>
+        <a asp-controller="Contact" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
+    </div>
+     <div class="card-body" id="contacts-container"></div>
+    </div>
 
             @* Education *@
             <div class="card shadow-sm mb-3">
@@ -308,4 +258,46 @@ else
         </div>
 
     </div>
+}
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        (function () {
+            var container = document.getElementById('addresses-container');
+            var profileId = @Model.Id;
+
+            container.innerHTML = '<p class="text-muted mb-0">Loading addresses…</p>';
+
+            axios.get('@Url.Action("List", "Address")', {
+                params: { personId: profileId }
+            })
+            .then(function (response) {
+                container.innerHTML = response.data;
+            })
+            .catch(function (error) {
+                console.error(error);
+                container.innerHTML = '<p class="text-danger mb-0">Failed to load addresses.</p>';
+            });
+        })();
+    </script>
+     <script>
+        (function () {
+            var container = document.getElementById('contacts-container');
+            var profileId = @Model.Id;
+
+            container.innerHTML = '<p class="text-muted mb-0">Loading contacts…</p>';
+
+            axios.get('@Url.Action("List", "Contact")', {
+                params: { personId: profileId }
+            })
+            .then(function (response) {
+                container.innerHTML = response.data;
+            })
+            .catch(function (error) {
+                console.error(error);
+                container.innerHTML = '<p class="text-danger mb-0">Failed to load contacts.</p>';
+            });
+        })();
+    </script>
 }
