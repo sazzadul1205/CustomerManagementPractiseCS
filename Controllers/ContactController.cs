@@ -35,7 +35,8 @@ namespace CustomerManagementPractiseCS.Controllers
             return View();
         }
 
-        public IActionResult List(int personId)
+        // GET: /Contact/List
+        public IActionResult List()
         {
             var userId = _userManager.GetUserId(User);
 
@@ -48,7 +49,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            var contact = _context.Contacts.Where(x => x.PersonId == personId).ToList();
+            // Get the Contacts that Belong to the Current Profile
+            var contact = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList();
 
             // Return the partial
             return PartialView("_ContactList", contact);

@@ -1,4 +1,4 @@
-﻿@model CustomerManagementPractiseCS.ViewModels.Profile.ProfileIndexViewModel?
+@model CustomerManagementPractiseCS.ViewModels.Profile.ProfileIndexViewModel?
 
 @{
     ViewData["Title"] = "My Profile";
@@ -377,84 +377,78 @@ else
     </div>
 }
 
-@section Scripts {
-    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script>
+
+@if (Model != null)
+{
+    @section Scripts {
+        <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+        <script>
         function fetchAddresses() {
 
             const container = document.getElementById('addresses-container');
-            const profileId = @Model.Id;
 
-            if (!profileId) {
-                container.innerHTML = '<p class="text-muted mb-0">No profile ID available.</p>';
-                return;
+                container.innerHTML = '<p class="text-muted mb-0">Loading addresses...</p>';
+
+                axios.get('@Url.Action("List", "Address")')
+                    .then(function (response) {
+
+                        container.innerHTML = response.data;
+
+                    })
+                    .catch(function (error) {
+
+                        console.error(error);
+
+                        container.innerHTML =
+                            '<p class="text-danger mb-0">Failed to load addresses.</p>';
+
+                    });
             }
 
-            container.innerHTML = '<p class="text-muted mb-0">Loading addresses...</p>';
+            // Load addresses when the page opens
+            fetchAddresses();
 
-            axios.get('@Url.Action("List", "Address")', {
-                params: {
-                    personId: profileId
-                }
-            })
-                .then(function (response) {
+            // Submit Address Create form
+            document.getElementById('addressCreateModal').addEventListener('submit', function (e) {
 
-                    container.innerHTML = response.data;
+                e.preventDefault();
 
-                })
-                .catch(function (error) {
-
-                    console.error(error);
-
-                    container.innerHTML =
-                        '<p class="text-danger mb-0">Failed to load addresses.</p>';
-
-                });
-        }
-
-        // Load addresses when the page opens
-        fetchAddresses();
-
-        // Submit Address Create form
-        document.getElementById('addressCreateModal').addEventListener('submit', function (e) {
-
-            e.preventDefault();
-
-            // Get values from the form
-            const addressType = document.getElementById('AddressType').value;
-            const line1 = document.getElementById('Line1').value;
-            const city = document.getElementById('City').value;
-            const state = document.getElementById('State').value;
-            const postalCode = document.getElementById('PostalCode').value;
-            const country = document.getElementById('Country').value;
-            const isPrimary = document.getElementById('IsPrimary').checked;
+                // Get values from the form
+                const addressType = document.getElementById('AddressType').value;
+                const line1 = document.getElementById('Line1').value;
+                const city = document.getElementById('City').value;
+                const state = document.getElementById('State').value;
+                const postalCode = document.getElementById('PostalCode').value;
+                const country = document.getElementById('Country').value;
+                const isPrimary = document.getElementById('IsPrimary').checked;
 
 
-            // Create the JSON object
-            const addressData = {
-                addressType: addressType,
-                line1: line1,
-                city: city,
-                state: state,
-                postalCode: postalCode,
-                country: country,
-                isPrimary: isPrimary
-            };
+                // Create the JSON object
+                const addressData = {
+                    addressType: addressType,
+                    line1: line1,
+                    city: city,
+                    state: state,
+                    postalCode: postalCode,
+                    country: country,
+                    isPrimary: isPrimary
+                };
 
 
-            // Send POST request
-            axios.post(
-                '@Url.Action("Create", "Address")',
-                addressData
-            )
-                .then(function (response) {
+                // Send POST request
+                axios.post(
+                    '@Url.Action("Create", "Address")',
+                    addressData
+                )
+                    .then(function (response) {
 
-                    // Get the Bootstrap modal
-                    const modalElement =
-                        document.getElementById('addressCreateModal');
+                        // Get the Bootstrap modal
+                        const modalElement =
+                            document.getElementById('addressCreateModal');
 
-                    const modal =
-                        bootstrap.Modal.getInstance(modalElement);
+                        const modal =
+                            bootstrap.Modal.getInstance(modalElement);
 
                     // Close modal
                     modal.hide();
@@ -469,255 +463,253 @@ else
 
                 });
 
-        });
+            });
 
-        // Edit Address
-        document.addEventListener('click', function (e) {
-            // closest() finds the nearest parent element that matches your selector
-            const btn = e.target.closest('[data-address-id]');
-            if (!btn) return;
+            // Edit Address
+            document.addEventListener('click', function (e) {
+                // closest() finds the nearest parent element that matches your selector
+                const btn = e.target.closest('[data-address-id]');
+                if (!btn) return;
 
 
-            const addressId = btn.getAttribute('data-address-id');
+                const addressId = btn.getAttribute('data-address-id');
 
-            const body = document.getElementById('addressEditModalBody');
+                const body = document.getElementById('addressEditModalBody');
 
-            body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
+                body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
 
-            axios.get('@Url.Action("Edit", "Address")', { params: { id: addressId } })
-                .then(function (response) {
-                    body.innerHTML = response.data;
+                axios.get('@Url.Action("Edit", "Address")', { params: { id: addressId } })
+                    .then(function (response) {
+                        body.innerHTML = response.data;
 
-                    bootstrap.Modal
-                        .getOrCreateInstance(document.getElementById('addressEditModal'))
-                        .show();
-                })
-                .catch(function (error) {
-                    console.error('Error fetching address details:', error);
-                    body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
-                });
-        });
+                        bootstrap.Modal
+                            .getOrCreateInstance(document.getElementById('addressEditModal'))
+                            .show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching address details:', error);
+                        body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
+                    });
+            });
 
-        // Submit Address Edit form
-        document.getElementById('addressEditModal').addEventListener('submit', function (e) {
-            e.preventDefault();
+            // Submit Address Edit form
+            document.getElementById('addressEditModal').addEventListener('submit', function (e) {
+                e.preventDefault();
 
-            const addressData = {
-                id: parseInt(document.getElementById('EditId').value, 10),
-                addressType: document.getElementById('EditAddressType').value,
-                line1: document.getElementById('EditLine1').value,
-                city: document.getElementById('EditCity').value,
-                state: document.getElementById('EditState').value,
-                postalCode: document.getElementById('EditPostalCode').value,
-                country: document.getElementById('EditCountry').value,
-                isPrimary: document.getElementById('EditIsPrimary').checked
-            };
+                const addressData = {
+                    id: parseInt(document.getElementById('EditId').value, 10),
+                    addressType: document.getElementById('EditAddressType').value,
+                    line1: document.getElementById('EditLine1').value,
+                    city: document.getElementById('EditCity').value,
+                    state: document.getElementById('EditState').value,
+                    postalCode: document.getElementById('EditPostalCode').value,
+                    country: document.getElementById('EditCountry').value,
+                    isPrimary: document.getElementById('EditIsPrimary').checked
+                };
 
-            axios.post('@Url.Action("Edit", "Address")', addressData)
-                .then(function () {
-                    bootstrap.Modal.getInstance(document.getElementById('addressEditModal')).hide();
-                    fetchAddresses();
-                })
-                .catch(function (err) { console.error(err); });
-        });
+                axios.post('@Url.Action("Edit", "Address")', addressData)
+                    .then(function () {
+                        bootstrap.Modal.getInstance(document.getElementById('addressEditModal')).hide();
+                        fetchAddresses();
+                    })
+                    .catch(function (err) { console.error(err); });
+            });
     
-        // Delete Address
-        document.addEventListener('click', function (e) {
-            // closest() finds the nearest parent element that matches your selector
-            const btn = e.target.closest('[data-address-delete-id]');
-            if (!btn) return;
+            // Delete Address
+            document.addEventListener('click', function (e) {
+                // closest() finds the nearest parent element that matches your selector
+                const btn = e.target.closest('[data-address-delete-id]');
+                if (!btn) return;
 
-            const addressId = btn.getAttribute('data-address-delete-id');
-            const body = document.getElementById('addressDeleteModalBody');
+                const addressId = btn.getAttribute('data-address-delete-id');
+                const body = document.getElementById('addressDeleteModalBody');
 
-            body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
+                body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
 
-            axios.get('@Url.Action("Delete", "Address")', { params: { id: addressId } })
-                .then(function (response) {
-                    body.innerHTML = response.data;
+                axios.get('@Url.Action("Delete", "Address")', { params: { id: addressId } })
+                    .then(function (response) {
+                        body.innerHTML = response.data;
 
-                    bootstrap.Modal
-                        .getOrCreateInstance(document.getElementById('addressDeleteModal'))
-                        .show();
-                })
-                .catch(function (error) {
-                    console.error('Error fetching address details:', error);
-                    body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
-                });
-        });
+                        bootstrap.Modal
+                            .getOrCreateInstance(document.getElementById('addressDeleteModal'))
+                            .show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching address details:', error);
+                        body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
+                    });
+            });
 
-        // Submit Address Delete form
-        document.getElementById('addressDeleteModal').addEventListener('submit', function (e) {
-            e.preventDefault();
+            // Submit Address Delete form
+            document.getElementById('addressDeleteModal').addEventListener('submit', function (e) {
+                e.preventDefault();
 
-            const id = parseInt(document.getElementById('DeleteId').value);
+                const id = parseInt(document.getElementById('DeleteId').value);
 
-            axios.post('@Url.Action("Delete", "Address")', { id: id })
-                .then(function () {
-                    bootstrap.Modal
-                        .getInstance(document.getElementById('addressDeleteModal'))
-                        .hide();
-                    fetchAddresses();
-                })
-                .catch(function (error) {
-                    console.error('Error deleting address:', error);
-                });
-        });
-    </script>
-    <script>
-        function fetchContacts() {
-            const container = document.getElementById('contacts-container');
-            const profileId = @Model.Id;
+                axios.post('@Url.Action("Delete", "Address")', { id: id })
+                    .then(function () {
+                        bootstrap.Modal
+                            .getInstance(document.getElementById('addressDeleteModal'))
+                            .hide();
+                        fetchAddresses();
+                    })
+                    .catch(function (error) {
+                        console.error('Error deleting address:', error);
+                    });
+            });
+        </script>
+        <script>
+            function fetchContacts() {
+                const container = document.getElementById('contacts-container');
 
-            container.innerHTML = '<p class="text-muted mb-0">Loading contacts…</p>';
+                container.innerHTML = '<p class="text-muted mb-0">Loading contacts…</p>';
 
-            axios.get('@Url.Action("List", "Contact")', {
-                params: { personId: profileId }
-            })
-                .then(function (response) {
-                    container.innerHTML = response.data;
-                })
-                .catch(function (error) {
-                    console.error(error);
-                    container.innerHTML = '<p class="text-danger mb-0">Failed to load contacts.</p>';
-                });
-        }
+                axios.get('@Url.Action("List", "Contact")')
+                    .then(function (response) {
+                        container.innerHTML = response.data;
+                    })
+                    .catch(function (error) {
+                        console.error(error);
+                        container.innerHTML = '<p class="text-danger mb-0">Failed to load contacts.</p>';
+                    });
+            }
 
-        // Fetch contacts when the page loads
-        fetchContacts();
+            // Fetch contacts when the page loads
+            fetchContacts();
 
-        // Submit Contact Create form
-        document.getElementById('contactCreateModal').addEventListener('submit', function (e) {
-            e.preventDefault();
+            // Submit Contact Create form
+            document.getElementById('contactCreateModal').addEventListener('submit', function (e) {
+                e.preventDefault();
 
-            // Get values from the form
-            const contactType = document.getElementById('ContactType').value;
-            const label = document.getElementById('Label').value;
-            const value = document.getElementById('Value').value;
-            const isPrimary = document.getElementById('IsPrimary').checked;
+                // Get values from the form
+                const contactType = document.getElementById('ContactType').value;
+                const label = document.getElementById('Label').value;
+                const value = document.getElementById('Value').value;
+                const isPrimary = document.getElementById('IsPrimary').checked;
 
-            // Create the JSON object
-            const contactData = {
-                contactType: contactType,
-                label: label,
-                value: value,
-                isPrimary: isPrimary
-            };
+                // Create the JSON object
+                const contactData = {
+                    contactType: contactType,
+                    label: label,
+                    value: value,
+                    isPrimary: isPrimary
+                };
 
-            // Send POST request
-            axios.post(
-                '@Url.Action("Create", "Contact")',
-                contactData
-            )
-                .then(function (response) {
+                // Send POST request
+                axios.post(
+                    '@Url.Action("Create", "Contact")',
+                    contactData
+                )
+                    .then(function (response) {
 
-                    // Get the Bootstrap modal
-                    const modalElement =
-                        document.getElementById('contactCreateModal');
+                        // Get the Bootstrap modal
+                        const modalElement =
+                            document.getElementById('contactCreateModal');
 
-                    const modal =
-                        bootstrap.Modal.getInstance(modalElement);
+                        const modal =
+                            bootstrap.Modal.getInstance(modalElement);
 
-                    // Close modal
-                    modal.hide();
+                        // Close modal
+                        modal.hide();
 
-                    // Reload contact list
-                    fetchContacts();
+                        // Reload contact list
+                        fetchContacts();
 
-                })
-                .catch(function (error) {
+                    })
+                    .catch(function (error) {
 
-                    console.error('Error submitting contact:', error);
+                        console.error('Error submitting contact:', error);
 
-                });
-        });
+                    });
+            });
 
-        // Edit Contact Modal
-        document.addEventListener('click', function (e) {
-             // closest() finds the nearest parent element that matches your selector
-            const btn = e.target.closest('[data-contact-id]');
-            if (!btn) return;
+            // Edit Contact Modal
+            document.addEventListener('click', function (e) {
+                // closest() finds the nearest parent element that matches your selector
+                const btn = e.target.closest('[data-contact-id]');
+                if (!btn) return;
 
-            const contactId = btn.getAttribute('data-contact-id');
-            const body = document.getElementById('contactEditModalBody');
+                const contactId = btn.getAttribute('data-contact-id');
+                const body = document.getElementById('contactEditModalBody');
 
-            body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
+                body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
 
-            axios.get('@Url.Action("Edit", "Contact")', { params: { id: contactId } })
-                .then(function (response) {
-                    body.innerHTML = response.data;
+                axios.get('@Url.Action("Edit", "Contact")', { params: { id: contactId } })
+                    .then(function (response) {
+                        body.innerHTML = response.data;
 
-                    bootstrap.Modal
-                        .getOrCreateInstance(document.getElementById('contactEditModal'))
-                        .show();
-                })
-                .catch(function (error) {
-                    console.error('Error fetching contact details:', error);
-                    body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
-                });
-        });
+                        bootstrap.Modal
+                            .getOrCreateInstance(document.getElementById('contactEditModal'))
+                            .show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching contact details:', error);
+                        body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
+                    });
+            });
 
-        // Submit Contact Edit form
-        document.getElementById('contactEditModal').addEventListener('submit', function (e) {
-            e.preventDefault();
+            // Submit Contact Edit form
+            document.getElementById('contactEditModal').addEventListener('submit', function (e) {
+                e.preventDefault();
 
-            const contactData = {
-                id: parseInt(document.getElementById('EditContactId').value, 10),
-                contactType: document.getElementById('EditContactType').value,
-                label: document.getElementById('EditLabel').value,
-                value: document.getElementById('EditValue').value,
-                isPrimary: document.getElementById('EditContactIsPrimary').checked
-            };
+                const contactData = {
+                    id: parseInt(document.getElementById('EditContactId').value, 10),
+                    contactType: document.getElementById('EditContactType').value,
+                    label: document.getElementById('EditLabel').value,
+                    value: document.getElementById('EditValue').value,
+                    isPrimary: document.getElementById('EditContactIsPrimary').checked
+                };
 
-            axios.post('@Url.Action("Edit", "Contact")', contactData)
-                .then(function () {
-                    bootstrap.Modal.getInstance(document.getElementById('contactEditModal')).hide();
-                    fetchContacts();
-                })
-                .catch(function (err) { console.error(err); });
-        });
+                axios.post('@Url.Action("Edit", "Contact")', contactData)
+                    .then(function () {
+                        bootstrap.Modal.getInstance(document.getElementById('contactEditModal')).hide();
+                        fetchContacts();
+                    })
+                    .catch(function (err) { console.error(err); });
+            });
 
-        // Delete Contact Modal
-        document.addEventListener('click', function (e) {
-             // closest() finds the nearest parent element that matches your selector
-            const btn = e.target.closest('[data-contact-delete-id]');
-            if (!btn) return;
+            // Delete Contact Modal
+            document.addEventListener('click', function (e) {
+                // closest() finds the nearest parent element that matches your selector
+                const btn = e.target.closest('[data-contact-delete-id]');
+                if (!btn) return;
 
-            const contactId = btn.getAttribute('data-contact-delete-id');
-            const body = document.getElementById('contactDeleteModalBody');
+                const contactId = btn.getAttribute('data-contact-delete-id');
+                const body = document.getElementById('contactDeleteModalBody');
 
-            body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
+                body.innerHTML = '<p class="text-muted mb-0">Loading…</p>';
 
-            axios.get('@Url.Action("Delete", "Contact")', { params: { id: contactId } })
-                .then(function (response) {
-                    body.innerHTML = response.data;
+                axios.get('@Url.Action("Delete", "Contact")', { params: { id: contactId } })
+                    .then(function (response) {
+                        body.innerHTML = response.data;
 
-                    bootstrap.Modal
-                        .getOrCreateInstance(document.getElementById('contactDeleteModal'))
-                        .show();
-                })
-                .catch(function (error) {
-                    console.error('Error fetching contact details:', error);
-                    body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
-                });
-        });
+                        bootstrap.Modal
+                            .getOrCreateInstance(document.getElementById('contactDeleteModal'))
+                            .show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching contact details:', error);
+                        body.innerHTML = '<p class="text-danger mb-0">Failed to load.</p>';
+                    });
+            });
 
-        // Submit Contact Delete form
-        document.getElementById('contactDeleteModal').addEventListener('submit', function (e) {
-            e.preventDefault();
+            // Submit Contact Delete form
+            document.getElementById('contactDeleteModal').addEventListener('submit', function (e) {
+                e.preventDefault();
 
-            const id = parseInt(document.getElementById('DeleteContactId').value);
+                const id = parseInt(document.getElementById('DeleteContactId').value);
 
-            axios.post('@Url.Action("Delete", "Contact")', { id: id })
-                .then(function () {
-                    bootstrap.Modal
-                        .getInstance(document.getElementById('contactDeleteModal'))
-                        .hide();
-                    fetchContacts();
-                })
-                .catch(function (error) {
-                    console.error('Error deleting contact:', error);
-                });
-        });
-    </script>
+                axios.post('@Url.Action("Delete", "Contact")', { id: id })
+                    .then(function () {
+                        bootstrap.Modal
+                            .getInstance(document.getElementById('contactDeleteModal'))
+                            .hide();
+                        fetchContacts();
+                    })
+                    .catch(function (error) {
+                        console.error('Error deleting contact:', error);
+                    });
+            });
+        </script>
+    }
 }

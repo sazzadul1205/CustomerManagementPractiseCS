@@ -34,7 +34,8 @@ namespace CustomerManagementPractiseCS.Controllers
             return View();
         }
 
-        public IActionResult List(int personId)
+        // GET: /Address/List
+        public IActionResult List()
         {
             var userId = _userManager.GetUserId(User);
 
@@ -47,7 +48,8 @@ namespace CustomerManagementPractiseCS.Controllers
                 return NotFound();
             }
 
-            var addresses = _context.Addresses.Where(x => x.PersonId == personId).ToList();
+            // Get the Addresses that Belong to the Current Profiles
+            var addresses = _context.Addresses.Where(x => x.PersonId == profileData.Id).ToList();
 
             // Return the partial
             return PartialView("_AddressList", addresses);
