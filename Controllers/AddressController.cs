@@ -4,6 +4,7 @@ using CustomerManagementPractiseCS.ViewModels.AddressViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -19,12 +20,12 @@ namespace CustomerManagementPractiseCS.Controllers
             _userManager = userManager;
         }
 
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var userId = _userManager.GetUserId(User);
 
             // Check If there ios any Profile 
-            var profileData = _context.Persons.Any(x => x.UserId == userId);
+            var profileData = await _context.Persons.AnyAsync(x => x.UserId == userId);
 
             if (!profileData)
             {
@@ -35,12 +36,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Address/List
-        public IActionResult List()
+        public async Task<IActionResult> List()
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             // Here we return not found because this is for partial view
             if (profileData == null)
@@ -49,7 +50,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Addresses that Belong to the Current Profiles
-            var addresses = _context.Addresses.Where(x => x.PersonId == profileData.Id).ToList();
+            var addresses = await _context.Addresses.Where(x => x.PersonId == profileData.Id).ToListAsync();
 
             // Return the partial
             return PartialView("_AddressList", addresses);
@@ -57,12 +58,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Address/Create
         [HttpPost]
-        public IActionResult Create([FromBody] AddressCreateViewModel ViewModel)
+        public async Task<IActionResult> Create([FromBody] AddressCreateViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -80,7 +81,7 @@ namespace CustomerManagementPractiseCS.Controllers
             if (ViewModel.IsPrimary)
             {
                 // Get all the Addresses related to this Profile 
-                var others = _context.Addresses.Where(x => x.PersonId == profileData.Id).ToList();
+                var others = await _context.Addresses.Where(x => x.PersonId == profileData.Id).ToListAsync();
 
                 // One By one Uncheck IsPrimary 
                 foreach (var other in others)
@@ -105,7 +106,7 @@ namespace CustomerManagementPractiseCS.Controllers
             };
 
             _context.Addresses.Add(addressData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Address added successfully.";
 
@@ -114,12 +115,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Address/Edit/5
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -128,7 +129,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Address that Belongs to the Current Profile and validate the Provided id 
-            var addressData = _context.Addresses.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var addressData = await _context.Addresses.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (addressData == null)
             {
@@ -155,12 +156,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Address/Edit/5
         [HttpPost]
-        public IActionResult Edit([FromBody] AddressEditViewModel ViewModel)
+        public async Task<IActionResult> Edit([FromBody] AddressEditViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -175,7 +176,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get  the address whose ID matches the requested address ID AND whose PersonId matches the current users profile ID.
-            var addressData = _context.Addresses.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var addressData = await _context.Addresses.FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (addressData == null)
             {
@@ -187,7 +188,7 @@ namespace CustomerManagementPractiseCS.Controllers
             if (ViewModel.IsPrimary)
             {
                 // Get all addresses belonging to this person except the address currently being edited.
-                var others = _context.Addresses.Where(x => x.PersonId == profileData.Id && x.Id != ViewModel.Id).ToList();
+                var others = await _context.Addresses.Where(x => x.PersonId == profileData.Id && x.Id != ViewModel.Id).ToListAsync();
 
                 foreach (var other in others)
                 {
@@ -205,7 +206,7 @@ namespace CustomerManagementPractiseCS.Controllers
             addressData.UpdatedAt = DateTime.UtcNow;
             addressData.UpdatedBy = userId;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Address updated successfully.";
 
@@ -214,12 +215,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Address/Delete/5
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -228,7 +229,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Address that Belongs to the Current Profile
-            var addressData = _context.Addresses.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var addressData = await _context.Addresses.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (addressData == null)
             {
@@ -254,12 +255,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Address/Delete/5
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed([FromBody] AddressDeleteViewModel ViewModel)
+        public async Task<IActionResult> DeleteConfirmed([FromBody] AddressDeleteViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -273,7 +274,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Address that Belongs to the Current Profile
-            var addressData = _context.Addresses.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var addressData = await _context.Addresses.FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (addressData == null)
             {
@@ -282,7 +283,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             _context.Addresses.Remove(addressData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Address deleted successfully.";
 

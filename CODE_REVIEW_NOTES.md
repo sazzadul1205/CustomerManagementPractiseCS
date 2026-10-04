@@ -603,7 +603,7 @@ flag until you need it. Half-implemented soft delete is worse than none.
 
 ## 4. Improvements (good learning exercises)
 
-### 4.1 Use async all the way down
+### 4.1 Use async all the way down — **FIXED**
 
 You already `await` Identity calls, then call the database **synchronously** right next to them:
 ```csharp
@@ -611,24 +611,32 @@ var result = await _userManager.CreateAsync(user, password);   // async  ✓
 bool usersAlreadyExist = _userManager.Users.Any();             // blocking ✗
 ```
 
-| Sync (now) | Async (better) |
+| Sync (before) | Async (now) |
 |---|---|
 | `_context.SaveChanges()` | `await _context.SaveChangesAsync()` |
 | `.FirstOrDefault(x => ...)` | `await .FirstOrDefaultAsync(x => ...)` |
 | `.Any(x => ...)` | `await .AnyAsync(x => ...)` |
+| `.Count(x => ...)` | `await .CountAsync(x => ...)` |
 | `.Where(...).ToList()` | `await .Where(...).ToListAsync()` |
 | `_userManager.Users.ToList()` | `await _userManager.Users.ToListAsync()` |
 
-Then make the actions `async Task<IActionResult>` and pass a `CancellationToken` so a user navigating
-away stops the query:
-```csharp
-public async Task<IActionResult> Index(CancellationToken cancellationToken)
-{
-    var profiles = await query.ToListAsync(cancellationToken);
-    ...
-}
-```
-Add `using Microsoft.EntityFrameworkCore;` where needed.
+Every action in `Profile`, `Address`, `Contact`, `Education`, `Experience`, `SocialLink`, `Admin`,
+`UserManagement` and `Account` is now `async Task<IActionResult>` and awaits every database call.
+`Microsoft.EntityFrameworkCore` was added to those `using` lists.
+
+Two things that were deliberately **left sync** on purpose:
+
+- **No `CancellationToken` parameters.** Real apps pass one so a query stops when the user navigates
+  away, but that is extra plumbing with no visible benefit here. You can add it later — the pattern is
+  `public async Task<IActionResult> Index(CancellationToken cancellationToken)` plus
+  `ToListAsync(cancellationToken)`.
+- **`ImageService.SaveImage` / `DeleteImage`** still use `File.Copy` / `File.Delete`. They hit the
+  disk, not the database, and the `IImageService` interface would have to change to support async
+  file APIs.
+
+The remaining plain `IActionResult` actions (`Account.Register`, `Account.Login`,
+`Account.AccessDenied`, `Account.ChangePassword` GET, and all of `HomeController`) touch no
+database at all — they just `return View()` or redirect, so there is nothing to await.
 
 ### 4.2 Add `AsNoTracking()` to read-only queries
 

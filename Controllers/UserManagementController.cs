@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using CustomerManagementPractiseCS.Data;
 using CustomerManagementPractiseCS.Services.Interfaces;
 using CustomerManagementPractiseCS.ViewModels;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -28,9 +29,9 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: UserManagement
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            var users = _userManager.Users.ToList();
+            var users = await _userManager.Users.ToListAsync();
             return View(users);
         }
 
@@ -56,7 +57,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 Id = user.Id,
                 Email = user.Email,
                 Roles = await _userManager.GetRolesAsync(user),
-                ProfileCount = _context.Persons.Count(p => p.UserId == user.Id)
+                ProfileCount = await _context.Persons.CountAsync(p => p.UserId == user.Id)
             };
 
             return View(ViewModel);
@@ -80,18 +81,18 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the profile
-            var profiles = _context.Persons.Where(p => p.UserId == user.Id).ToList();
+            var profiles = await _context.Persons.Where(p => p.UserId == user.Id).ToListAsync();
 
             if (profiles.Count > 0)
             {
                 foreach (var profile in profiles)
                 {
                     // Delete the Connected Errors First 
-                    var addresses = _context.Addresses.Where(x => x.PersonId == profile.Id).ToList();
-                    var contacts = _context.Contacts.Where(x => x.PersonId == profile.Id).ToList();
-                    var educations = _context.Educations.Where(x => x.PersonId == profile.Id).ToList();
-                    var experiences = _context.Experiences.Where(x => x.PersonId == profile.Id).ToList();
-                    var socialLinks = _context.SocialLinks.Where(x => x.PersonId == profile.Id).ToList();
+                    var addresses = await _context.Addresses.Where(x => x.PersonId == profile.Id).ToListAsync();
+                    var contacts = await _context.Contacts.Where(x => x.PersonId == profile.Id).ToListAsync();
+                    var educations = await _context.Educations.Where(x => x.PersonId == profile.Id).ToListAsync();
+                    var experiences = await _context.Experiences.Where(x => x.PersonId == profile.Id).ToListAsync();
+                    var socialLinks = await _context.SocialLinks.Where(x => x.PersonId == profile.Id).ToListAsync();
 
                     _context.Addresses.RemoveRange(addresses);
                     _context.Contacts.RemoveRange(contacts);
@@ -105,7 +106,7 @@ namespace CustomerManagementPractiseCS.Controllers
                     // Now remove the profile itself
                     _context.Persons.Remove(profile);
                 }
-                _context.SaveChanges();
+                await _context.SaveChangesAsync();
             }
 
             await _userManager.DeleteAsync(user);

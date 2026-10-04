@@ -4,6 +4,7 @@ using CustomerManagementPractiseCS.ViewModels.EducationViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -20,12 +21,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Education/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -36,12 +37,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Education/List
-        public IActionResult List()
+        public async Task<IActionResult> List()
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             // Here we return not found because this is for partial view
             if (profileData == null)
@@ -50,10 +51,10 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Educations that Belong to the Current Profile
-            var educations = _context.Educations
+            var educations = await _context.Educations
                 .Where(x => x.PersonId == profileData.Id)
                 .OrderByDescending(x => x.StartYear)
-                .ToList();
+                .ToListAsync();
 
             // Return the partial
             return PartialView("_EducationList", educations);
@@ -61,12 +62,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Education/Create
         [HttpPost]
-        public IActionResult Create([FromBody] EducationCreateViewModel ViewModel)
+        public async Task<IActionResult> Create([FromBody] EducationCreateViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -97,7 +98,7 @@ namespace CustomerManagementPractiseCS.Controllers
             };
 
             _context.Educations.Add(educationData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Education added successfully.";
 
@@ -106,12 +107,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Education/Edit/5
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -120,7 +121,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Education that Belongs to the Current Profile
-            var educationData = _context.Educations.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var educationData = await _context.Educations.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (educationData == null)
             {
@@ -147,12 +148,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Education/Edit/5
         [HttpPost]
-        public IActionResult Edit([FromBody] EducationEditViewModel ViewModel)
+        public async Task<IActionResult> Edit([FromBody] EducationEditViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -167,7 +168,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Education that Belongs to the Current Profile
-            var educationData = _context.Educations.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var educationData = await _context.Educations.FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (educationData == null)
             {
@@ -186,7 +187,7 @@ namespace CustomerManagementPractiseCS.Controllers
             educationData.UpdatedAt = DateTime.UtcNow;
             educationData.UpdatedBy = userId;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Education updated successfully.";
 
@@ -195,12 +196,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Education/Delete/5
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -209,7 +210,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Education that Belongs to the Current Profile
-            var educationData = _context.Educations.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var educationData = await _context.Educations.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (educationData == null)
             {
@@ -236,12 +237,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Education/Delete/5
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed([FromBody] EducationDeleteViewModel ViewModel)
+        public async Task<IActionResult> DeleteConfirmed([FromBody] EducationDeleteViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -255,7 +256,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Education that Belongs to the Current Profile
-            var educationData = _context.Educations.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var educationData = await _context.Educations.FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (educationData == null)
             {
@@ -264,7 +265,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             _context.Educations.Remove(educationData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Education deleted successfully.";
 

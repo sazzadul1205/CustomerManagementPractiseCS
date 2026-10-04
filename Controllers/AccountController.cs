@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -35,7 +36,7 @@ namespace CustomerManagementPractiseCS.Controllers
         public async Task<IActionResult> Register(string email, string password)
         {
             // Check if there is any Users in DB Already 
-            bool usersAlreadyExist = _userManager.Users.Any();
+            bool usersAlreadyExist = await _userManager.Users.AnyAsync();
 
             var user = new IdentityUser
             {

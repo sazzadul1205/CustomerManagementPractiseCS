@@ -4,6 +4,7 @@ using CustomerManagementPractiseCS.ViewModels.ExperienceViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -20,12 +21,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Experience/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -37,12 +38,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Experience/Create
         [HttpPost]
-        public IActionResult Create(ExperienceCreateViewModel ViewModel)
+        public async Task<IActionResult> Create(ExperienceCreateViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -72,7 +73,7 @@ namespace CustomerManagementPractiseCS.Controllers
             };
 
             _context.Experiences.Add(experienceData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Experience added successfully.";
 
@@ -80,12 +81,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Experience/Edit/5
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -93,7 +94,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Experience that Belongs to the Current Profile
-            var experienceData = _context.Experiences.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var experienceData = await _context.Experiences.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (experienceData == null)
             {
@@ -119,12 +120,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Experience/Edit/5
         [HttpPost]
-        public IActionResult Edit(ExperienceEditViewModel ViewModel)
+        public async Task<IActionResult> Edit(ExperienceEditViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -137,7 +138,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Experience that Belongs to the Current Profile
-            var experienceData = _context.Experiences.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var experienceData = await _context.Experiences.FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (experienceData == null)
             {
@@ -156,7 +157,7 @@ namespace CustomerManagementPractiseCS.Controllers
             experienceData.UpdatedAt = DateTime.UtcNow;
             experienceData.UpdatedBy = userId;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Experience updated successfully.";
 
@@ -164,12 +165,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Experience/Delete/5
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -177,7 +178,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Experience that Belongs to the Current Profile
-            var experienceData = _context.Experiences.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var experienceData = await _context.Experiences.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (experienceData == null)
             {
@@ -203,12 +204,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Experience/Delete/5
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -216,7 +217,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Experience that Belongs to the Current Profile
-            var experienceData = _context.Experiences.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var experienceData = await _context.Experiences.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (experienceData == null)
             {
@@ -224,7 +225,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             _context.Experiences.Remove(experienceData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Experience deleted successfully.";
 

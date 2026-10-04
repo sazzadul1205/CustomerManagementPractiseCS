@@ -5,6 +5,7 @@ using CustomerManagementPractiseCS.ViewModels.Profile;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -29,7 +30,7 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Profile
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
             var userId = _userManager.GetUserId(User);
 
@@ -39,7 +40,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 return RedirectToAction("Index", "Admin");
             }
 
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -57,21 +58,21 @@ namespace CustomerManagementPractiseCS.Controllers
                 PhotoUrl = profileData.PhotoUrl,
                 Summary = profileData.Summary,
 
-                Addresses = _context.Addresses.Where(x => x.PersonId == profileData.Id).ToList(),
+                Addresses = await _context.Addresses.Where(x => x.PersonId == profileData.Id).ToListAsync(),
 
-                Contacts = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList(),
+                Contacts = await _context.Contacts.Where(x => x.PersonId == profileData.Id).ToListAsync(),
 
-                Educations = _context.Educations
+                Educations = await _context.Educations
                     .Where(x => x.PersonId == profileData.Id)
                     .OrderByDescending(x => x.StartYear)
-                    .ToList(),
+                    .ToListAsync(),
 
-                Experiences = _context.Experiences
+                Experiences = await _context.Experiences
                     .Where(x => x.PersonId == profileData.Id)
                     .OrderByDescending(x => x.StartDate)
-                    .ToList(),
+                    .ToListAsync(),
 
-                SocialLinks = _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToList()
+                SocialLinks = await _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToListAsync()
             };
 
             _completenessService.Fill(viewModel);
@@ -80,12 +81,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Profile/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var userId = _userManager.GetUserId(User);
 
             // Check if i already have a profile,
-            bool hasProfile = _context.Persons.Any(x => x.UserId == userId);
+            bool hasProfile = await _context.Persons.AnyAsync(x => x.UserId == userId);
             if (hasProfile)
             {
                 return RedirectToAction("Index");
@@ -96,7 +97,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Profile/Create
         [HttpPost]
-        public IActionResult Create(ProfileCreateViewModel ViewModel)
+        public async Task<IActionResult> Create(ProfileCreateViewModel ViewModel)
         {
             if (!ModelState.IsValid)
             {
@@ -105,7 +106,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
             var userId = _userManager.GetUserId(User);
 
-            bool hasProfile = _context.Persons.Any(x => x.UserId == userId);
+            bool hasProfile = await _context.Persons.AnyAsync(x => x.UserId == userId);
             if (hasProfile)
             {
                 return RedirectToAction("Index");
@@ -134,7 +135,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             _context.Persons.Add(profileData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Profile created successfully.";
 
@@ -142,13 +143,13 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Profile/Edit
-        public IActionResult Edit()
+        public async Task<IActionResult> Edit()
         {
             // Get the Current User Id
             var userId = _userManager.GetUserId(User);
 
             // Get the Existing Profile Data
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -173,7 +174,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Profile/Edit
         [HttpPost]
-        public IActionResult Edit(ProfileEditViewModel ViewModel)
+        public async Task<IActionResult> Edit(ProfileEditViewModel ViewModel)
         {
             if (!ModelState.IsValid)
             {
@@ -184,7 +185,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
             // The ID must match AND it must belong to me
             // Find the First Profile where the Id matches the view model id and also match it with userid from the logged in user to see if all is right 
-            var profileData = _context.Persons.FirstOrDefault(x => x.Id == ViewModel.Id && x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.UserId == userId);
             if (profileData == null)
             {
                 return NotFound();
@@ -207,7 +208,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 profileData.PhotoUrl = newPhotoPath;
             }
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Profile updated successfully.";
 
@@ -215,13 +216,13 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Profile/Delete
-        public IActionResult Delete()
+        public async Task<IActionResult> Delete()
         {
             // Get the Current User Id
             var userId = _userManager.GetUserId(User);
 
             // Get the Existing Profile Data
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -245,13 +246,13 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Profile/Delete
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             // Get the Current User Id
             var userId = _userManager.GetUserId(User);
 
             // Get the Existing Profile Data Also Check the Ownership 
-            var profileData = _context.Persons.FirstOrDefault(x => x.Id == id && x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.Id == id && x.UserId == userId);
 
             if (profileData == null)
             {
@@ -265,11 +266,11 @@ namespace CustomerManagementPractiseCS.Controllers
             //profileData.UpdatedBy = userId;
 
             // Connected 
-            var addresses = _context.Addresses.Where(x => x.PersonId == profileData.Id).ToList();
-            var contacts = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList();
-            var educations = _context.Educations.Where(x => x.PersonId == profileData.Id).ToList();
-            var experiences = _context.Experiences.Where(x => x.PersonId == profileData.Id).ToList();
-            var socialLinks = _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToList();
+            var addresses = await _context.Addresses.Where(x => x.PersonId == profileData.Id).ToListAsync();
+            var contacts = await _context.Contacts.Where(x => x.PersonId == profileData.Id).ToListAsync();
+            var educations = await _context.Educations.Where(x => x.PersonId == profileData.Id).ToListAsync();
+            var experiences = await _context.Experiences.Where(x => x.PersonId == profileData.Id).ToListAsync();
+            var socialLinks = await _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToListAsync();
 
             // RemoveRange is used primarily for a list of objects so we do not have to parse one by one and delete    
             _context.Contacts.RemoveRange(contacts);
@@ -281,7 +282,7 @@ namespace CustomerManagementPractiseCS.Controllers
             _imageService.DeleteImage(profileData.PhotoUrl);
             _context.Persons.Remove(profileData);
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Profile deleted successfully.";
 
@@ -290,9 +291,9 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // GET: /Profile/Cv/5
         [AllowAnonymous]
-        public IActionResult Cv(int id)
+        public async Task<IActionResult> Cv(int id)
         {
-            var profileData = _context.Persons.FirstOrDefault(x => x.Id == id);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.Id == id);
 
             if (profileData == null)
             {
@@ -310,11 +311,11 @@ namespace CustomerManagementPractiseCS.Controllers
                 PhotoUrl = profileData.PhotoUrl,
                 Summary = profileData.Summary,
 
-                Addresses = _context.Addresses.Where(x => x.PersonId == profileData.Id).ToList(),
-                Contacts = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList(),
-                Educations = _context.Educations.Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartYear).ToList(),
-                Experiences = _context.Experiences.Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartDate).ToList(),
-                SocialLinks = _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToList()
+                Addresses = await _context.Addresses.Where(x => x.PersonId == profileData.Id).ToListAsync(),
+                Contacts = await _context.Contacts.Where(x => x.PersonId == profileData.Id).ToListAsync(),
+                Educations = await _context.Educations.Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartYear).ToListAsync(),
+                Experiences = await _context.Experiences.Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartDate).ToListAsync(),
+                SocialLinks = await _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToListAsync()
             };
 
             return View(viewModel);

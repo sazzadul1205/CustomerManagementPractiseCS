@@ -4,6 +4,7 @@ using CustomerManagementPractiseCS.ViewModels.SocialLinkViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -20,12 +21,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /SocialLink/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -37,12 +38,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /SocialLink/Create
         [HttpPost]
-        public IActionResult Create(SocialLinkCreateViewModel ViewModel)
+        public async Task<IActionResult> Create(SocialLinkCreateViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -65,7 +66,7 @@ namespace CustomerManagementPractiseCS.Controllers
             };
 
             _context.SocialLinks.Add(socialLinkData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Social link added successfully.";
 
@@ -73,12 +74,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /SocialLink/Edit/5
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -86,7 +87,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the SocialLink that Belongs to the Current Profile
-            var socialLinkData = _context.SocialLinks.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var socialLinkData = await _context.SocialLinks.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (socialLinkData == null)
             {
@@ -105,12 +106,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /SocialLink/Edit/5
         [HttpPost]
-        public IActionResult Edit(SocialLinkEditViewModel ViewModel)
+        public async Task<IActionResult> Edit(SocialLinkEditViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -123,7 +124,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the SocialLink that Belongs to the Current Profile
-            var socialLinkData = _context.SocialLinks.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var socialLinkData = await _context.SocialLinks.FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (socialLinkData == null)
             {
@@ -135,7 +136,7 @@ namespace CustomerManagementPractiseCS.Controllers
             socialLinkData.UpdatedAt = DateTime.UtcNow;
             socialLinkData.UpdatedBy = userId;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Social link updated successfully.";
 
@@ -143,12 +144,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /SocialLink/Delete/5
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -156,7 +157,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the SocialLink that Belongs to the Current Profile
-            var socialLinkData = _context.SocialLinks.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var socialLinkData = await _context.SocialLinks.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (socialLinkData == null)
             {
@@ -175,12 +176,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /SocialLink/Delete/5
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -188,7 +189,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the SocialLink that Belongs to the Current Profile
-            var socialLinkData = _context.SocialLinks.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var socialLinkData = await _context.SocialLinks.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (socialLinkData == null)
             {
@@ -196,7 +197,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             _context.SocialLinks.Remove(socialLinkData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Social link deleted successfully.";
 

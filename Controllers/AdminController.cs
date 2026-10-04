@@ -3,6 +3,7 @@ using CustomerManagementPractiseCS.ViewModels.AdminViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace CustomerManagementPractiseCS.Controllers
@@ -20,7 +21,7 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Admin
-        public IActionResult Index(string search, string gender)
+        public async Task<IActionResult> Index(string search, string gender)
         {
             // AsQueryable() is used when a Developer Wants to Daynamically Querry a Entity it is used for sorting, filtering and more 
             var querry = _context.Persons.AsQueryable();
@@ -52,15 +53,15 @@ namespace CustomerManagementPractiseCS.Controllers
                 City = x.Addresses.Where(a => a.IsPrimary).Select(a => a.City).FirstOrDefault(),
                 CreatedAt = x.CreatedAt
             })
-                .ToList();
+                .ToListAsync();
 
             return View(profiles);
         }
 
         // GET: /Admin/Details/5
-        public IActionResult Details(int id)
+        public async Task<IActionResult> Details(int id)
         {
-            var person = _context.Persons.FirstOrDefault(x => x.Id == id);
+            var person = await _context.Persons.FirstOrDefaultAsync(x => x.Id == id);
 
             if (person == null)
             {
@@ -81,18 +82,18 @@ namespace CustomerManagementPractiseCS.Controllers
                 CreatedAt = person.CreatedAt,
                 UpdatedAt = person.UpdatedAt,
 
-                Addresses = _context.Addresses.Where(x => x.PersonId == person.Id).ToList(),
-                Contacts = _context.Contacts.Where(x => x.PersonId == person.Id).ToList(),
-                Educations = _context.Educations
+                Addresses = await _context.Addresses.Where(x => x.PersonId == person.Id).ToListAsync(),
+                Contacts = await _context.Contacts.Where(x => x.PersonId == person.Id).ToListAsync(),
+                Educations = await _context.Educations
                     .Where(x => x.PersonId == person.Id)
                     .OrderByDescending(x => x.StartYear)
-                    .ToList(),
+                    .ToListAsync(),
 
-                Experiences = _context.Experiences
+                Experiences = await _context.Experiences
                     .Where(x => x.PersonId == person.Id)
                     .OrderByDescending(x => x.StartDate)
-                    .ToList(),
-                SocialLinks = _context.SocialLinks.Where(x => x.PersonId == person.Id).ToList()
+                    .ToListAsync(),
+                SocialLinks = await _context.SocialLinks.Where(x => x.PersonId == person.Id).ToListAsync()
             };
 
             return View(viewModel);

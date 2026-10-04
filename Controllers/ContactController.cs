@@ -4,6 +4,7 @@ using CustomerManagementPractiseCS.ViewModels.ContactViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -20,12 +21,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Contact/Create
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -36,12 +37,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Contact/List
-        public IActionResult List()
+        public async Task<IActionResult> List()
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             // Here we return not found because this is for partial view
             if (profileData == null)
@@ -50,7 +51,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Contacts that Belong to the Current Profile
-            var contact = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList();
+            var contact = await _context.Contacts.Where(x => x.PersonId == profileData.Id).ToListAsync();
 
             // Return the partial
             return PartialView("_ContactList", contact);
@@ -58,12 +59,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Contact/Create
         [HttpPost]
-        public IActionResult Create([FromBody] ContactCreateViewModel ViewModel)
+        public async Task<IActionResult> Create([FromBody] ContactCreateViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -80,7 +81,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // If this is Marked Primary, Demote the Others of the Same Type
             if (ViewModel.IsPrimary)
             {
-                var others = _context.Contacts.Where(x => x.PersonId == profileData.Id).ToList();
+                var others = await _context.Contacts.Where(x => x.PersonId == profileData.Id).ToListAsync();
 
                 foreach (var other in others)
                 {
@@ -101,7 +102,7 @@ namespace CustomerManagementPractiseCS.Controllers
             };
 
             _context.Contacts.Add(contactData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Contact added successfully.";
 
@@ -110,12 +111,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Contact/Edit/5
-        public IActionResult Edit(int id)
+        public async Task<IActionResult> Edit(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -124,7 +125,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Contact that Belongs to the Current Profile
-            var contactData = _context.Contacts.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var contactData = await _context.Contacts.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (contactData == null)
             {
@@ -147,12 +148,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Contact/Edit/5
         [HttpPost]
-        public IActionResult Edit([FromBody] ContactEditViewModel ViewModel)
+        public async Task<IActionResult> Edit([FromBody] ContactEditViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -167,8 +168,8 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Contact that Belongs to the Current Profile
-            var contactData = _context.Contacts
-                .FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var contactData = await _context.Contacts
+                .FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (contactData == null)
             {
@@ -180,7 +181,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // If this is Marked Primary, Demote the Others of the Same Type
             if (ViewModel.IsPrimary)
             {
-                var others = _context.Contacts.Where(x => x.PersonId == profileData.Id && x.Id != ViewModel.Id).ToList();
+                var others = await _context.Contacts.Where(x => x.PersonId == profileData.Id && x.Id != ViewModel.Id).ToListAsync();
 
                 foreach (var other in others)
                 {
@@ -195,7 +196,7 @@ namespace CustomerManagementPractiseCS.Controllers
             contactData.UpdatedAt = DateTime.UtcNow;
             contactData.UpdatedBy = userId;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Contact updated successfully.";
 
@@ -204,12 +205,12 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Contact/Delete/5
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -218,8 +219,8 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Contact that Belongs to the Current Profile
-            var contactData = _context.Contacts
-                .FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var contactData = await _context.Contacts
+                .FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
 
             if (contactData == null)
             {
@@ -242,12 +243,12 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // POST: /Contact/Delete/5
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed([FromBody] ContactDeleteViewModel ViewModel)
+        public async Task<IActionResult> DeleteConfirmed([FromBody] ContactDeleteViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
             // Get the Profile that Belongs to the Current User
-            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -261,7 +262,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             // Get the Contact that Belongs to the Current Profile
-            var contactData = _context.Contacts.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
+            var contactData = await _context.Contacts.FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (contactData == null)
             {
@@ -270,7 +271,7 @@ namespace CustomerManagementPractiseCS.Controllers
             }
 
             _context.Contacts.Remove(contactData);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             TempData["Success"] = "Contact deleted successfully.";
 
