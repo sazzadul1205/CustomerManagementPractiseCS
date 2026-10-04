@@ -1,37 +1,21 @@
-﻿@model List<CustomerManagementPractiseCS.ViewModels.AdminViewModels.AdminProfileListViewModel>
-
-@{
+﻿@{
     ViewData["Title"] = "All Profiles";
 
-    // Read the current filter values from the query string so the form stays filled
+    // Read the current filter values from the query string so the boxes stay filled
     var search = Context.Request.Query["search"].ToString();
     var gender = Context.Request.Query["gender"].ToString();
     var bloodGroup = Context.Request.Query["bloodGroup"].ToString();
-    var hasFilter = !string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(gender) || !string.IsNullOrEmpty(bloodGroup);
 
     // The blood groups offered in the filter, the same list the Profile form uses
     var bloodGroups = new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" };
-
-    // Pagination values the controller handed over
-    int currentPage = (int)ViewBag.Page;
-    int totalPages = (int)ViewBag.TotalPages;
-    int totalCount = (int)ViewBag.Total;
-
-    // Only show a small window of page links around the current page,
-    // otherwise a big database would draw 500 buttons
-    int windowStart = Math.Max(1, currentPage - 2);
-    int windowEnd = Math.Min(totalPages, currentPage + 2);
 }
 
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="mb-0">All Profiles</h1>
-    <span class="text-muted">@totalCount profile(s)</span>
-</div>
+<h1 class="mb-4">All Profiles</h1>
 
-@* Filter form *@
+@* Filter form. Pressing Filter does not reload the page, the list is fetched with axios *@
 <div class="card shadow-sm mb-3">
     <div class="card-body">
-        <form method="get" asp-action="Index" class="row g-2 align-items-end">
+        <form id="profileFilterForm" class="row g-2 align-items-end">
             <div class="col-md-4">
                 <label for="search" class="form-label">Search by name</label>
                 <input type="text" id="search" name="search" value="@search" class="form-control"
@@ -61,142 +45,67 @@
 
             <div class="col-md-2 d-flex gap-2">
                 <button type="submit" class="btn btn-primary w-100">Filter</button>
-                <a asp-action="Index" class="btn btn-secondary w-100">Clear</a>
+                <button type="button" class="btn btn-secondary w-100" data-clear-filter>Clear</button>
             </div>
         </form>
     </div>
 </div>
 
-@if (Model.Count == 0)
-{
-    <div class="card shadow-sm">
-        <div class="card-body text-center py-5">
-            @if (hasFilter)
-            {
-                <p class="text-muted mb-3">No profiles match your filter.</p>
-                <a asp-action="Index" class="btn btn-outline-secondary btn-sm">Clear filter</a>
-            }
-            else
-            {
-                <p class="text-muted mb-0">No profiles yet.</p>
-            }
-        </div>
-    </div>
-}
-else
-{
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-<thead class="table-light">
-                    <tr>
-                        <th style="width:80px;">Photo</th>
-                        <th>Name</th>
-                        <th>Gender</th>
-                        <th>Date of Birth</th>
-                        <th>City</th>
-                        <th>Blood</th>
-                        <th>Religion</th>
-                        <th>Created</th>
-                        <th style="width:120px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var profile in Model)
-                    {
-                        <tr>
-                            <td>
-                                @if (!string.IsNullOrEmpty(profile.PhotoUrl))
-                                {
-                                    <img src="@profile.PhotoUrl" alt="@profile.FullName" class="avatar-sm" />
-                                }
-                                else
-                                {
-                                    <div class="avatar-placeholder-sm">
-                                        <small class="text-muted">—</small>
-                                    </div>
-                                }
-                            </td>
-                            <td><strong>@profile.FullName</strong></td>
-                            <td>@profile.Gender</td>
-                            <td>@profile.DateOfBirth.ToString("dd MMM yyyy")</td>
-                            <td>@(string.IsNullOrEmpty(profile.City) ? "—" : profile.City)</td>
-                            <td>@(string.IsNullOrEmpty(profile.BloodGroup) ? "—" : profile.BloodGroup)</td>
-                            <td>@(string.IsNullOrEmpty(profile.Religion) ? "—" : profile.Religion)</td>
-                            <td>@profile.CreatedAt.ToString("dd MMM yyyy")</td>
-                            <td>
-                                <a asp-action="Details" asp-route-id="@profile.Id" class="btn btn-sm btn-outline-primary">View</a>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-    </div>
+@* The table comes from /Admin/List and is dropped in here *@
+<div id="profiles-container">
+    <p class="text-muted mb-0">Loading profiles...</p>
+</div>
 
-    @if (totalPages > 1)
-    {
-        <nav class="mt-4" aria-label="Profile pages">
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-            <ul class="pagination justify-content-center mb-2">
+    <script>
+        // Load the profile list. The filter values travel with the request as query string values.
+        function fetchProfiles(page) {
+            $('#profiles-container').html('<p class="text-muted mb-0">Loading profiles...</p>');
 
-                @* Previous *@
-                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
-                       asp-route-page="@(currentPage - 1)">Previous</a>
-                </li>
-
-                @* Jump to the very first page when it is outside the window *@
-                @if (windowStart > 1)
-                {
-                    <li class="page-item">
-                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
-                           asp-route-page="1">1</a>
-                    </li>
-
-                    @if (windowStart > 2)
-                    {
-                        <li class="page-item disabled">
-                            <span class="page-link">&hellip;</span>
-                        </li>
-                    }
+            axios.get('@Url.Action("List", "Admin")', {
+                params: {
+                    search: $('#search').val(),
+                    gender: $('#gender').val(),
+                    bloodGroup: $('#bloodGroup').val(),
+                    page: page
                 }
+            })
+                .then(function (response) {
+                    // The server sends back only the table html
+                    $('#profiles-container').html(response.data);
+                })
+                .catch(function (error) {
+                    console.error(error);
+                    $('#profiles-container').html('<p class="text-danger mb-0">Failed to load profiles.</p>');
+                });
+        }
 
-                @* The window of pages around the current one *@
-                @for (int i = windowStart; i <= windowEnd; i++)
-                {
-                    <li class="page-item @(i == currentPage ? "active" : "")">
-                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
-                           asp-route-page="@i">@i</a>
-                    </li>
-                }
+        // The Filter button. preventDefault stops the browser from reloading the page
+        $('#profileFilterForm').on('submit', function (e) {
+            e.preventDefault();
+            fetchProfiles(1);
+        });
 
-                @* Jump to the very last page when it is outside the window *@
-                @if (windowEnd < totalPages)
-                {
-                    @if (windowEnd < totalPages - 1)
-                    {
-                        <li class="page-item disabled">
-                            <span class="page-link">&hellip;</span>
-                        </li>
-                    }
+        // Clear empties the boxes and shows every profile again
+        $(document).on('click', '[data-clear-filter]', function () {
+            $('#search').val('');
+            $('#gender').val('');
+            $('#bloodGroup').val('');
+            fetchProfiles(1);
+        });
 
-                    <li class="page-item">
-                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
-                           asp-route-page="@totalPages">@totalPages</a>
-                    </li>
-                }
+        // Page links come from inside the table, so the handler is on document.
+        // data-profile-page holds the page number to load.
+        $(document).on('click', '[data-profile-page]', function (e) {
+            e.preventDefault();
+            fetchProfiles($(this).data('profile-page'));
+        });
 
-                @* Next *@
-                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
-                       asp-route-page="@(currentPage + 1)">Next</a>
-                </li>
-            </ul>
-
-            <p class="text-center text-muted small mb-0">
-                Page @currentPage of @totalPages
-            </p>
-        </nav>
-    }
+        // Load the list when the page opens
+        $(document).ready(function () {
+            fetchProfiles(1);
+        });
+    </script>
 }

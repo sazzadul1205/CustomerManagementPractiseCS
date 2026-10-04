@@ -21,7 +21,16 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Admin
-        public async Task<IActionResult> Index(string search, string gender, string bloodGroup, int page = 1)
+        // The table is not rendered here. The page asks /Admin/List for it with ajax,
+        // so this action only draws the filter form and an empty container.
+        public IActionResult Index()
+        {
+            return View();
+        }
+
+        // GET: /Admin/List
+        // Returns just the table as html, which the page drops into its container
+        public async Task<IActionResult> List(string search, string gender, string bloodGroup, int page = 1)
         {
             // How many profiles fit on one page
             const int pageSize = 10;
@@ -88,7 +97,7 @@ namespace CustomerManagementPractiseCS.Controllers
             ViewBag.Page = page;
             ViewBag.TotalPages = totalPages;
 
-            return View(profiles);
+            return PartialView("_ProfileList", profiles);
         }
 
         // GET: /Admin/Details/5
