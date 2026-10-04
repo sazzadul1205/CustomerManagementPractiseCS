@@ -33,19 +33,24 @@ namespace CustomerManagementPractiseCS.Controllers
 
         // The Task Represents a Async Function that can return a value 
         [HttpPost]
-        public async Task<IActionResult> Register(string email, string password)
+        public async Task<IActionResult> Register(RegisterViewModel ViewModel)
         {
+            if (!ModelState.IsValid)
+            {
+                return View(ViewModel);
+            }
+
             // Check if there is any Users in DB Already 
             bool usersAlreadyExist = await _userManager.Users.AnyAsync();
 
             var user = new IdentityUser
             {
-                UserName = email,
-                Email = email,
+                UserName = ViewModel.Email,
+                Email = ViewModel.Email,
             };
 
             // This auto Hashes the Password in PBKDF2
-            var result = await _userManager.CreateAsync(user, password);
+            var result = await _userManager.CreateAsync(user, ViewModel.Password);
 
             if (result.Succeeded)
             {
@@ -82,7 +87,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 ModelState.AddModelError(string.Empty, error.Description);
             }
 
-            return View();
+            return View(ViewModel);
         }
 
         public IActionResult Login()
@@ -91,16 +96,21 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string email, string password)
+        public async Task<IActionResult> Login(LoginViewModel ViewModel)
         {
-            var result = await _signInManager.PasswordSignInAsync(email, password, isPersistent: false, lockoutOnFailure: false);
+            if (!ModelState.IsValid)
+            {
+                return View(ViewModel);
+            }
+
+            var result = await _signInManager.PasswordSignInAsync(ViewModel.Email, ViewModel.Password, isPersistent: false, lockoutOnFailure: false);
             // isPersistent: is to Control how Log the Auth Cookie Stays False: Current Browser Session.
             // lockoutOnFailure: is the built in multi login attempt login Locker 
 
             if (result.Succeeded)
             {
                 // The SignInManager needs the User object to check roles
-                var user = await _userManager.FindByEmailAsync(email);
+                var user = await _userManager.FindByEmailAsync(ViewModel.Email);
 
                 // Admins go to the admin panel
                 if (user != null && await _userManager.IsInRoleAsync(user, "Admin"))
@@ -117,7 +127,7 @@ namespace CustomerManagementPractiseCS.Controllers
             // Wrong Email or Password
             ModelState.AddModelError(string.Empty, "Invalid email or password.");
 
-            return View();
+            return View(ViewModel);
 
         }
 

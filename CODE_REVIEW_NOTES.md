@@ -750,13 +750,14 @@ await _context.SaveChangesAsync();   // children go with it
 5 queries and 1 delete becomes 1 query and 1 delete. You only still need `_imageService.DeleteImage(...)`
 because files on disk are not in the database.
 
-### 4.6 Use a ViewModel for Register and Login
+### 4.6 Use a ViewModel for Register and Login — **FIXED**
 
 `AccountController.Register(string email, string password)` and `Login(string email, string password)`
-take loose strings, so there is **no** `[Required]`, `[EmailAddress]`, `[StringLength]` or
-`[DataType]` validation. If the field is missing, `password` is `null` and Identity returns a
+took loose strings, so there was **no** `[Required]`, `[EmailAddress]`, `[StringLength]` or
+`[DataType]` validation. If the field was missing, `password` was `null` and Identity returned a
 confusing error instead of "Password is required".
 
+Added `ViewModels/RegisterViewModel.cs` and `ViewModels/LoginViewModel.cs`:
 ```csharp
 public class RegisterViewModel
 {
@@ -771,14 +772,21 @@ public class RegisterViewModel
     public string Password { get; set; } = string.Empty;
 
     [DataType(DataType.Password)]
-    [Display(Name = "Confirm password")]
+    [Display(Name = "Confirm Password")]
     [Compare(nameof(Password), ErrorMessage = "The passwords do not match.")]
     public string ConfirmPassword { get; set; } = string.Empty;
 }
 ```
-Do the same for `LoginViewModel`. Add `<span asp-validation-for="ConfirmPassword">` to
-`Views/Account/Register.cshtml`. Your README already lists this as a known limitation — good catch
-by you.
+Both actions now take the ViewModel, check `ModelState` **before** touching the database, and
+`return View(ViewModel)` so a rejected form comes back with the fields still filled in.
+`Views/Account/Register.cshtml` gained the `Confirm Password` field with
+`<span asp-validation-for="ConfirmPassword">`, and both views now use `asp-for` tag helpers plus
+`<partial name="_ValidationScriptsPartial" />` so the checks also run in the browser.
+`asp-validation-summary` was switched from `All` to `ModelOnly` — otherwise every field message
+would show twice (once in the summary, once under the input).
+
+> Note: the login `Password` has `[Required]` but no `[StringLength]`, deliberately. The length rule
+> is a *registration* rule; on login it would only reject passwords that Identity already accepted.
 
 ### 4.7 Move the connection string out of `appsettings.json`
 
