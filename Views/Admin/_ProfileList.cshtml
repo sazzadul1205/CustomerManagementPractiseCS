@@ -1,20 +1,16 @@
 @model List<CustomerManagementPractiseCS.ViewModels.AdminViewModels.AdminProfileListViewModel>
 
 @{
-    // Read the filter values from the query string, the page links keep sending them
+    // Read the filter values from the query string
     var search = Context.Request.Query["search"].ToString();
     var gender = Context.Request.Query["gender"].ToString();
     var bloodGroup = Context.Request.Query["bloodGroup"].ToString();
     var hasFilter = !string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(gender) || !string.IsNullOrEmpty(bloodGroup);
 
-    // Pagination values the controller handed over
+    // Pagination values
     int currentPage = (int)ViewBag.Page;
     int totalPages = (int)ViewBag.TotalPages;
     int totalCount = (int)ViewBag.Total;
-
-    // Only show a small window of page links around the current page
-    int windowStart = Math.Max(1, currentPage - 2);
-    int windowEnd = Math.Min(totalPages, currentPage + 2);
 }
 
 @if (Model.Count == 0)
@@ -67,15 +63,26 @@ else
                                     </div>
                                 }
                             </td>
-                            <td><strong>@profile.FullName</strong></td>
+                            <td>
+                                <strong>
+                                    @profile.FullName
+                                </strong>
+                            </td>
                             <td>@profile.Gender</td>
                             <td>@profile.DateOfBirth.ToString("dd MMM yyyy")</td>
-                            <td>@(string.IsNullOrEmpty(profile.City) ? "—" : profile.City)</td>
-                            <td>@(string.IsNullOrEmpty(profile.BloodGroup) ? "—" : profile.BloodGroup)</td>
-                            <td>@(string.IsNullOrEmpty(profile.Religion) ? "—" : profile.Religion)</td>
+                            <td>
+                                @(string.IsNullOrEmpty(profile.City) ? "—" : profile.City)
+                            </td>
+                            <td>
+                                @(string.IsNullOrEmpty(profile.BloodGroup) ? "—" : profile.BloodGroup)
+                            </td>
+                            <td>
+                                @(string.IsNullOrEmpty(profile.Religion) ? "—" : profile.Religion)
+                            </td>
                             <td>@profile.CreatedAt.ToString("dd MMM yyyy")</td>
                             <td>
-                                <a asp-action="Details" asp-route-id="@profile.Id" class="btn btn-sm btn-outline-primary">View</a>
+                                <a asp-action="Details" asp-route-id="@profile.Id"
+                                   class="btn btn-sm btn-outline-primary">View</a>
                             </td>
                         </tr>
                     }
@@ -92,61 +99,39 @@ else
 
                 @* Previous *@
                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" href="@Url.Action("List", "Admin", new { search = search, gender = gender, bloodGroup = bloodGroup, page = currentPage - 1 })"
-                       data-profile-page="@(currentPage - 1)">Previous</a>
+                    <a class="page-link"
+                       href="@Url.Action("List", "Admin", new { search = search, gender = gender, bloodGroup = bloodGroup, page = currentPage - 1 })">
+                        Previous
+                    </a>
                 </li>
 
-                @* Jump to the very first page when it is outside the window *@
-                @if (windowStart > 1)
-                {
-                    <li class="page-item">
-                        <a class="page-link" href="@Url.Action("List", "Admin", new { search = search, gender = gender, bloodGroup = bloodGroup, page = 1 })"
-                           data-profile-page="1">1</a>
-                    </li>
-
-                    @if (windowStart > 2)
-                    {
-                        <li class="page-item disabled">
-                            <span class="page-link">&hellip;</span>
-                        </li>
-                    }
-                }
-
-                @* The window of pages around the current one *@
-                @for (int i = windowStart; i <= windowEnd; i++)
+                @* Available Pages *@
+                @for (int i = 1; i <= totalPages; i++)
                 {
                     <li class="page-item @(i == currentPage ? "active" : "")">
-                        <a class="page-link" href="@Url.Action("List", "Admin", new { search = search, gender = gender, bloodGroup = bloodGroup, page = i })"
-                           data-profile-page="@i">@i</a>
-                    </li>
-                }
 
-                @* Jump to the very last page when it is outside the window *@
-                @if (windowEnd < totalPages)
-                {
-                    @if (windowEnd < totalPages - 1)
-                    {
-                        <li class="page-item disabled">
-                            <span class="page-link">&hellip;</span>
-                        </li>
-                    }
+                        <a class="page-link"
+                           href="@Url.Action("List", "Admin", new { search = search, gender = gender, bloodGroup = bloodGroup, page = i })">
+                            @i
+                        </a>
 
-                    <li class="page-item">
-                        <a class="page-link" href="@Url.Action("List", "Admin", new { search = search, gender = gender, bloodGroup = bloodGroup, page = totalPages })"
-                           data-profile-page="@totalPages">@totalPages</a>
                     </li>
                 }
 
                 @* Next *@
                 <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                    <a class="page-link" href="@Url.Action("List", "Admin", new { search = search, gender = gender, bloodGroup = bloodGroup, page = currentPage + 1 })"
-                       data-profile-page="@(currentPage + 1)">Next</a>
+                    <a class="page-link"
+                       href="@Url.Action("List", "Admin", new { search = search, gender = gender, bloodGroup = bloodGroup, page = currentPage + 1 })">
+                        Next
+                    </a>
                 </li>
+
             </ul>
 
             <p class="text-center text-muted small mb-0">
                 Page @currentPage of @totalPages
             </p>
+
         </nav>
     }
 }

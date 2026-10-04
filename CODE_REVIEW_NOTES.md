@@ -18,6 +18,15 @@ Everything below is a runtime / design / security issue.
 5. [Things You Already Did Well](#5-things-you-already-did-well)
 6. [Suggested Order of Work](#6-suggested-order-of-work)
 
+### Status
+
+**Done (6):** 1.3, 1.5, 4.1, 4.2, 4.6, 4.8
+**Still open:** everything else, plus the new 1.9 below.
+
+Work that was not part of this review: a Blood Group filter, AJAX loading for the admin profile table and
+the user table, a delete confirmation modal for user accounts, a shared `showToast()` helper in
+`wwwroot/js/site.js`, and the navbar alignment rules in `wwwroot/css/site.css`.
+
 ---
 
 ## 1. Real Bugs (fix these first)
@@ -25,8 +34,8 @@ Everything below is a runtime / design / security issue.
 ### 1.1 `/Address/Create` and `/Contact/Create` pages always fail with **415 Unsupported Media Type**
 
 **Files:**
-- `Controllers/AddressController.cs:60` — `public IActionResult Create([FromBody] AddressCreateViewModel ViewModel)`
-- `Controllers/ContactController.cs:61` — same pattern
+- `Controllers/AddressController.cs:61` — `public async Task<IActionResult> Create([FromBody] AddressCreateViewModel ViewModel, ...)`
+- `Controllers/ContactController.cs:62` — same pattern
 - `Views/Address/Create.cshtml:14` — `<form asp-action="Create" method="post">`
 - `Views/Contact/Create.cshtml:14` — same
 
@@ -76,7 +85,8 @@ return RedirectToAction("Index", "Profile");   // instead of Ok()
 
 ### 1.2 Failures in the AJAX modals are silent — the user sees nothing happen
 
-**File:** `Views/Profile/Index.cshtml` (lines 428-430, 479, 518-519, 557-559, 599-601, 636-638)
+**File:** `Views/Profile/Index.cshtml` — the `.catch(...)` block of every axios call
+(address create / edit / delete, contact create / edit / delete, education create / edit / delete)
 
 **What happens:** You add an address with an empty city inside the modal. The server replies
 `400 Bad Request` with the validation errors. The modal just stays open and **nothing is displayed**.
@@ -296,8 +306,8 @@ catch (DbUpdateException)
 
 ### 1.8 No error handling around `SaveChanges()` — users can see raw exceptions
 
-**Everywhere.** e.g. `Controllers/ProfileController.cs:137`, `Controllers/AddressController.cs:108`,
-`Controllers/ExperienceController.cs:75`, and so on.
+**Everywhere.** e.g. `ProfileController.Create`, `AddressController.Create`,
+`ExperienceController.Create`, and so on. (They are `await _context.SaveChangesAsync()` now — same item.)
 
 **What happens:** Any database hiccup (unique constraint, string too long, connection dropped)
 throws `DbUpdateException`. With no `try/catch`, the user gets the developer exception page with
@@ -329,7 +339,32 @@ in `Program.cs`. Do this later; per-action is fine for a practice project.
 
 ---
 
-## 2. Security Issues
+### 1.9 The admin profile pager links navigate away from the page (new)
+
+**File:** `Views/Admin/_ProfileList.cshtml`
+
+**What happens:** You are on page 2 of the All Profiles list and click **3**. The browser navigates to
+`/Admin/List?page=3` and shows a bare table with no navbar, no filter form and no styling.
+
+**Why:** the pager links only have an `href`, and the AJAX handler is bound to `data-profile-page`:
+
+```javascript
+$(document).on('click', '[data-profile-page]', function (e) { ... });
+```
+
+`href` alone is a normal link, and `/Admin/List` returns a *partial*. A partial is not a page.
+
+**How to fix:** put `data-profile-page` back on each link so the handler catches the click:
+
+```html
+<a class="page-link" href="..." data-profile-page="@i">@i</a>
+```
+
+While you are there: the profile table has filters and pagination but **no sorting** yet. The list is
+newest-first only. `AdminController.List` already receives `search`, `gender`, `bloodGroup` and `page`, so
+a `sort` / `dir` pair plus an `OrderBy` switch and clickable `<th>`s is a small next step.
+
+---
 
 These are the ones to understand properly, because they are the difference between a practice app and
 something you could not put online.
@@ -559,14 +594,15 @@ Also only allow deleting from the `uploads` folder, not all of `wwwroot`.
 Dead code is not a style opinion — it is code that future-you will read, try to fix, and get confused
 by. Removing it is a real skill.
 
-### 3.1 Four view files that can never be rendered
+### 3.1 Five view files that can never be rendered
 
 | File | Why it is dead |
 |---|---|
-| `Views/Address/Edit.cshtml` | `AddressController.Edit(int id)` returns `PartialView("_AddressEditForm", ...)` (`AddressController.cs:153`), never `View(...)` |
-| `Views/Address/Delete.cshtml` | `AddressController.Delete(int id)` returns `PartialView("_AddressDeleteForm", ...)` (`AddressController.cs:252`) |
-| `Views/Contact/Edit.cshtml` | `ContactController.Edit(int id)` returns `PartialView("_ContactEditForm", ...)` (`ContactController.cs:145`) |
-| `Views/Contact/Delete.cshtml` | `ContactController.Delete(int id)` returns `PartialView("_ContactDeleteForm", ...)` (`ContactController.cs:240`) |
+| `Views/Address/Edit.cshtml` | `AddressController.Edit(int id)` returns `PartialView("_AddressEditForm", ...)`, never `View(...)` |
+| `Views/Address/Delete.cshtml` | `AddressController.Delete(int id)` returns `PartialView("_AddressDeleteForm", ...)` |
+| `Views/Contact/Edit.cshtml` | `ContactController.Edit(int id)` returns `PartialView("_ContactEditForm", ...)` |
+| `Views/Contact/Delete.cshtml` | `ContactController.Delete(int id)` returns `PartialView("_ContactDeleteForm", ...)` |
+| `Views/UserManagement/Delete.cshtml` | The user delete confirmation moved into a modal, so `UserManagementController.Delete` now returns `PartialView("_UserDeleteForm", ...)` |
 
 **How to check for dead views yourself:** put a breakpoint in the action, or search for the file name.
 If nothing references it, delete it. Git keeps history if you change your mind.
@@ -579,22 +615,25 @@ Delete both.
 
 ### 3.3 ~330 lines of commented-out JavaScript
 
-`Views/Profile/Index.cshtml:641-970` is a full second copy of the Address + Contact scripts, wrapped
-in `@* ... *@`. It is the *vanilla JavaScript* version of the code that lives at lines 385-639 in
-*jQuery*. Git already remembers it — delete it. Keeping two copies of the same logic is how bugs
-get fixed in one place and not the other.
+`Views/Profile/Index.cshtml` holds a full second copy of the Address + Contact scripts, wrapped
+in `@* ... *@`, in the *vanilla JavaScript* style next to the live *jQuery* version. Git already
+remembers it — delete it. Keeping two copies of the same logic is how bugs get fixed in one place
+and not the other.
 
 While you are there, consider moving the remaining JS **out of the view** into `wwwroot/js/site.js`
-(or a new `wwwroot/js/profile.js`). A 972-line `.cshtml` file is hard to read. In the layout you
-already have the hook for it: `Views/Shared/_Layout.cshtml:182-183`.
+(or a new `wwwroot/js/profile.js`). A 1200-line `.cshtml` file is hard to read. In the layout you
+already have the hook for it: the `@await RenderSectionAsync("Scripts", ...)` line.
 
-### 3.4 Empty and stray files
+### 3.4 Stray file
 
 | Item | Note |
 |---|---|
-| `wwwroot/js/site.js` | Only comments. Either use it or accept it as a placeholder. |
-| `Controllers/AdminController.cs:6` | `using static Microsoft.EntityFrameworkCore.DbLoggerCategory;` — unused. Remove. |
+| `Controllers/AdminController.cs` | `using static Microsoft.EntityFrameworkCore.DbLoggerCategory;` was unused and has been removed. |
 | `.gitignore:5` | Reads `*.suoEditProfileViewModel`. Looks like an accidental edit; `*.suo` on line 4 already covers it. Should just be `*.suo`. |
+
+`wwwroot/js/site.js` used to be empty apart from the template comments. It now holds the shared
+`showToast()` helper that the profile page, the admin list and the users page all call, so item 3.4 is
+done for that file.
 
 ### 3.5 The `Deleted` soft-delete flag exists but nothing uses it
 
@@ -851,10 +890,13 @@ matter:
 3. **Keep the filters on the links.** Every page link re-sends `search` and `gender`, otherwise
    page 2 of a filtered list silently drops the filter.
 
-`Views/Admin/Index.cshtml` now draws a Bootstrap pager with a sliding window (current page ±2 plus
-first/last and `…` gaps), so 10,000 rows produce 7 buttons and not 500. The header count that used
-to be commented out now shows the real total. Submitting the filter form starts again at page 1,
-which is what people expect.
+`Views/Admin/_ProfileList.cshtml` now draws the Bootstrap pager, and the filters were widened to
+**name**, **gender** and **blood group**. Since then the whole table was also moved behind AJAX: `Index`
+only draws the filter form, and `List` returns the table as a partial that the page drops into
+`#profiles-container` (5 profiles per page). Paging through 10,000 rows still draws 7 buttons, not 500.
+
+> Two follow-ups came out of that work: the pager links lost their `data-profile-page` attribute (see the
+> new **1.9** above), and sorting is not in yet.
 
 ### 4.9 Add a test project
 
@@ -887,7 +929,7 @@ For controller tests, `WebApplicationFactory<Program>` lets you spin the whole a
 
 | Item | Where |
 |---|---|
-| Prevent an admin from deleting **another admin** | `UserManagementController.DeleteConfirmed:76-80` — the guard only blocks deleting *yourself* |
+| Prevent an admin from deleting **another admin** | `UserManagementController.DeleteConfirmed` — the guard only blocks deleting *yourself* |
 | Add `app.UseStatusCodePages()` | `Program.cs` — turns bare 404/403 into a friendly page |
 | Add `[ResponseCache(NoStore = true)]` to pages showing private data | `ProfileController.Index`, `AdminController.Details` — stops the browser caching personal data |
 | Use `DateTimeOffset` instead of `DateTime` for `CreatedAt`/`UpdatedAt` | all models — `DateTime` has no time zone, so it is ambiguous |
@@ -920,6 +962,9 @@ Worth saying out loud, because these are the habits that make the rest of the co
    view model) were already listed there — you documented your own gaps correctly.
 9. **Genuinely useful inline comments** explaining *why*, not *what*. That is a professional habit.
 
+> A note on the comments: several have since been trimmed to the bare minimum. The rule of thumb is one
+> comment per *why*, not one per line — long explanations go in this document, not in the code.
+
 ---
 
 ## 6. Suggested Order of Work
@@ -927,29 +972,34 @@ Worth saying out loud, because these are the habits that make the rest of the co
 Do them in this order — each one is small, and each one teaches something.
 
 ### Week 1 — correctness
-1. **1.1** Fix or delete `/Address/Create` and `/Contact/Create` (415 bug)
-2. **1.2** Show errors in the AJAX modals instead of `console.error`
-3. **1.3** Remove `TempData` from the AJAX endpoints
-4. **1.4** `[Required]` on non-nullable `DateOnly` / `int`
+1. ~~**1.1** Fix or delete `/Address/Create` and `/Contact/Create` (415 bug)~~ — still open
+2. ~~**1.2** Show errors in the AJAX modals instead of `console.error`~~ — still open
+3. **1.3** Remove `TempData` from the AJAX endpoints — **done**
+4. **1.4** `[Required]` on non-nullable `DateOnly` / `int` — still open
+5. **1.9** Put `data-profile-page` back on the admin pager links — still open
 
 ### Week 2 — security basics
-5. **2.1** Add `app.UseAntiforgery()` + `[ValidateAntiForgeryToken]` on POSTs
-6. **2.3** Replace first-user-is-admin with an explicit admin email
-7. **2.4** Fix `PasswordSignInAsync`, turn lockout on
-8. **2.5** Add a 2 MB upload limit + the `wwwroot` path guard
+6. **2.1** Add `app.UseAntiforgery()` + `[ValidateAntiForgeryToken]` on POSTs
+7. **2.3** Replace first-user-is-admin with an explicit admin email
+8. **2.4** Fix `PasswordSignInAsync`, turn lockout on
+9. **2.5** Add a 2 MB upload limit + the `wwwroot` path guard
 
 ### Week 3 — code quality
-9. **3.x** Delete the dead code (4 views, 2 partials, 330 commented JS lines, the `.gitignore` typo)
-10. **4.4** Extract the base controller — removes 31 copy-pasted blocks
-11. **4.5** Delete the manual child-removal loops and rely on the cascade
-12. **4.3** Add `Include(...)` to cut 6 queries down to 1
+10. **3.x** Delete the dead code (5 views, 2 partials, the commented JS, the `.gitignore` typo)
+11. **4.4** Extract the base controller — removes 31 copy-pasted blocks
+12. **4.5** Delete the manual child-removal loops and rely on the cascade
+13. **4.3** Add `Include(...)` to cut 6 queries down to 1
 
 ### Week 4 — grow
-13. **4.1** Go async everywhere
-14. **4.6** `RegisterViewModel` / `LoginViewModel` with `[Compare]` for confirm-password
-15. **2.2** Add `IsPublic` to `Person` so CVs are private by default
-16. **4.9** Create the test project and write 5 tests around `ImageService` + ownership checks
+14. **4.1** Go async everywhere — **done**
+15. **4.6** `RegisterViewModel` / `LoginViewModel` with `[Compare]` for confirm-password — **done**
+16. **2.2** Add `IsPublic` to `Person` so CVs are private by default
+17. **4.9** Create the test project and write 5 tests around `ImageService` + ownership checks
+
+Also done along the way: **1.5** (the contact validation script), **4.2** (`AsNoTracking()`) and
+**4.8** (admin pagination).
 
 ---
 
-*Reviewed against commit state on 2026-10-04. `dotnet build` clean, 0 errors.*
+*Reviewed against commit state on 2026-10-04. `dotnet build` clean, 0 errors. Status updated the same day
+after the async, AJAX and documentation pass.*

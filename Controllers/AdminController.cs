@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 namespace CustomerManagementPractiseCS.Controllers
 {
@@ -21,19 +20,16 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Admin
-        // The table is not rendered here. The page asks /Admin/List for it with ajax,
-        // so this action only draws the filter form and an empty container.
         public IActionResult Index()
         {
             return View();
         }
 
         // GET: /Admin/List
-        // Returns just the table as html, which the page drops into its container
         public async Task<IActionResult> List(string search, string gender, string bloodGroup, int page = 1)
         {
-            // How many profiles fit on one page
-            const int pageSize = 10;
+            // Max Number of Profiles 
+            const int pageSize = 5;
 
             // AsQueryable() is used when a Developer Wants to Dynamically query a Entity it is used for sorting, filtering and more 
             // AsNoTracking() because this page only displays the list, we never change these rows

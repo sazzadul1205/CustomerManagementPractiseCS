@@ -1,0 +1,49 @@
+TODAY'S WORK - Profile & CV Management System (ASP.NET Core MVC)
+=============================================================
+
+CHANGES MADE
+------------
+1. Made every database call async - ToListAsync(), FirstOrDefaultAsync(),
+   CountAsync(), SaveChangesAsync() - across 9 controllers.
+2. Added AsNoTracking() to read-only queries (profile page, CV page,
+   admin list and details, user list).
+3. Added RegisterViewModel and LoginViewModel with server side validation
+   ([Required], [EmailAddress], password length, confirm password match).
+4. Added the "Confirm Password" field to the Register page and client side
+   validation through jQuery Validation.
+5. Fixed success messages showing up on the wrong page. The AJAX endpoints now
+   return the message in their JSON response and the page shows it with a
+   showToast() helper instead of TempData.
+6. Added pagination to the Admin profile list (Skip / Take, page number is
+   clamped so a wrong page number cannot break the query).
+7. Added a Blood Group filter next to the existing Gender filter.
+8. Converted the "All Profiles" list to AJAX. /Admin returns the filter form,
+   /Admin/List returns the table, and the Filter button reloads only the table.
+9. Rebuilt the Users page: card table showing roles and profile count, and a
+   delete confirmation modal that lists what will be deleted before it happens.
+10. Moved showToast() into wwwroot/js/site.js so every page shares one copy.
+11. Fixed the navbar alignment in wwwroot/css/site.css (links and buttons now
+    share the same height and padding).
+12. Updated README.md and marked the finished items as FIXED in
+    CODE_REVIEW_NOTES.md.
+
+THINGS LEARNED
+--------------
+- async / await with Entity Framework Core, and which actions do not need it.
+- AsNoTracking() and where it must NOT be used (anything that saves changes).
+- Paging a query with Skip() / Take(), and validating a page number from the URL.
+- TempData is only correct in actions that redirect; AJAX endpoints should send
+  the message in the response body.
+- ViewModels with DataAnnotations for validation, and checking ModelState.
+- Returning partial views (PartialView) and loading them with AJAX.
+- The @section Scripts block in Razor, and why it does not work inside a partial.
+- Bootstrap modals used for confirmation before deleting.
+- Tag Helpers: asp-for, asp-action, asp-route-* and query string filters.
+- Git basics: reviewing a diff before committing changes.
+
+OPEN ITEM
+---------
+The admin profile pager links lost their data-profile-page attribute, so the
+page buttons navigate to the raw partial HTML instead of loading the table with
+AJAX. Fix: add data-profile-page="@i" back to the links in
+Views/Admin/_ProfileList.cshtml.

@@ -12,7 +12,7 @@
 
 <h1 class="mb-4">All Profiles</h1>
 
-@* Filter form. Pressing Filter does not reload the page, the list is fetched with axios *@
+@* Filter form. *@
 <div class="card shadow-sm mb-3">
     <div class="card-body">
         <form id="profileFilterForm" class="row g-2 align-items-end">
@@ -51,7 +51,7 @@
     </div>
 </div>
 
-@* The table comes from /Admin/List and is dropped in here *@
+@* Table Container  *@
 <div id="profiles-container">
     <p class="text-muted mb-0">Loading profiles...</p>
 </div>
@@ -60,7 +60,7 @@
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
     <script>
-        // Load the profile list. The filter values travel with the request as query string values.
+        // Load the profile list.
         function fetchProfiles(page) {
             $('#profiles-container').html('<p class="text-muted mb-0">Loading profiles...</p>');
 
@@ -82,7 +82,7 @@
                 });
         }
 
-        // The Filter button. preventDefault stops the browser from reloading the page
+        // The Filter button.
         $('#profileFilterForm').on('submit', function (e) {
             e.preventDefault();
             fetchProfiles(1);
@@ -96,7 +96,6 @@
             fetchProfiles(1);
         });
 
-        // Page links come from inside the table, so the handler is on document.
         // data-profile-page holds the page number to load.
         $(document).on('click', '[data-profile-page]', function (e) {
             e.preventDefault();

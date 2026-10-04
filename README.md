@@ -22,6 +22,7 @@ education, experience, and social links. That profile can be rendered as a singl
   - [Authentication & Accounts](#authentication--accounts)
   - [Profile Management](#profile-management)
   - [Administration](#administration-admin-role-only)
+  - [AJAX & Notifications](#ajax--notifications)
   - [Data & Infrastructure](#data--infrastructure)
 - [Tech Stack](#tech-stack)
 - [Project Structure](#project-structure)
@@ -57,7 +58,8 @@ data.
 | Feature                       | Description                                                                                                                                                          |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Register / Login / Logout** | Email + password via ASP.NET Core Identity (PBKDF2 hashing)                                                                                                          |
-| **First-user-is-admin**       | The first registered account is automatically assigned the `Admin` role; every subsequent account receives `User`. Both roles are created on demand at registration. |
+| **First-user-is-admin**       | The first registered account is automatically assigned the `Admin` role; every subsequent account receives `User`. Both roles are created on demand at registration.  |
+| **Form validation**          | `RegisterViewModel` / `LoginViewModel` apply `[Required]`, `[EmailAddress]`, a 6-character password minimum and a confirm-password match — checked by jQuery Validation in the browser and again by the server, which repopulates the form instead of clearing it |
 | **My Account**                | View account info and roles, change phone number, change password                                                                                                    |
 | **Custom auth cookie**        | `/Account/Login` and `/Account/AccessDenied` paths configured explicitly                                                                                             |
 | **Role-based routing**        | Admins are redirected to the admin panel on login, from the home page, and from `My Profile`                                                                         |
@@ -82,7 +84,7 @@ the signed-in user's own profile:
 
 | Section          | Fields                                                                                                  | Special Behavior                                                                   |
 | ---------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| **Addresses**    | Typed address entries                                                                                   | Single `IsPrimary` flag per profile — setting one automatically unset's the others |
+| **Addresses**    | Typed address entries                                                                                   | Single `IsPrimary` flag per profile — setting one automatically unsets the others  |
 | **Contacts**     | Type (email, phone, etc.), value                                                                        | Same single-primary rule as addresses                                              |
 | **Education**    | Degree level, degree, institution, board/university, year range, ongoing flag, result                   | Sorted newest first on the CV                                                      |
 | **Experience**   | Company, designation, department, employment type, location, date range, current flag, responsibilities | Sorted newest first on the CV                                                      |
@@ -96,21 +98,43 @@ and the admin **Details** page.
 
 ### Administration (`Admin` role only)
 
-- **All Profiles** — every profile in the system with photo, gender, DOB, blood group, primary city, and creation date
+- **All Profiles** — every profile in the system with photo, gender, DOB, blood group, primary city and
+  creation date. The table is fetched from `/Admin/List` and dropped into the page, so filtering and paging
+  never reload the whole document.
+- **Filters** — search by name, gender and blood group behind one **Filter** button. Every filter is carried
+  along when you change page, and **Clear** empties all three boxes.
+- **Pagination** — 5 profiles per page with Previous / numbered pages / Next. The page number is clamped to
+  the real range, so `/Admin/List?page=999` cannot walk past the end of the list.
 - **Profile Details** — full read-only view of any profile and all of its sections, with a direct link to its CV
-- **User Management** — list all users and delete an account along with its profiles, related sections, and photo.
-  Self-deletion is blocked.
+- **User Management** — every user with role badges and profile count. Deleting an account opens a confirmation
+  modal that lists the roles and how many profiles go with it, and only then removes the account, its profiles,
+  related sections and photo. Self-deletion is blocked.
+
+### AJAX & Notifications
+
+- **Partial views instead of page reloads** — the address, contact and education lists on the profile page, the
+  admin profile table and the user table are all loaded into a container element
+- **JSON responses carrying the message** — the create / edit / delete endpoints answer
+  `Ok(new { message = "Address added successfully." })`
+- **One shared toast helper** — `showToast(message)` in `wwwroot/js/site.js` shows that message in the
+  bottom-right corner and fades it after 4 seconds; pass `true` as a second argument for a red error toast
+- **Messages appear where the action happened** — `TempData` is now used only by actions that redirect, so a
+  saved address can no longer make its banner pop up on a page you visit later
 
 ### Data & Infrastructure
 
 - **Ownership enforcement** — every edit/delete query matches both the requested record ID _and_ the current
   user's profile ID, so users cannot touch other people's data
 - **Audit fields** — `CreatedAt` / `CreatedBy` / `UpdatedAt` / `UpdatedBy` on every entity
+- **Async data access** — every database call is awaited (`ToListAsync`, `FirstOrDefaultAsync`,
+  `CountAsync`, `SaveChangesAsync`), so a request never blocks a thread on SQL
+- **No tracking on read-only queries** — pages that only display data use `AsNoTracking()`, which skips EF's
+  change tracking and saves memory
 - **Service layer** — image handling lives behind `IImageService` and is injected via DI rather than inlined
   in controllers
 - **Custom validation attributes** — reusable rules such as `NotFutureDate` live in `Data/Validations/` and are
   applied with a plain attribute, so no extra code is needed in the controller
-- **Responsive UI** — Bootstrap 5 with a shared layout and navbar
+- **Responsive UI** — Bootstrap 5 with a shared layout and navbar; navbar alignment lives in `wwwroot/css/site.css`
 
 ---
 
@@ -123,6 +147,8 @@ and the admin **Details** page.
 | Entity Framework Core (SQL Server) | 10.0.12          |
 | ASP.NET Core Identity              | 10.0.12          |
 | Bootstrap                          | 5                |
+| jQuery + jQuery Validation         | bundled in `wwwroot/lib` |
+| Axios                              | loaded from a CDN (see [Known Limitations](#known-limitations--roadmap)) |
 
 ---
 
@@ -167,10 +193,13 @@ and the admin **Details** page.
 │   ├── ExperienceViewModels/
 │   ├── SocialLinkViewModels/
 │   ├── AdminViewModels/             # Profile list + details
+│   ├── UserManagementViewModels/    # One row of the users table
 │   ├── ProfileViewModel.cs          # Account profile
 │   ├── EditProfileViewModel.cs
+│   ├── LoginViewModel.cs            # Login form
+│   ├── RegisterViewModel.cs         # Register form, incl. ConfirmPassword
 │   ├── ChangePasswordViewModel.cs
-│   └── UserDeleteViewModel.cs
+│   └── UserDeleteViewModel.cs       # Delete confirmation details
 ├── Views/
 │   ├── Account/                     # Login, Register, Profile, EditProfile, ChangePassword, AccessDenied
 │   ├── Home/                        # Index
@@ -180,11 +209,13 @@ and the admin **Details** page.
 │   ├── Education/
 │   ├── Experience/
 │   ├── SocialLink/
-│   ├── Admin/                       # Index, Details
-│   ├── UserManagement/              # Index, Delete
+│   ├── Admin/                       # Index (filter + container), Details, _ProfileList
+│   ├── UserManagement/              # Index (table + modal), _UserList, _UserDeleteForm, Delete (unused)
 │   └── Shared/                      # _Layout, _ValidationScriptsPartial, Error
 ├── Migrations/                      # EF Core migrations (InitialCreate)
 ├── wwwroot/                         # Static files, uploads/profiles for profile photos
+│   ├── css/site.css                 # Site styles + navbar alignment
+│   └── js/site.js                   # Shared showToast() helper
 ├── appsettings.json
 └── Program.cs
 ```
@@ -273,23 +304,32 @@ With the default `https` launch profile, the app is available at:
 4. **As a User**, go to **My Profile** and create your profile (photo optional). From there you can add
    addresses, contacts, education, experience, and social links, then open **View CV** to see the consolidated
    document.
-5. **As an Admin**, use **Profiles** to browse every profile and open its details or CV, and **Users** to
-   manage accounts.
+5. **As an Admin**, use **Profiles** to browse every profile — filter by name, gender or blood group, page
+   through the results, and open its details or CV — and **Users** to manage accounts, where deleting one asks
+   for confirmation first.
 
 ---
 
 ## Routes Reference
 
-| Route                 | Access        | Purpose                          |
-| --------------------- | ------------- | -------------------------------- |
-| `/`                   | Public        | Entry point; redirects by role   |
-| `/Profile`            | Authenticated | Current user's profile dashboard |
-| `/Profile/Cv/{id}`    | Public        | Rendered CV for a profile        |
-| `/Admin`              | Admin         | All profiles                     |
-| `/Admin/Details/{id}` | Admin         | Full profile details             |
-| `/UserManagement`     | Admin         | All users                        |
-| `/Account/Login`      | Public        | Login                            |
-| `/Account/Register`   | Public        | Register                         |
+| Route                 | Access        | Purpose                                                       |
+| --------------------- | ------------- | ------------------------------------------------------------- |
+| `/`                   | Public        | Entry point; redirects by role                                |
+| `/Profile`            | Authenticated | Current user's profile dashboard                              |
+| `/Profile/Cv/{id}`    | Public        | Rendered CV for a profile                                     |
+| `/Admin`              | Admin         | Filter form and table container; the table arrives by AJAX    |
+| `/Admin/List`         | Admin         | Profile table (HTML partial): `search`, `gender`, `bloodGroup`, `page` |
+| `/Admin/Details/{id}` | Admin         | Full profile details                                          |
+| `/UserManagement`     | Admin         | User table plus the delete confirmation modal                 |
+| `/UserManagement/List`| Admin         | User table (HTML partial)                                     |
+| `/UserManagement/Delete/{id}` (GET)  | Admin | Confirmation details for the modal — deletes nothing   |
+| `/UserManagement/Delete/{id}` (POST) | Admin | Deletes the account, answers JSON with a message      |
+| `/Account/Login`      | Public        | Login                                                         |
+| `/Account/Register`   | Public        | Register                                                      |
+
+The five profile sections (`Address`, `Contact`, `Education`, `Experience`, `SocialLink`) each expose the same
+three endpoints: a `GET List` that returns an HTML partial for the page container, a `GET Edit/{id}` /
+`GET Delete/{id}` that returns the modal body, and `POST Create` / `Edit` / `Delete` that answer with JSON.
 
 ---
 
@@ -325,8 +365,10 @@ Profile photos are handled by `IImageService`:
 | **Public CV access**   | `ProfileController.Cv` is marked `[AllowAnonymous]`, so any CV is reachable by ID without authentication. Consider requiring auth or adding a share token. |
 | **No anti-forgery check** | No POST action uses `[ValidateAntiForgeryToken]` and `app.UseAntiforgery()` is not registered, so the project currently has no CSRF protection. See [`CODE_REVIEW_NOTES.md`](CODE_REVIEW_NOTES.md) §2.1. |
 | **Connection string**  | The live connection string is committed in `appsettings.json`. Move it to user secrets before sharing the repository. It uses Windows authentication, so no password is stored. |
-| **Registration input** | `AccountController.Register` accepts a plain `email` and `password` rather than a dedicated view model.                                                                                                     |
 | **First user is admin** | The `Admin` role is handed to whoever registers when the user table is empty, so a wiped or freshly restored database hands admin rights to the next signup.                                                                                                     |
+| **Axios from a CDN**   | `Views/Profile/Index.cshtml` and `Views/Admin/Index.cshtml` load axios from jsDelivr, so those pages need internet access the first time. jQuery, Bootstrap and jQuery Validation are bundled in `wwwroot/lib`. See [`CODE_REVIEW_NOTES.md`](CODE_REVIEW_NOTES.md) §1.6. |
+| **JavaScript required for several screens** | The profile section modals, the admin profile table and the user delete flow all work through AJAX. There is no no-JS fallback. |
+| **Admin list is not sortable yet** | The profile table is newest first only; the filters and pagination are in place, clickable column headers are not. `AdminController.List` takes `search`, `gender`, `bloodGroup` and `page`, so a `sort` / `dir` pair is a small addition. |
 | **Tests**              | No automated test project is included yet.                                                                                                                                                                  |
 
 ---
@@ -337,12 +379,23 @@ Profile photos are handled by `IImageService`:
 security gaps, dead code and suggested improvements. Every item explains what happens, why it happens, and
 the simplest fix, so it doubles as a learning guide. Start there when you are picking up your next task.
 
-Two findings from that review are already resolved:
+Fixed so far, each marked **FIXED** in the notes:
 
-- **Date of birth can no longer be a future date** — blocked in the browser and rejected on the server by
-  `NotFutureDateAttribute`.
-- **The Add Contact email/phone check now actually runs** — it previously lived in a `@section` inside a
-  partial view, which Razor never renders, and wrote its message into an element that had no `id`.
+| Finding                         | What changed                                                                 |
+| ------------------------------- | ---------------------------------------------------------------------------- |
+| §1.3 success message on a later page | The AJAX endpoints return their message in the response and `showToast()` displays it, so it shows up on the page you acted on |
+| §1.5 Add Contact check never ran | The check moved into a `@section Scripts` block in the page and writes into the element the form actually has |
+| §4.1 async all the way down    | Every database call is awaited; no `CancellationToken` plumbing on purpose |
+| §4.2 `AsNoTracking()`          | Applied to the read-only queries (profile dashboard, CV, admin list and details, user list) and nowhere else |
+| §4.6 Register / Login view models | `RegisterViewModel` and `LoginViewModel` with server and client validation, plus the confirm-password field |
+| §4.8 admin pagination          | `Skip` / `Take` with a clamped page number and a pager that keeps the filters |
+
+One more fix predates the review: a date of birth can no longer be in the future — the date picker greys out
+future dates in the browser and `NotFutureDateAttribute` rejects them on the server.
+
+Work that was not part of the review: a blood group filter, AJAX loading for the admin profile table and the
+user table, a delete confirmation modal for user accounts, a shared `showToast()` helper and the navbar
+alignment rules in `wwwroot/css/site.css`.
 
 The remaining findings are tracked in the Known Limitations table above.
 
@@ -350,7 +403,7 @@ The remaining findings are tracked in the Known Limitations table above.
 
 ## Contributing
 
-1. Fork the repository and create a feature branch: `git checkout -b feature/my-change`
+1. Fork the repository and create a feature branch: `git checkout -b feature/my-change`.
 2. Follow the existing patterns — view models per action, service layer for cross-cutting concerns,
    and ownership checks on every user-scoped query.
 3. Keep migrations focused and descriptively named.
