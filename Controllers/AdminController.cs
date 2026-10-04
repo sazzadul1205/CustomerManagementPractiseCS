@@ -21,8 +21,11 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Admin
-        public async Task<IActionResult> Index(string search, string gender)
+        public async Task<IActionResult> Index(string search, string gender, int page = 1)
         {
+            // How many profiles fit on one page
+            const int pageSize = 10;
+
             // AsQueryable() is used when a Developer Wants to Dynamically query a Entity it is used for sorting, filtering and more 
             // AsNoTracking() because this page only displays the list, we never change these rows
             var query = _context.Persons.AsNoTracking().AsQueryable();
@@ -40,8 +43,27 @@ namespace CustomerManagementPractiseCS.Controllers
                 query = query.Where(x => x.Gender == gender);
             }
 
+            // Count first, so the view knows how many page links it has to draw
+            int totalCount = await query.CountAsync();
+            int totalPages = Math.Max(1, (int)Math.Ceiling(totalCount / (double)pageSize));
 
-            var profiles = query.OrderByDescending(x => x.CreatedAt).Select(x => new AdminProfileListViewModel
+            // The page number arrives from the URL, so never trust it.
+            // Somebody can type /Admin?page=999 and Skip would walk off the end of the list
+            if (page < 1)
+            {
+                page = 1;
+            }
+
+            if (page > totalPages)
+            {
+                page = totalPages;
+            }
+
+            // Skip and Take become OFFSET and FETCH in SQL, that is how SQL Server pages
+            var profiles = await query.OrderByDescending(x => x.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new AdminProfileListViewModel
             {
                 Id = x.Id,
                 UserId = x.UserId,
@@ -55,6 +77,10 @@ namespace CustomerManagementPractiseCS.Controllers
                 CreatedAt = x.CreatedAt
             })
                 .ToListAsync();
+
+            ViewBag.Total = totalCount;
+            ViewBag.Page = page;
+            ViewBag.TotalPages = totalPages;
 
             return View(profiles);
         }

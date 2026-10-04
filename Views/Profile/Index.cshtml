@@ -405,6 +405,28 @@ else
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
         <script>
+            // Show a small green or red message in the corner of the screen.
+            function showToast(message, isError) {
+                // Create the holder for the messages only once
+                if ($('#toastHolder').length === 0) {
+                    $('body').append('<div id="toastHolder" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;"></div>');
+                }
+
+                const cssClass = isError ? 'alert-danger' : 'alert-success';
+
+                const toast = $('<div class="alert ' + cssClass + ' shadow-sm" role="alert"></div>');
+                toast.text(message); 
+
+                $('#toastHolder').append(toast);
+
+                // Fade it away again after a few seconds
+                setTimeout(function () {
+                    toast.fadeOut(300, function () {
+                        toast.remove();
+                    });
+                }, 4000);
+            }
+
             // Function to fetch addresses and update the container
             function fetchAddresses() {
                 // Get the container element and set its content to a loading message
@@ -446,6 +468,9 @@ else
                         // Close the modal and refresh the address list
                         bootstrap.Modal.getInstance(document.getElementById('addressCreateModal')).hide();
                         fetchAddresses();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
                     })
                     .catch(function (error) {
                         console.error('Error submitting address:', error);
@@ -493,10 +518,13 @@ else
                 };
 
                 axios.post('@Url.Action("Edit", "Address")', addressData)
-                    .then(function () {
+                    .then(function (response) {
                         // Close the modal and refresh the address list after successful edit
                         bootstrap.Modal.getInstance(document.getElementById('addressEditModal')).hide();
                         fetchAddresses();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
                     })
                     .catch(function (err) { console.error(err); });
             });
@@ -531,10 +559,13 @@ else
                 const id = parseInt($('#DeleteId').val());
 
                 axios.post('@Url.Action("Delete", "Address")', { id: id })
-                    .then(function () {
+                    .then(function (response) {
                         // Close the modal and refresh the address list after successful deletion
                         bootstrap.Modal.getInstance(document.getElementById('addressDeleteModal')).hide();
                         fetchAddresses();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
                     })
                     .catch(function (error) {
                         console.error('Error deleting address:', error);
@@ -572,9 +603,12 @@ else
                 };
 
                 axios.post('@Url.Action("Create", "Contact")', contactData)
-                    .then(function () {
+                    .then(function (response) {
                         bootstrap.Modal.getInstance(document.getElementById('contactCreateModal')).hide();
                         fetchContacts();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
                     })
                     .catch(function (error) {
                         console.error('Error submitting contact:', error);
@@ -614,9 +648,12 @@ else
                 };
 
                 axios.post('@Url.Action("Edit", "Contact")', contactData)
-                    .then(function () {
+                    .then(function (response) {
                         bootstrap.Modal.getInstance(document.getElementById('contactEditModal')).hide();
                         fetchContacts();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
                     })
                     .catch(function (error) {
                         console.error(error);
@@ -650,9 +687,12 @@ else
                 const id = parseInt($('#DeleteContactId').val(), 10);
 
                 axios.post('@Url.Action("Delete", "Contact")', { id: id })
-                    .then(function () {
+                    .then(function (response) {
                         bootstrap.Modal.getInstance(document.getElementById('contactDeleteModal')).hide();
                         fetchContacts();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
                     })
                     .catch(function (error) {
                         console.error('Error deleting contact:', error);
@@ -735,6 +775,9 @@ else
                         // Close the modal and refresh the education list
                         bootstrap.Modal.getInstance(document.getElementById('educationCreateModal')).hide();
                         fetchEducations();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
                     })
                     .catch(function (error) {
                         console.error('Error submitting education:', error);
@@ -783,10 +826,13 @@ else
                 };
 
                 axios.post('@Url.Action("Edit", "Education")', educationData)
-                    .then(function () {
+                    .then(function (response) {
                         // Close the modal and refresh the education list after successful edit
                         bootstrap.Modal.getInstance(document.getElementById('educationEditModal')).hide();
                         fetchEducations();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
                     })
                     .catch(function (err) { console.error(err); });
             });
@@ -821,10 +867,13 @@ else
                 const id = parseInt($('#DeleteEducationId').val(), 10);
 
                 axios.post('@Url.Action("Delete", "Education")', { id: id })
-                    .then(function () {
+                    .then(function (response) {
                         // Close the modal and refresh the education list after successful deletion
                         bootstrap.Modal.getInstance(document.getElementById('educationDeleteModal')).hide();
                         fetchEducations();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
                     })
                     .catch(function (error) {
                         console.error('Error deleting education:', error);

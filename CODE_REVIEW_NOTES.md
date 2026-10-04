@@ -108,20 +108,19 @@ The only clue is in the browser console (F12).
 
 ---
 
-### 1.3 "Success" messages pop up on the wrong page, later
+### 1.3 "Success" messages pop up on the wrong page, later — **FIXED**
 
-**Files:** `Controllers/AddressController.cs:110`, `Controllers/ContactController.cs:106, 200, 275` (and
-the same in the Edit/Delete actions)
+**Files:** `Controllers/AddressController.cs`, `Controllers/ContactController.cs`,
+`Controllers/EducationController.cs` (Create / Edit / Delete POST actions)
 
-**What happens:** You add an address in the modal → success. Then you click *View CV* → the banner
+**What happened:** You add an address in the modal → success. Then you click *View CV* → the banner
 **"Address added successfully."** suddenly appears there. Confusing.
 
-**Why:** Those actions set `TempData["Success"] = "..."` but then `return Ok()` — no redirect.
+**Why:** Those 9 actions set `TempData["Success"] = "..."` but then `return Ok()` — no redirect.
 `TempData` survives until the **next full page render**, and the AJAX call is not a page render,
-so the message waits and then pops up on whatever page you visit next.
+so the message waited and then popped up on whatever page you visited next.
 
-**How to fix:** Only set `TempData` in actions that redirect. For the AJAX endpoints, either
-delete those lines, or return the message and show it in JavaScript:
+**The fix:** the message now travels back with the JSON response, and JavaScript shows it.
 ```csharp
 return Ok(new { message = "Address added successfully." });
 ```
@@ -132,6 +131,14 @@ return Ok(new { message = "Address added successfully." });
     fetchAddresses();
 });
 ```
+
+`Views/Profile/Index.cshtml` grew a small `showToast(message, isError)` helper that appends a
+Bootstrap alert to a fixed holder in the bottom-right corner and fades it out after 4 seconds. It
+uses `.text()`, not `.html()`, so a message can never inject markup. The 9 success handlers for
+Address, Contact and Education now call it.
+
+**Rule to remember:** `TempData` is for actions that **redirect**. An endpoint that answers `200 OK`
+with JSON has to send its message in the body.
 
 ---
 
@@ -805,10 +812,10 @@ Then in `appsettings.json` leave an empty placeholder:
 Note that user secrets do not work in production — they are a **development** tool. That is exactly
 right for where your project is now.
 
-### 4.8 Add pagination to the Admin profile list
+### 4.8 Add pagination to the Admin profile list — **FIXED**
 
-`AdminController.Index` loads **every** profile into memory (`.ToList()`). With 10 profiles that is
-fine; with 10,000 it is a slow page and a lot of RAM.
+`AdminController.Index` used to load **every** profile into memory (`.ToList()`). With 10 profiles
+that is fine; with 10,000 it is a slow page and a lot of RAM.
 
 ```csharp
 public async Task<IActionResult> Index(string search, string gender, int page = 1)
@@ -833,7 +840,21 @@ public async Task<IActionResult> Index(string search, string gender, int page = 
     return View(profiles);
 }
 ```
-`Skip`/`Take` become `OFFSET`/`FETCH` in SQL — that is how SQL Server pages.
+
+`Skip`/`Take` become `OFFSET`/`FETCH` in SQL — that is how SQL Server pages. Three details that
+matter:
+
+1. **Count before paging.** `CountAsync()` runs on the filtered query *before* `Skip`/`Take`, so
+   the view knows the real number of pages.
+2. **Clamp the page number.** It comes straight from the URL, so `/Admin?page=999` would make
+   `Skip` walk past the end of the list. `page` is forced into `1..totalPages`.
+3. **Keep the filters on the links.** Every page link re-sends `search` and `gender`, otherwise
+   page 2 of a filtered list silently drops the filter.
+
+`Views/Admin/Index.cshtml` now draws a Bootstrap pager with a sliding window (current page ±2 plus
+first/last and `…` gaps), so 10,000 rows produce 7 buttons and not 500. The header count that used
+to be commented out now shows the real total. Submitting the filter form starts again at page 1,
+which is what people expect.
 
 ### 4.9 Add a test project
 

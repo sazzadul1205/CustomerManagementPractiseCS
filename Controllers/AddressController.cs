@@ -108,10 +108,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Addresses.Add(addressData);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Address added successfully.";
-
             // return RedirectToAction("Index", "Profile");
-            return Ok();
+            return Ok(new { message = "Address added successfully." });
         }
 
         // GET: /Address/Edit/5
@@ -208,10 +206,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Address updated successfully.";
-
             // return RedirectToAction("Index", "Profile");
-            return Ok();
+            return Ok(new { message = "Address updated successfully." });
         }
 
         // GET: /Address/Delete/5
@@ -285,10 +281,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Addresses.Remove(addressData);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Address deleted successfully.";
-
             // return RedirectToAction("Index", "Profile");
-            return Ok();
+            return Ok(new { message = "Address deleted successfully." });
         }
     }
 }

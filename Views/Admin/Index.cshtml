@@ -7,11 +7,21 @@
     var search = Context.Request.Query["search"].ToString();
     var gender = Context.Request.Query["gender"].ToString();
     var hasFilter = !string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(gender);
+
+    // Pagination values the controller handed over
+    int currentPage = (int)ViewBag.Page;
+    int totalPages = (int)ViewBag.TotalPages;
+    int totalCount = (int)ViewBag.Total;
+
+    // Only show a small window of page links around the current page,
+    // otherwise a big database would draw 500 buttons
+    int windowStart = Math.Max(1, currentPage - 2);
+    int windowEnd = Math.Min(totalPages, currentPage + 2);
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="mb-0">All Profiles</h1>
-    @* <span class="text-muted">@Model.Count profile(s)</span> *@
+    <span class="text-muted">@totalCount profile(s)</span>
 </div>
 
 @* Filter form *@
@@ -108,4 +118,70 @@ else
             </table>
         </div>
     </div>
+
+    @if (totalPages > 1)
+    {
+        <nav class="mt-4" aria-label="Profile pages">
+
+            <ul class="pagination justify-content-center mb-2">
+
+                @* Previous *@
+                <li class="page-item @(currentPage == 1 ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                       asp-route-page="@(currentPage - 1)">Previous</a>
+                </li>
+
+                @* Jump to the very first page when it is outside the window *@
+                @if (windowStart > 1)
+                {
+                    <li class="page-item">
+                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                           asp-route-page="1">1</a>
+                    </li>
+
+                    @if (windowStart > 2)
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">&hellip;</span>
+                        </li>
+                    }
+                }
+
+                @* The window of pages around the current one *@
+                @for (int i = windowStart; i <= windowEnd; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                           asp-route-page="@i">@i</a>
+                    </li>
+                }
+
+                @* Jump to the very last page when it is outside the window *@
+                @if (windowEnd < totalPages)
+                {
+                    @if (windowEnd < totalPages - 1)
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">&hellip;</span>
+                        </li>
+                    }
+
+                    <li class="page-item">
+                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                           asp-route-page="@totalPages">@totalPages</a>
+                    </li>
+                }
+
+                @* Next *@
+                <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                       asp-route-page="@(currentPage + 1)">Next</a>
+                </li>
+            </ul>
+
+            <p class="text-center text-muted small mb-0">
+                Page @currentPage of @totalPages
+            </p>
+        </nav>
+    }
 }

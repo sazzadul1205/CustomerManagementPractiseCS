@@ -100,10 +100,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Educations.Add(educationData);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Education added successfully.";
-
             // return RedirectToAction("Index", "Profile");
-            return Ok();
+            return Ok(new { message = "Education added successfully." });
         }
 
         // GET: /Education/Edit/5
@@ -189,10 +187,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Education updated successfully.";
-
             // return RedirectToAction("Index", "Profile");
-            return Ok();
+            return Ok(new { message = "Education updated successfully." });
         }
 
         // GET: /Education/Delete/5
@@ -267,10 +263,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Educations.Remove(educationData);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Education deleted successfully.";
-
             // return RedirectToAction("Index", "Profile");
-            return Ok();
+            return Ok(new { message = "Education deleted successfully." });
         }
     }
 }

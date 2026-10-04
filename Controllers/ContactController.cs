@@ -104,10 +104,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Contacts.Add(contactData);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Contact added successfully.";
-
             // return RedirectToAction("Index", "Profile");
-            return Ok();
+            return Ok(new { message = "Contact added successfully." });
         }
 
         // GET: /Contact/Edit/5
@@ -198,10 +196,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Contact updated successfully.";
-
             // return RedirectToAction("Index", "Profile");
-            return Ok();
+            return Ok(new { message = "Contact updated successfully." });
         }
 
         // GET: /Contact/Delete/5
@@ -273,10 +269,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Contacts.Remove(contactData);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Contact deleted successfully.";
-
             // return RedirectToAction("Index", "Profile");
-            return Ok();
+            return Ok(new { message = "Contact deleted successfully." });
         }
     }
 }
