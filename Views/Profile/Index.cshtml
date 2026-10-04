@@ -405,27 +405,7 @@ else
         <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
         <script>
-            // Show a small green or red message in the corner of the screen.
-            function showToast(message, isError) {
-                // Create the holder for the messages only once
-                if ($('#toastHolder').length === 0) {
-                    $('body').append('<div id="toastHolder" class="position-fixed bottom-0 end-0 p-3" style="z-index: 1080;"></div>');
-                }
-
-                const cssClass = isError ? 'alert-danger' : 'alert-success';
-
-                const toast = $('<div class="alert ' + cssClass + ' shadow-sm" role="alert"></div>');
-                toast.text(message); 
-
-                $('#toastHolder').append(toast);
-
-                // Fade it away again after a few seconds
-                setTimeout(function () {
-                    toast.fadeOut(300, function () {
-                        toast.remove();
-                    });
-                }, 4000);
-            }
+            // showToast() lives in wwwroot/js/site.js, the layout loads it on every page
 
             // Function to fetch addresses and update the container
             function fetchAddresses() {

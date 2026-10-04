@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using CustomerManagementPractiseCS.Data;
 using CustomerManagementPractiseCS.Services.Interfaces;
 using CustomerManagementPractiseCS.ViewModels;
+using CustomerManagementPractiseCS.ViewModels.UserManagementViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace CustomerManagementPractiseCS.Controllers
@@ -31,12 +32,48 @@ namespace CustomerManagementPractiseCS.Controllers
         // GET: UserManagement
         public async Task<IActionResult> Index()
         {
-            // This page only lists the users, so nothing is changed and nothing needs tracking
-            var users = await _userManager.Users.AsNoTracking().ToListAsync();
+            var users = await BuildUserListAsync();
             return View(users);
         }
 
+        // GET: UserManagement/List
+        // The page reloads the table from here after a delete, so it returns just the table
+        public async Task<IActionResult> List()
+        {
+            var users = await BuildUserListAsync();
+            return PartialView("_UserList", users);
+        }
+
+        // Builds the rows for the users table: email, roles and how many profiles each user has
+        private async Task<List<UserListItemViewModel>> BuildUserListAsync()
+        {
+            var currentUserId = _userManager.GetUserId(User);
+
+            // This list is only displayed, so nothing is changed and nothing needs tracking
+            var users = await _userManager.Users
+                .AsNoTracking()
+                .OrderBy(x => x.Email)
+                .ToListAsync();
+
+            var list = new List<UserListItemViewModel>();
+
+            foreach (var user in users)
+            {
+                list.Add(new UserListItemViewModel
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Roles = await _userManager.GetRolesAsync(user),
+                    ProfileCount = await _context.Persons.CountAsync(p => p.UserId == user.Id),
+                    IsCurrentUser = user.Id == currentUserId
+                });
+            }
+
+            return list;
+        }
+
         // GET: UserManagement/Delete/{id}
+        // Returns the body of the confirmation modal, nothing is deleted yet
         public async Task<IActionResult> Delete(string id)
         {
             var user = await _userManager.FindByIdAsync(id);
@@ -52,7 +89,7 @@ namespace CustomerManagementPractiseCS.Controllers
                 return BadRequest("You can't delete your own account here.");
             }
 
-            // Build a ViewModel for the confirmation page
+            // Build a ViewModel for the confirmation window
             var ViewModel = new UserDeleteViewModel
             {
                 Id = user.Id,
@@ -61,10 +98,11 @@ namespace CustomerManagementPractiseCS.Controllers
                 ProfileCount = await _context.Persons.CountAsync(p => p.UserId == user.Id)
             };
 
-            return View(ViewModel);
+            return PartialView("_UserDeleteForm", ViewModel);
         }
 
         // POST: UserManagement/Delete/{id}
+        // This only runs after the confirmation modal was accepted
         [HttpPost, ActionName("Delete")]
         public async Task<IActionResult> DeleteConfirmed(string id)
         {
@@ -112,9 +150,7 @@ namespace CustomerManagementPractiseCS.Controllers
 
             await _userManager.DeleteAsync(user);
 
-            TempData["Success"] = "User deleted successfully.";
-
-            return RedirectToAction("Index");
+            return Ok(new { message = "User deleted successfully." });
         }
     }
 }

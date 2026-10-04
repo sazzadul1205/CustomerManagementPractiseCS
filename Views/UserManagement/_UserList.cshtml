@@ -1,0 +1,67 @@
+@model List<CustomerManagementPractiseCS.ViewModels.UserManagementViewModels.UserListItemViewModel>
+
+@if (Model.Count == 0)
+{
+    <div class="card-body text-center py-5">
+        <p class="text-muted mb-0">No users yet.</p>
+    </div>
+}
+else
+{
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Email</th>
+                    <th style="width:160px;">Roles</th>
+                    <th style="width:110px;">Profiles</th>
+                    <th style="width:120px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    <tr>
+                        <td>
+                            <strong>@user.Email</strong>
+                            @if (user.IsCurrentUser)
+                            {
+                                <span class="badge text-bg-secondary">You</span>
+                            }
+                        </td>
+                        <td>
+                            @if (user.Roles.Count == 0)
+                            {
+                                <span class="text-muted">—</span>
+                            }
+                            else
+                            {
+                                foreach (var role in user.Roles)
+                                {
+                                    <span class="badge @(role == "Admin" ? "text-bg-danger" : "text-bg-primary")">@role</span>
+                                }
+                            }
+                        </td>
+                        <td>@user.ProfileCount</td>
+                        <td>
+                            @if (user.IsCurrentUser)
+                            {
+                                <button type="button" class="btn btn-sm btn-outline-secondary" disabled
+                                        title="You can't delete your own account here.">
+                                    Delete
+                                </button>
+                            }
+                            else
+                            {
+                                @* Nothing is deleted here, this button only opens the confirmation modal *@
+                                <button type="button" class="btn btn-sm btn-danger" data-user-delete-id="@user.Id">
+                                    Delete
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
