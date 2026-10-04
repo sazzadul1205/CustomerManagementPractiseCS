@@ -1,6 +1,6 @@
 @model CustomerManagementPractiseCS.ViewModels.ContactViewModels.ContactCreateViewModel
 
-<form asp-controller="Contact" asp-action="Create" method="post">
+<form id="contactCreateForm" asp-controller="Contact" asp-action="Create" method="post">
     <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
 
@@ -29,7 +29,7 @@
     <div class="mb-3">
         <label class="form-label">Value</label>
         <input asp-for="Value" class="form-control" />
-        <span asp-validation-for="Value" class="text-danger"></span>
+        <span id="ValueError" asp-validation-for="Value" class="text-danger d-block"></span>
     </div>
 
     <div class="form-check mb-3">

@@ -446,9 +446,7 @@ else
                         $('#addressEditModalBody').html(response.data);
 
                         // Show the modal after populating it
-                        bootstrap.Modal
-                            .getOrCreateInstance(document.getElementById('addressEditModal'))
-                            .show();
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('addressEditModal')).show();
                     })
                     .catch(function (error) {
                         console.error('Error fetching address details:', error);
@@ -637,6 +635,40 @@ else
                     .catch(function (error) {
                         console.error('Error deleting contact:', error);
                     });
+            });
+
+            // Client side check for the Add Contact form.
+            $('#contactCreateForm').on('submit', function (e) {
+
+                const contactType = $('#ContactType').val();
+                const value = $('#Value').val().trim();
+                const errorBox = $('#ValueError');
+
+                errorBox.text('');
+
+                // Only Email and Phone have a format to check, "Other" can be anything
+                if (contactType !== 'Email' && contactType !== 'Phone') {
+                    return;
+                }
+
+                const emailPattern = /^[^\s@@]+@@[^\s@@]+\.[^\s@@]+$/;
+                const phonePattern = /^\+?[0-9\s\-()]{7,20}$/;
+
+                const isValid = contactType === 'Email'
+                    ? emailPattern.test(value)
+                    : phonePattern.test(value);
+
+                if (!isValid) {
+
+                    // preventDefault stops the browser from submitting the form
+                    e.preventDefault();
+                    // stopPropagation stops the axios handler above from also firing
+                    e.stopPropagation();
+
+                    errorBox.text(contactType === 'Email'
+                        ? 'Please enter a valid email address.'
+                        : 'Please enter a valid phone number.');
+                }
             });
         </script>
 
