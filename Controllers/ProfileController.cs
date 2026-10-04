@@ -40,7 +40,9 @@ namespace CustomerManagementPractiseCS.Controllers
                 return RedirectToAction("Index", "Admin");
             }
 
-            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
+            var profileData = await _context.Persons
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.UserId == userId);
 
             if (profileData == null)
             {
@@ -58,21 +60,23 @@ namespace CustomerManagementPractiseCS.Controllers
                 PhotoUrl = profileData.PhotoUrl,
                 Summary = profileData.Summary,
 
-                Addresses = await _context.Addresses.Where(x => x.PersonId == profileData.Id).ToListAsync(),
+                Addresses = await _context.Addresses.AsNoTracking().Where(x => x.PersonId == profileData.Id).ToListAsync(),
 
-                Contacts = await _context.Contacts.Where(x => x.PersonId == profileData.Id).ToListAsync(),
+                Contacts = await _context.Contacts.AsNoTracking().Where(x => x.PersonId == profileData.Id).ToListAsync(),
 
                 Educations = await _context.Educations
+                    .AsNoTracking()
                     .Where(x => x.PersonId == profileData.Id)
                     .OrderByDescending(x => x.StartYear)
                     .ToListAsync(),
 
                 Experiences = await _context.Experiences
+                    .AsNoTracking()
                     .Where(x => x.PersonId == profileData.Id)
                     .OrderByDescending(x => x.StartDate)
                     .ToListAsync(),
 
-                SocialLinks = await _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToListAsync()
+                SocialLinks = await _context.SocialLinks.AsNoTracking().Where(x => x.PersonId == profileData.Id).ToListAsync()
             };
 
             _completenessService.Fill(viewModel);
@@ -293,7 +297,9 @@ namespace CustomerManagementPractiseCS.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Cv(int id)
         {
-            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.Id == id);
+            var profileData = await _context.Persons
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (profileData == null)
             {
@@ -311,11 +317,11 @@ namespace CustomerManagementPractiseCS.Controllers
                 PhotoUrl = profileData.PhotoUrl,
                 Summary = profileData.Summary,
 
-                Addresses = await _context.Addresses.Where(x => x.PersonId == profileData.Id).ToListAsync(),
-                Contacts = await _context.Contacts.Where(x => x.PersonId == profileData.Id).ToListAsync(),
-                Educations = await _context.Educations.Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartYear).ToListAsync(),
-                Experiences = await _context.Experiences.Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartDate).ToListAsync(),
-                SocialLinks = await _context.SocialLinks.Where(x => x.PersonId == profileData.Id).ToListAsync()
+                Addresses = await _context.Addresses.AsNoTracking().Where(x => x.PersonId == profileData.Id).ToListAsync(),
+                Contacts = await _context.Contacts.AsNoTracking().Where(x => x.PersonId == profileData.Id).ToListAsync(),
+                Educations = await _context.Educations.AsNoTracking().Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartYear).ToListAsync(),
+                Experiences = await _context.Experiences.AsNoTracking().Where(x => x.PersonId == profileData.Id).OrderByDescending(x => x.StartDate).ToListAsync(),
+                SocialLinks = await _context.SocialLinks.AsNoTracking().Where(x => x.PersonId == profileData.Id).ToListAsync()
             };
 
             return View(viewModel);

@@ -638,7 +638,7 @@ The remaining plain `IActionResult` actions (`Account.Register`, `Account.Login`
 `Account.AccessDenied`, `Account.ChangePassword` GET, and all of `HomeController`) touch no
 database at all — they just `return View()` or redirect, so there is nothing to await.
 
-### 4.2 Add `AsNoTracking()` to read-only queries
+### 4.2 Add `AsNoTracking()` to read-only queries — **FIXED**
 
 EF Core tracks every entity it returns so it can write changes back. On pages that only *display*
 data, that tracking is wasted memory and time.
@@ -649,9 +649,19 @@ var profileData = await _context.Persons
     .AsNoTracking()
     .FirstOrDefaultAsync(x => x.UserId == userId);
 ```
-Use it in: `ProfileController.Index`, `ProfileController.Cv`, `AdminController.Index`,
-`AdminController.Details`, `AccountController.Profile`, `UserManagementController.Index`.
-**Do not** use it where you then call `SaveChanges` (Edit / Delete actions).
+
+Now applied in: `ProfileController.Index`, `ProfileController.Cv`, `AdminController.Index`,
+`AdminController.Details`, `UserManagementController.Index` (each of those also loads its addresses,
+contacts, education, experience and social-link rows with `AsNoTracking()`).
+**Not** used anywhere that then calls `SaveChangesAsync` (the Create / Edit / Delete actions).
+
+Two notes from doing it:
+
+- `AccountController.Profile` was on the original list but needed no change. It reads through
+  `_userManager.GetUserAsync(User)`, which is Identity's own store query, not one of your
+  `AppDbContext` queries — there is nothing to put `AsNoTracking()` on.
+- Other read-only queries could also use it later if you want: the `List` actions and the GET
+  `Edit` / `Delete` actions in the five section controllers only fill a ViewModel and never save.
 
 ### 4.3 `ProfileController.Index` makes 6 database round-trips
 

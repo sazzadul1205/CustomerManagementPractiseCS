@@ -23,24 +23,25 @@ namespace CustomerManagementPractiseCS.Controllers
         // GET: /Admin
         public async Task<IActionResult> Index(string search, string gender)
         {
-            // AsQueryable() is used when a Developer Wants to Daynamically Querry a Entity it is used for sorting, filtering and more 
-            var querry = _context.Persons.AsQueryable();
+            // AsQueryable() is used when a Developer Wants to Dynamically query a Entity it is used for sorting, filtering and more 
+            // AsNoTracking() because this page only displays the list, we never change these rows
+            var query = _context.Persons.AsNoTracking().AsQueryable();
 
-            // If the search (name) filetr is not null it will search via the given "search" Content 
+            // If the search (name) filter is not null it will search via the given "search" Content 
             if (!string.IsNullOrEmpty(search))
             {
                 // Contains() checks whether a string contains a particular piece of text.
-                querry = querry.Where(x => x.FullName.Contains(search));
+                query = query.Where(x => x.FullName.Contains(search));
             }
 
-            // If the Gender Is Provaided then
+            // If the Gender Is Provided then
             if (!string.IsNullOrEmpty(gender))
             {
-                querry = querry.Where(x => x.Gender == gender);
+                query = query.Where(x => x.Gender == gender);
             }
 
 
-            var profiles = querry.OrderByDescending(x => x.CreatedAt).Select(x => new AdminProfileListViewModel
+            var profiles = query.OrderByDescending(x => x.CreatedAt).Select(x => new AdminProfileListViewModel
             {
                 Id = x.Id,
                 UserId = x.UserId,
@@ -61,7 +62,9 @@ namespace CustomerManagementPractiseCS.Controllers
         // GET: /Admin/Details/5
         public async Task<IActionResult> Details(int id)
         {
-            var person = await _context.Persons.FirstOrDefaultAsync(x => x.Id == id);
+            var person = await _context.Persons
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == id);
 
             if (person == null)
             {
@@ -82,18 +85,20 @@ namespace CustomerManagementPractiseCS.Controllers
                 CreatedAt = person.CreatedAt,
                 UpdatedAt = person.UpdatedAt,
 
-                Addresses = await _context.Addresses.Where(x => x.PersonId == person.Id).ToListAsync(),
-                Contacts = await _context.Contacts.Where(x => x.PersonId == person.Id).ToListAsync(),
+                Addresses = await _context.Addresses.AsNoTracking().Where(x => x.PersonId == person.Id).ToListAsync(),
+                Contacts = await _context.Contacts.AsNoTracking().Where(x => x.PersonId == person.Id).ToListAsync(),
                 Educations = await _context.Educations
+                    .AsNoTracking()
                     .Where(x => x.PersonId == person.Id)
                     .OrderByDescending(x => x.StartYear)
                     .ToListAsync(),
 
                 Experiences = await _context.Experiences
+                    .AsNoTracking()
                     .Where(x => x.PersonId == person.Id)
                     .OrderByDescending(x => x.StartDate)
                     .ToListAsync(),
-                SocialLinks = await _context.SocialLinks.Where(x => x.PersonId == person.Id).ToListAsync()
+                SocialLinks = await _context.SocialLinks.AsNoTracking().Where(x => x.PersonId == person.Id).ToListAsync()
             };
 
             return View(viewModel);

@@ -31,7 +31,8 @@ namespace CustomerManagementPractiseCS.Controllers
         // GET: UserManagement
         public async Task<IActionResult> Index()
         {
-            var users = await _userManager.Users.ToListAsync();
+            // This page only lists the users, so nothing is changed and nothing needs tracking
+            var users = await _userManager.Users.AsNoTracking().ToListAsync();
             return View(users);
         }
 
