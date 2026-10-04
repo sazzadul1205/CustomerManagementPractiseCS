@@ -36,9 +36,33 @@ namespace CustomerManagementPractiseCS.Controllers
             return View();
         }
 
+        // GET: /Experience/List
+        public async Task<IActionResult> List()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            // Get the Profile that Belongs to the Current User
+            var profileData = await _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
+
+            // Here we return not found because this is for partial view
+            if (profileData == null)
+            {
+                return NotFound();
+            }
+
+            // Get the Experiences that Belong to the Current Profile
+            var experiences = await _context.Experiences
+                .Where(x => x.PersonId == profileData.Id)
+                .OrderByDescending(x => x.StartDate)
+                .ToListAsync();
+
+            // Return the partial
+            return PartialView("_ExperienceList", experiences);
+        }
+
         // POST: /Experience/Create
         [HttpPost]
-        public async Task<IActionResult> Create(ExperienceCreateViewModel ViewModel)
+        public async Task<IActionResult> Create([FromBody] ExperienceCreateViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -47,12 +71,14 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             if (!ModelState.IsValid)
             {
-                return View(ViewModel);
+                // return View(ViewModel);
+                return BadRequest(ModelState);
             }
 
             var experienceData = new Experience
@@ -75,9 +101,8 @@ namespace CustomerManagementPractiseCS.Controllers
             _context.Experiences.Add(experienceData);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Experience added successfully.";
-
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok(new { message = "Experience added successfully." });
         }
 
         // GET: /Experience/Edit/5
@@ -90,7 +115,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             // Get the Experience that Belongs to the Current Profile
@@ -98,7 +124,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (experienceData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Experience not found.");
             }
 
             var viewModel = new ExperienceEditViewModel
@@ -115,12 +142,13 @@ namespace CustomerManagementPractiseCS.Controllers
                 Responsibilities = experienceData.Responsibilities
             };
 
-            return View(viewModel);
+            // return View(viewModel);
+            return PartialView("_ExperienceEditForm", viewModel);
         }
 
         // POST: /Experience/Edit/5
         [HttpPost]
-        public async Task<IActionResult> Edit(ExperienceEditViewModel ViewModel)
+        public async Task<IActionResult> Edit([FromBody] ExperienceEditViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -129,12 +157,14 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             if (!ModelState.IsValid)
             {
-                return View(ViewModel);
+                // return View(ViewModel);
+                return BadRequest(ModelState);
             }
 
             // Get the Experience that Belongs to the Current Profile
@@ -142,7 +172,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (experienceData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Experience not found.");
             }
 
             experienceData.CompanyName = ViewModel.CompanyName;
@@ -159,9 +190,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Experience updated successfully.";
-
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok(new { message = "Experience updated successfully." });
         }
 
         // GET: /Experience/Delete/5
@@ -174,7 +204,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             // Get the Experience that Belongs to the Current Profile
@@ -182,7 +213,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (experienceData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Experience not found.");
             }
 
             var viewModel = new ExperienceDeleteViewModel
@@ -199,12 +231,13 @@ namespace CustomerManagementPractiseCS.Controllers
                 Responsibilities = experienceData.Responsibilities
             };
 
-            return View(viewModel);
+            // return View(viewModel);
+            return PartialView("_ExperienceDeleteForm", viewModel);
         }
 
         // POST: /Experience/Delete/5
         [HttpPost, ActionName("Delete")]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> DeleteConfirmed([FromBody] ExperienceDeleteViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -213,23 +246,29 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             // Get the Experience that Belongs to the Current Profile
-            var experienceData = await _context.Experiences.FirstOrDefaultAsync(x => x.Id == id && x.PersonId == profileData.Id);
+            var experienceData = await _context.Experiences.FirstOrDefaultAsync(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (experienceData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Experience not found.");
             }
 
             _context.Experiences.Remove(experienceData);
             await _context.SaveChangesAsync();
 
-            TempData["Success"] = "Experience deleted successfully.";
-
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok(new { message = "Experience deleted successfully." });
         }
     }
 }

@@ -1,0 +1,43 @@
+@model List<CustomerManagementPractiseCS.Models.Experience>
+
+@if (!Model.Any())
+{
+    <p class="text-muted mb-0">No experience added yet.</p>
+}
+else
+{
+    foreach (var exp in Model)
+    {
+        <div class="d-flex justify-content-between border-bottom py-2">
+            <div>
+                <strong>@exp.Designation</strong>
+                <br />
+                <small>
+                    @exp.CompanyName · @exp.EmploymentType
+                    @if (!string.IsNullOrEmpty(exp.Location))
+                    {
+                        <span> · @exp.Location</span>
+                    }
+                    <br />
+                    @exp.StartDate.ToString("MMM yyyy")
+                    @if (exp.IsCurrent)
+                    {
+                        <span> - Present</span>
+                    }
+                    else if (exp.EndDate.HasValue)
+                    {
+                        <span> - @exp.EndDate.Value.ToString("MMM yyyy")</span>
+                    }
+                </small>
+            </div>
+            <div class="d-flex gap-2 align-items-start">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-experience-id="@exp.Id">
+                    Edit
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-experience-delete-id="@exp.Id">
+                    Delete
+                </button>
+            </div>
+        </div>
+    }
+}

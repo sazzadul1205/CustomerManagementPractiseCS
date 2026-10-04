@@ -128,87 +128,33 @@ else
             </div>
 
             @* Experience *@
+            @* <a asp-controller="Experience" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a> *@
+
+            @* Experience - loaded via axios from ExperienceController.List *@
             <div class="card shadow-sm mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <strong>Experience</strong>
-                    <a asp-controller="Experience" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#experienceCreateModal">
+                        + Add
+                    </button>
                 </div>
-                <div class="card-body">
-                    @if (Model.Experiences.Count == 0)
-                    {
-                        <p class="text-muted mb-0">No experience added yet.</p>
-                    }
-                    else
-                    {
-                        foreach (var exp in Model.Experiences)
-                        {
-                            <div class="d-flex justify-content-between border-bottom py-2">
-                                <div>
-                                    <strong>@exp.Designation</strong>
-                                    <br />
-                                    <small>
-                                        @exp.CompanyName · @exp.EmploymentType
-                                        @if (!string.IsNullOrEmpty(exp.Location))
-                                        {
-                                            <span> · @exp.Location</span>
-                                        }
-                                        <br />
-                                        @exp.StartDate.ToString("MMM yyyy")
-                                        @if (exp.IsCurrent)
-                                        {
-                                            <span> - Present</span>
-                                        }
-                                        else if (exp.EndDate.HasValue)
-                                        {
-                                            <span> - @exp.EndDate.Value.ToString("MMM yyyy")</span>
-                                        }
-                                    </small>
-                                </div>
-                                <div class="d-flex gap-2 align-items-start">
-                                    <a asp-controller="Experience" asp-action="Edit" asp-route-id="@exp.Id"
-                                       class="btn btn-sm btn-outline-primary">Edit</a>
-                                    <a asp-controller="Experience" asp-action="Delete" asp-route-id="@exp.Id"
-                                       class="btn btn-sm btn-outline-danger">Delete</a>
-                                </div>
-                            </div>
-                        }
-                    }
-                </div>
+                <div class="card-body" id="experience-container"></div>
             </div>
 
             @* Social Links *@
+            @* <a asp-controller="SocialLink" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a> *@
+
+            @* Social Links - loaded via axios from SocialLinkController.List *@
             <div class="card shadow-sm mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <strong>Social Links</strong>
-                    <a asp-controller="SocialLink" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#socialLinkCreateModal">
+                        + Add
+                    </button>
                 </div>
-                <div class="card-body">
-                    @if (Model.SocialLinks.Count == 0)
-                    {
-                        <p class="text-muted mb-0">No links added yet.</p>
-                    }
-                    else
-                    {
-                        foreach (var link in Model.SocialLinks)
-                        {
-                            <div class="d-flex justify-content-between border-bottom py-2">
-                                <div>
-                                    <strong>@link.Platform</strong>
-                                    <br />
-                                    <small>
-                                        <a href="@link.Url" target="_blank">@link.Url</a>
-                                    </small>
-                                </div>
-                                <div class="d-flex gap-2 align-items-start">
-                                    <a asp-controller="SocialLink" asp-action="Edit" asp-route-id="@link.Id"
-                                       class="btn btn-sm btn-outline-primary">Edit</a>
-                                    <a asp-controller="SocialLink" asp-action="Delete" asp-route-id="@link.Id"
-                                       class="btn btn-sm btn-outline-danger">Delete</a>
-                                </div>
-                            </div>
-                        }
-                    }
-                </div>
+                <div class="card-body" id="social-link-container"></div>
             </div>
 
         </div>
@@ -334,6 +280,103 @@ else
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body" id="educationDeleteModalBody"></div>
+                </div>
+            </div>
+        </div>
+
+
+        @* Experience Create Modal *@
+        <div class="modal fade" id="experienceCreateModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    @* Header *@
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Experience</h5>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    @* Body *@
+                    <div class="modal-body">
+                        <partial name="~/Views/Experience/_ExperienceCreateForm.cshtml"
+                                 model="new CustomerManagementPractiseCS.ViewModels.ExperienceViewModels.ExperienceCreateViewModel()" />
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @* Experience Edit Modal *@
+        <div class="modal fade" id="experienceEditModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Experience</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="experienceEditModalBody"></div>
+                </div>
+            </div>
+        </div>
+
+        @* Experience Delete Modal *@
+        <div class="modal fade" id="experienceDeleteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Experience</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="experienceDeleteModalBody"></div>
+                </div>
+            </div>
+        </div>
+
+        @* Social Link Create Modal *@
+        <div class="modal fade" id="socialLinkCreateModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    @* Header *@
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Social Link</h5>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    @* Body *@
+                    <div class="modal-body">
+                        <partial name="~/Views/SocialLink/_SocialLinkCreateForm.cshtml"
+                                 model="new CustomerManagementPractiseCS.ViewModels.SocialLinkViewModels.SocialLinkCreateViewModel()" />
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @* Social Link Edit Modal *@
+        <div class="modal fade" id="socialLinkEditModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Social Link</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="socialLinkEditModalBody"></div>
+                </div>
+            </div>
+        </div>
+
+        @* Social Link Delete Modal *@
+        <div class="modal fade" id="socialLinkDeleteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Social Link</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="socialLinkDeleteModalBody"></div>
                 </div>
             </div>
         </div>
@@ -857,6 +900,288 @@ else
                     })
                     .catch(function (error) {
                         console.error('Error deleting education:', error);
+                    });
+            });
+        </script>
+        <script>
+            // Function to fetch experience and update the container
+            function fetchExperiences() {
+                $('#experience-container').html('<p class="text-muted mb-0">Loading experience...</p>');
+
+                // Send a GET request to the ExperienceController's List action
+                axios.get('@Url.Action("List", "Experience")')
+                    .then(function (response) {
+                        // On success, replace the container's content with the response data
+                        $('#experience-container').html(response.data);
+                    })
+                    .catch(function (error) {
+                        // On error, log the error and show an error message in the container
+                        console.error(error);
+                        $('#experience-container').html('<p class="text-danger mb-0">Failed to load experience.</p>');
+                    });
+            }
+
+            // Call the fetchExperiences function when the page loads
+            fetchExperiences();
+
+            // Submit Experience Create form using jQuery
+            $('#experienceCreateModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const experienceData = {
+                    companyName: $('#CompanyName').val(),
+                    designation: $('#Designation').val(),
+                    department: $('#Department').val(),
+                    employmentType: $('#EmploymentType').val(),
+                    location: $('#Location').val(),
+                    startDate: $('#StartDate').val(),
+                    endDate: $('#EndDate').val() === '' ? null : $('#EndDate').val(),
+                    isCurrent: $('#IsCurrent').is(':checked'),
+                    responsibilities: $('#Responsibilities').val()
+                };
+
+                axios.post('@Url.Action("Create", "Experience")', experienceData)
+                    .then(function (response) {
+                        // Close the modal and refresh the experience list
+                        bootstrap.Modal.getInstance(document.getElementById('experienceCreateModal')).hide();
+                        fetchExperiences();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
+                    })
+                    .catch(function (error) {
+                        console.error('Error submitting experience:', error);
+                    });
+            });
+
+            // Open and populate the Experience Edit modal when an edit button is clicked
+            $(document).on('click', '[data-experience-id]', function () {
+
+                // Get the experience ID from the clicked button's data attribute
+                const experienceId = $(this).data('experience-id');
+
+                // Set the modal body to a loading message while fetching the experience details
+                $('#experienceEditModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Edit", "Experience")', { params: { id: experienceId } })
+                    .then(function (response) {
+
+                        // On success, populate the modal body with the fetched experience details
+                        $('#experienceEditModalBody').html(response.data);
+
+                        // Show the modal after populating it
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('experienceEditModal')).show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching experience details:', error);
+                        $('#experienceEditModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Experience Edit form using jQuery
+            $('#experienceEditModal').on('submit', function (e) {
+                e.preventDefault();
+
+                // Get values from the forms
+                const experienceData = {
+                    id: parseInt($('#EditExperienceId').val(), 10),
+                    companyName: $('#EditCompanyName').val(),
+                    designation: $('#EditDesignation').val(),
+                    department: $('#EditDepartment').val(),
+                    employmentType: $('#EditEmploymentType').val(),
+                    location: $('#EditLocation').val(),
+                    startDate: $('#EditStartDate').val(),
+                    endDate: $('#EditEndDate').val() === '' ? null : $('#EditEndDate').val(),
+                    isCurrent: $('#EditIsCurrent').is(':checked'),
+                    responsibilities: $('#EditResponsibilities').val()
+                };
+
+                axios.post('@Url.Action("Edit", "Experience")', experienceData)
+                    .then(function (response) {
+                        // Close the modal and refresh the experience list after successful edit
+                        bootstrap.Modal.getInstance(document.getElementById('experienceEditModal')).hide();
+                        fetchExperiences();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
+                    })
+                    .catch(function (err) { console.error(err); });
+            });
+
+            // Delete Experience modal open and populate
+            $(document).on('click', '[data-experience-delete-id]', function () {
+
+                // Get the experience ID from the clicked button's data attribute
+                const experienceId = $(this).data('experience-delete-id');
+
+                // Set the modal body to a loading message while fetching the experience details
+                $('#experienceDeleteModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Delete", "Experience")', { params: { id: experienceId } })
+                    .then(function (response) {
+                        // On success, populate the modal body with the fetched experience details
+                        $('#experienceDeleteModalBody').html(response.data);
+
+                        // Show the modal after populating it
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('experienceDeleteModal')).show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching experience details:', error);
+                        $('#experienceDeleteModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Experience Delete form using jQuery
+            $('#experienceDeleteModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const id = parseInt($('#DeleteExperienceId').val(), 10);
+
+                axios.post('@Url.Action("Delete", "Experience")', { id: id })
+                    .then(function (response) {
+                        // Close the modal and refresh the experience list after successful deletion
+                        bootstrap.Modal.getInstance(document.getElementById('experienceDeleteModal')).hide();
+                        fetchExperiences();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
+                    })
+                    .catch(function (error) {
+                        console.error('Error deleting experience:', error);
+                    });
+            });
+        </script>
+        <script>
+            // Function to fetch social links and update the container
+            function fetchSocialLinks() {
+                $('#social-link-container').html('<p class="text-muted mb-0">Loading links…</p>');
+
+                // Send a GET request to the SocialLinkController's List action
+                axios.get('@Url.Action("List", "SocialLink")')
+                    .then(function (response) {
+                        // On success, replace the container's content with the response data
+                        $('#social-link-container').html(response.data);
+                    })
+                    .catch(function (error) {
+                        // On error, log the error and show an error message in the container
+                        console.error(error);
+                        $('#social-link-container').html('<p class="text-danger mb-0">Failed to load links.</p>');
+                    });
+            }
+
+            // Call the fetchSocialLinks function when the page loads
+            fetchSocialLinks();
+
+            // Submit Social Link Create form using jQuery
+            $('#socialLinkCreateModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const socialLinkData = {
+                    platform: $('#Platform').val(),
+                    url: $('#Url').val()
+                };
+
+                axios.post('@Url.Action("Create", "SocialLink")', socialLinkData)
+                    .then(function (response) {
+                        // Close the modal and refresh the social link list
+                        bootstrap.Modal.getInstance(document.getElementById('socialLinkCreateModal')).hide();
+                        fetchSocialLinks();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
+                    })
+                    .catch(function (error) {
+                        console.error('Error submitting social link:', error);
+                    });
+            });
+
+            // Open and populate the Social Link Edit modal when an edit button is clicked
+            $(document).on('click', '[data-social-link-id]', function () {
+
+                // Get the social link ID from the clicked button's data attribute
+                const socialLinkId = $(this).data('social-link-id');
+
+                // Set the modal body to a loading message while fetching the social link details
+                $('#socialLinkEditModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Edit", "SocialLink")', { params: { id: socialLinkId } })
+                    .then(function (response) {
+
+                        // On success, populate the modal body with the fetched social link details
+                        $('#socialLinkEditModalBody').html(response.data);
+
+                        // Show the modal after populating it
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('socialLinkEditModal')).show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching social link details:', error);
+                        $('#socialLinkEditModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Social Link Edit form using jQuery
+            $('#socialLinkEditModal').on('submit', function (e) {
+                e.preventDefault();
+
+                // Get values from the forms
+                const socialLinkData = {
+                    id: parseInt($('#EditSocialLinkId').val(), 10),
+                    platform: $('#EditPlatform').val(),
+                    url: $('#EditUrl').val()
+                };
+
+                axios.post('@Url.Action("Edit", "SocialLink")', socialLinkData)
+                    .then(function (response) {
+                        // Close the modal and refresh the social link list after successful edit
+                        bootstrap.Modal.getInstance(document.getElementById('socialLinkEditModal')).hide();
+                        fetchSocialLinks();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
+                    })
+                    .catch(function (err) { console.error(err); });
+            });
+
+            // Delete Social Link modal open and populate
+            $(document).on('click', '[data-social-link-delete-id]', function () {
+
+                // Get the social link ID from the clicked button's data attribute
+                const socialLinkId = $(this).data('social-link-delete-id');
+
+                // Set the modal body to a loading message while fetching the social link details
+                $('#socialLinkDeleteModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Delete", "SocialLink")', { params: { id: socialLinkId } })
+                    .then(function (response) {
+                        // On success, populate the modal body with the fetched social link details
+                        $('#socialLinkDeleteModalBody').html(response.data);
+
+                        // Show the modal after populating it
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('socialLinkDeleteModal')).show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching social link details:', error);
+                        $('#socialLinkDeleteModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Social Link Delete form using jQuery
+            $('#socialLinkDeleteModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const id = parseInt($('#DeleteSocialLinkId').val(), 10);
+
+                axios.post('@Url.Action("Delete", "SocialLink")', { id: id })
+                    .then(function (response) {
+                        // Close the modal and refresh the social link list after successful deletion
+                        bootstrap.Modal.getInstance(document.getElementById('socialLinkDeleteModal')).hide();
+                        fetchSocialLinks();
+
+                        // Show the message the server sent back
+                        showToast(response.data.message);
+                    })
+                    .catch(function (error) {
+                        console.error('Error deleting social link:', error);
                     });
             });
         </script>

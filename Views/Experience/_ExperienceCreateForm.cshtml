@@ -1,0 +1,79 @@
+@model CustomerManagementPractiseCS.ViewModels.ExperienceViewModels.ExperienceCreateViewModel
+
+<form asp-controller="Experience" asp-action="Create" method="post">
+    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Company Name</label>
+            <input asp-for="CompanyName" class="form-control" />
+            <span asp-validation-for="CompanyName" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Designation</label>
+            <input asp-for="Designation" class="form-control" />
+            <span asp-validation-for="Designation" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Department</label>
+            <input asp-for="Department" class="form-control" />
+            <span asp-validation-for="Department" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-6 mb-3">
+            <label class="form-label">Employment Type</label>
+            <select asp-for="EmploymentType" class="form-select">
+                <option value="">-- Select Type --</option>
+                <option value="FullTime">Full Time</option>
+                <option value="PartTime">Part Time</option>
+                <option value="Contract">Contract</option>
+                <option value="Intern">Intern</option>
+                <option value="Freelance">Freelance</option>
+            </select>
+            <span asp-validation-for="EmploymentType" class="text-danger"></span>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Location</label>
+        <input asp-for="Location" class="form-control" />
+        <span asp-validation-for="Location" class="text-danger"></span>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Start Date</label>
+            <input asp-for="StartDate" type="date" class="form-control" />
+            <span asp-validation-for="StartDate" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">End Date</label>
+            <input asp-for="EndDate" type="date" class="form-control" />
+            <span asp-validation-for="EndDate" class="text-danger"></span>
+        </div>
+
+        <div class="col-md-4 mb-3 d-flex align-items-center">
+            <div class="form-check mt-4">
+                <input asp-for="IsCurrent" class="form-check-input" />
+                <label class="form-check-label">Currently Working Here</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Responsibilities</label>
+        <textarea asp-for="Responsibilities" class="form-control" rows="4"></textarea>
+        <span asp-validation-for="Responsibilities" class="text-danger"></span>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-primary">Save Experience</button>
+    </div>
+
+</form>

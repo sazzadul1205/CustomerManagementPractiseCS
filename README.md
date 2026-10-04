@@ -90,6 +90,11 @@ the signed-in user's own profile:
 | **Experience**   | Company, designation, department, employment type, location, date range, current flag, responsibilities | Sorted newest first on the CV                                                      |
 | **Social Links** | Platform + validated URL                                                                                | URL format validated on input                                                      |
 
+All five sections are edited the same way on the profile page: each list is loaded into its card over AJAX,
+**+ Add** opens a create modal, and **Edit** / **Delete** fetch their form into a modal body from
+`GET Edit/{id}` and `GET Delete/{id}`. `List` takes no parameters — it always resolves the signed-in user's own
+profile server-side, so there is no `personId` to tamper with.
+
 **CV page** — `/Profile/Cv/{id}` renders one consolidated, print-friendly document pulling together the
 profile, all addresses, contacts, education, experience, and social links. Reachable from both **My Profile**
 and the admin **Details** page.
@@ -112,8 +117,13 @@ and the admin **Details** page.
 
 ### AJAX & Notifications
 
-- **Partial views instead of page reloads** — the address, contact and education lists on the profile page, the
-  admin profile table and the user table are all loaded into a container element
+- **Partial views instead of page reloads** — all five profile section lists (address, contact, education,
+  experience and social link) on the profile page, the admin profile table and the user table are all loaded
+  into a container element
+- **One shared pattern for the five sections** — each section ships four partials (`_XList`, `_XCreateForm`,
+  `_XEditForm`, `_XDeleteForm`) and three modals, and each controller exposes the same six endpoints. The list
+  is fetched into the card; Create posts from a modal that is rendered with the page; Edit and Delete fetch
+  their form into the modal body on demand
 - **JSON responses carrying the message** — the create / edit / delete endpoints answer
   `Ok(new { message = "Address added successfully." })`
 - **One shared toast helper** — `showToast(message)` in `wwwroot/js/site.js` shows that message in the
@@ -204,11 +214,11 @@ and the admin **Details** page.
 │   ├── Account/                     # Login, Register, Profile, EditProfile, ChangePassword, AccessDenied
 │   ├── Home/                        # Index
 │   ├── Profile/                     # Create, Edit, Delete, Index, Cv
-│   ├── Address/                     # Create, Edit, Delete
-│   ├── Contact/
-│   ├── Education/
-│   ├── Experience/
-│   ├── SocialLink/
+│   ├── Address/                     # Create/Edit/Delete pages (unused by the modals) + the four partials
+│   ├── Contact/                     # Same
+│   ├── Education/                   # Same
+│   ├── Experience/                  # Same
+│   ├── SocialLink/                  # Same
 │   ├── Admin/                       # Index (filter + container), Details, _ProfileList
 │   ├── UserManagement/              # Index (table + modal), _UserList, _UserDeleteForm, Delete (unused)
 │   └── Shared/                      # _Layout, _ValidationScriptsPartial, Error
@@ -328,8 +338,19 @@ With the default `https` launch profile, the app is available at:
 | `/Account/Register`   | Public        | Register                                                      |
 
 The five profile sections (`Address`, `Contact`, `Education`, `Experience`, `SocialLink`) each expose the same
-three endpoints: a `GET List` that returns an HTML partial for the page container, a `GET Edit/{id}` /
-`GET Delete/{id}` that returns the modal body, and `POST Create` / `Edit` / `Delete` that answer with JSON.
+six endpoints:
+
+| Endpoint                        | Method | Returns                                                        |
+| ------------------------------- | ------ | -------------------------------------------------------------- |
+| `/X/List`                       | GET    | HTML partial of the whole list, for the card container          |
+| `/X/Edit/{id}`                  | GET    | HTML partial of the edit form, for the modal body               |
+| `/X/Delete/{id}`                | GET    | HTML partial of the delete confirmation, for the modal body     |
+| `/X/Create`                     | POST   | JSON `{ message }`                                              |
+| `/X/Edit`                       | POST   | JSON `{ message }`                                              |
+| `/X/Delete`                     | POST   | JSON `{ message }`                                              |
+
+`List` takes no parameters. `Edit` / `Delete` take an `id`, and every one of the six queries matches that id
+**and** the current user's profile id, so a guessed id cannot reach another person's rows.
 
 ---
 
@@ -360,14 +381,14 @@ Profile photos are handled by `IImageService`:
 
 | Item                   | Status / Notes                                                                                                                                                                                              |
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Standalone address/contact pages** | `/Address/Create` and `/Contact/Create` render a normal HTML form, but the matching POST actions are marked `[FromBody]` and expect JSON. Submitting either page therefore returns *415 Unsupported Media Type*. The AJAX modals on the profile page are unaffected. Either drop `[FromBody]` from those two actions or delete the unused pages. See [`CODE_REVIEW_NOTES.md`](CODE_REVIEW_NOTES.md) §1.1. |
+| **Standalone section pages** | `/Address/Create`, `/Contact/Create`, `/Education/Create`, `/Experience/Create` and `/SocialLink/Create` still render normal HTML forms, but the matching POST actions are marked `[FromBody]` and expect JSON. Submitting any of those pages therefore returns *415 Unsupported Media Type*. The AJAX modals on the profile page are unaffected. Either drop `[FromBody]` from those actions or delete the unused pages. See [`CODE_REVIEW_NOTES.md`](CODE_REVIEW_NOTES.md) §1.1. |
 | **Soft delete**        | `Deleted` flags exist on the entity classes, but current delete actions perform **hard deletes**. The soft-delete block in `ProfileController.DeleteConfirmed` is commented out and ready to be re-enabled. No query filters on the flag yet, so it must not be used until a global query filter is added. |
 | **Public CV access**   | `ProfileController.Cv` is marked `[AllowAnonymous]`, so any CV is reachable by ID without authentication. Consider requiring auth or adding a share token. |
 | **No anti-forgery check** | No POST action uses `[ValidateAntiForgeryToken]` and `app.UseAntiforgery()` is not registered, so the project currently has no CSRF protection. See [`CODE_REVIEW_NOTES.md`](CODE_REVIEW_NOTES.md) §2.1. |
 | **Connection string**  | The live connection string is committed in `appsettings.json`. Move it to user secrets before sharing the repository. It uses Windows authentication, so no password is stored. |
 | **First user is admin** | The `Admin` role is handed to whoever registers when the user table is empty, so a wiped or freshly restored database hands admin rights to the next signup.                                                                                                     |
 | **Axios from a CDN**   | `Views/Profile/Index.cshtml` and `Views/Admin/Index.cshtml` load axios from jsDelivr, so those pages need internet access the first time. jQuery, Bootstrap and jQuery Validation are bundled in `wwwroot/lib`. See [`CODE_REVIEW_NOTES.md`](CODE_REVIEW_NOTES.md) §1.6. |
-| **JavaScript required for several screens** | The profile section modals, the admin profile table and the user delete flow all work through AJAX. There is no no-JS fallback. |
+| **JavaScript required for several screens** | All five profile section lists and their create / edit / delete modals, the admin profile table and the user delete flow work through AJAX. There is no no-JS fallback. |
 | **Admin list is not sortable yet** | The profile table is newest first only; the filters and pagination are in place, clickable column headers are not. `AdminController.List` takes `search`, `gender`, `bloodGroup` and `page`, so a `sort` / `dir` pair is a small addition. |
 | **Tests**              | No automated test project is included yet.                                                                                                                                                                  |
 

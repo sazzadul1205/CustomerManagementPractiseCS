@@ -26,6 +26,17 @@ CHANGES MADE
     share the same height and padding).
 12. Updated README.md and marked the finished items as FIXED in
     CODE_REVIEW_NOTES.md.
+13. Converted the Experience and Social Link sections on the profile page to the
+    same modal pattern the other three sections already use. Added eight partial
+    views (four per section: _List, _CreateForm, _EditForm, _DeleteForm), six
+    modals, and two script blocks, and replaced the inline foreach loops with an
+    empty container that the AJAX call fills.
+14. Rewrote ExperienceController and SocialLinkController to match
+    EducationController: added a List action that returns the partial, turned the
+    GET Edit and GET Delete into partial views, put [FromBody] on the POSTs, and
+    replaced the TempData + RedirectToAction endings with Ok(new { message }).
+    The Create pages under /Views/Experience and /Views/SocialLink are now
+    unreachable, exactly like the Address and Contact ones.
 
 THINGS LEARNED
 --------------

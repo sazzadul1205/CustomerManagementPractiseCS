@@ -1,0 +1,25 @@
+@model CustomerManagementPractiseCS.ViewModels.SocialLinkViewModels.SocialLinkDeleteViewModel
+
+<form id="socialLinkDeleteForm">
+
+    <input asp-for="Id" type="hidden" id="DeleteSocialLinkId" />
+
+    <div class="alert alert-danger">
+        Are you sure you want to delete this link? This action cannot be undone.
+    </div>
+
+    <div class="card shadow-sm mb-3">
+        <div class="card-body">
+            <h5 class="mb-2">@Model.Platform</h5>
+            <p class="mb-0">
+                <a href="@Model.Url" target="_blank" rel="noopener">@Model.Url</a>
+            </p>
+        </div>
+    </div>
+
+    <div class="d-flex justify-content-end gap-2">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    </div>
+
+</form>

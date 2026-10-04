@@ -1,0 +1,29 @@
+@model List<CustomerManagementPractiseCS.Models.SocialLink>
+
+@if (!Model.Any())
+{
+    <p class="text-muted mb-0">No links added yet.</p>
+}
+else
+{
+    foreach (var link in Model)
+    {
+        <div class="d-flex justify-content-between border-bottom py-2">
+            <div>
+                <strong>@link.Platform</strong>
+                <br />
+                <small>
+                    <a href="@link.Url" target="_blank">@link.Url</a>
+                </small>
+            </div>
+            <div class="d-flex gap-2 align-items-start">
+                <button type="button" class="btn btn-sm btn-outline-primary" data-social-link-id="@link.Id">
+                    Edit
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger" data-social-link-delete-id="@link.Id">
+                    Delete
+                </button>
+            </div>
+        </div>
+    }
+}
