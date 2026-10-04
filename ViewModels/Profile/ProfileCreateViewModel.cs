@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using CustomerManagementPractiseCS.Data.Validations;
 
 namespace CustomerManagementPractiseCS.ViewModels.Profile
 {
@@ -14,6 +15,7 @@ namespace CustomerManagementPractiseCS.ViewModels.Profile
 
         [Required]
         [DataType(DataType.Date)]
+        [NotFutureDate(ErrorMessage = "Date of birth cannot be a future date.")]
         public DateOnly DateOfBirth { get; set; }
 
         [StringLength(50)]

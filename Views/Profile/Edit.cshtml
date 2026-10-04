@@ -2,6 +2,9 @@
 
 @{
     ViewData["Title"] = "Edit Profile";
+
+    // Today in the format the HTML date input understands (yyyy-MM-dd).
+    var maxDate = DateTime.Today.ToString("yyyy-MM-dd");
 }
 
 <h1 class="mb-4">Edit Profile</h1>
@@ -37,7 +40,8 @@
 
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Date of Birth</label>
-                            <input asp-for="DateOfBirth" type="date" class="form-control" />
+                            <input asp-for="DateOfBirth" type="date" class="form-control"
+                                   max="@maxDate" />
                             <span asp-validation-for="DateOfBirth" class="text-danger"></span>
                         </div>
                     </div>
