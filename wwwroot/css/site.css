@@ -134,3 +134,18 @@ body {
         color: #444 !important;
     }
 }
+
+.navbar-nav .nav-link.active {
+    position: relative;
+    font-weight: 600;
+}
+
+.navbar-nav .nav-link.active::after {
+    content: "";
+    position: absolute;
+    left: 0.5rem;
+    right: 0.5rem;
+    bottom: 0;
+    height: 2px;
+    background-color: currentColor;
+}

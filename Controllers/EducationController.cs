@@ -35,9 +35,33 @@ namespace CustomerManagementPractiseCS.Controllers
             return View();
         }
 
+        // GET: /Education/List
+        public IActionResult List()
+        {
+            var userId = _userManager.GetUserId(User);
+
+            // Get the Profile that Belongs to the Current User
+            var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+
+            // Here we return not found because this is for partial view
+            if (profileData == null)
+            {
+                return NotFound();
+            }
+
+            // Get the Educations that Belong to the Current Profile
+            var educations = _context.Educations
+                .Where(x => x.PersonId == profileData.Id)
+                .OrderByDescending(x => x.StartYear)
+                .ToList();
+
+            // Return the partial
+            return PartialView("_EducationList", educations);
+        }
+
         // POST: /Education/Create
         [HttpPost]
-        public IActionResult Create(EducationCreateViewModel ViewModel)
+        public IActionResult Create([FromBody] EducationCreateViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -46,12 +70,14 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             if (!ModelState.IsValid)
             {
-                return View(ViewModel);
+                // return View(ViewModel);
+                return BadRequest(ModelState);
             }
 
             var educationData = new Education
@@ -75,7 +101,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             TempData["Success"] = "Education added successfully.";
 
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok();
         }
 
         // GET: /Education/Edit/5
@@ -88,7 +115,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             // Get the Education that Belongs to the Current Profile
@@ -96,7 +124,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (educationData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Education not found.");
             }
 
             var viewModel = new EducationEditViewModel
@@ -112,12 +141,13 @@ namespace CustomerManagementPractiseCS.Controllers
                 Result = educationData.Result
             };
 
-            return View(viewModel);
+            // return View(viewModel);
+            return PartialView("_EducationEditForm", viewModel);
         }
 
         // POST: /Education/Edit/5
         [HttpPost]
-        public IActionResult Edit(EducationEditViewModel ViewModel)
+        public IActionResult Edit([FromBody] EducationEditViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -126,12 +156,14 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             if (!ModelState.IsValid)
             {
-                return View(ViewModel);
+                // return View(ViewModel);
+                return BadRequest(ModelState);
             }
 
             // Get the Education that Belongs to the Current Profile
@@ -139,7 +171,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (educationData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Education not found.");
             }
 
             educationData.DegreeLevel = ViewModel.DegreeLevel;
@@ -149,6 +182,7 @@ namespace CustomerManagementPractiseCS.Controllers
             educationData.StartYear = ViewModel.StartYear;
             educationData.EndYear = ViewModel.IsOngoing ? null : ViewModel.EndYear;
             educationData.IsOngoing = ViewModel.IsOngoing;
+            educationData.Result = ViewModel.Result;
             educationData.UpdatedAt = DateTime.UtcNow;
             educationData.UpdatedBy = userId;
 
@@ -156,7 +190,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             TempData["Success"] = "Education updated successfully.";
 
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok();
         }
 
         // GET: /Education/Delete/5
@@ -169,7 +204,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
             }
 
             // Get the Education that Belongs to the Current Profile
@@ -177,7 +213,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (educationData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Education not found.");
             }
 
             var viewModel = new EducationDeleteViewModel
@@ -193,12 +230,13 @@ namespace CustomerManagementPractiseCS.Controllers
                 Result = educationData.Result
             };
 
-            return View(viewModel);
+            // return View(viewModel);
+            return PartialView("_EducationDeleteForm", viewModel);
         }
 
         // POST: /Education/Delete/5
         [HttpPost, ActionName("Delete")]
-        public IActionResult DeleteConfirmed(int id)
+        public IActionResult DeleteConfirmed([FromBody] EducationDeleteViewModel ViewModel)
         {
             var userId = _userManager.GetUserId(User);
 
@@ -207,15 +245,22 @@ namespace CustomerManagementPractiseCS.Controllers
 
             if (profileData == null)
             {
-                return RedirectToAction("Index", "Profile");
+                // return RedirectToAction("Index", "Profile");
+                return NotFound();
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
             }
 
             // Get the Education that Belongs to the Current Profile
-            var educationData = _context.Educations.FirstOrDefault(x => x.Id == id && x.PersonId == profileData.Id);
+            var educationData = _context.Educations.FirstOrDefault(x => x.Id == ViewModel.Id && x.PersonId == profileData.Id);
 
             if (educationData == null)
             {
-                return NotFound();
+                // return NotFound();
+                return BadRequest("Education not found.");
             }
 
             _context.Educations.Remove(educationData);
@@ -223,7 +268,8 @@ namespace CustomerManagementPractiseCS.Controllers
 
             TempData["Success"] = "Education deleted successfully.";
 
-            return RedirectToAction("Index", "Profile");
+            // return RedirectToAction("Index", "Profile");
+            return Ok();
         }
     }
 }

@@ -111,46 +111,20 @@ else
             </div>
 
             @* Education *@
+            @*<partial name="_Educations" model="Model" />*@
+
+            @* Education - loaded via axios from EducationController.List *@
             <div class="card shadow-sm mb-3">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <strong>Education</strong>
-                    <a asp-controller="Education" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a>
+                    @* <a asp-controller="Education" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a> *@
+                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal"
+                            data-bs-target="#educationCreateModal">
+                        + Add
+                    </button>
                 </div>
-                <div class="card-body">
-                    @if (Model.Educations.Count == 0)
-                    {
-                        <p class="text-muted mb-0">No education added yet.</p>
-                    }
-                    else
-                    {
-                        foreach (var edu in Model.Educations)
-                        {
-                            <div class="d-flex justify-content-between border-bottom py-2">
-                                <div>
-                                    <strong>@edu.DegreeLevel — @edu.DegreeName</strong>
-                                    <br />
-                                    <small>
-                                        @edu.InstitutionName · @edu.StartYear
-                                        @if (edu.IsOngoing)
-                                        {
-                                            <span> - Ongoing</span>
-                                        }
-                                        else if (edu.EndYear.HasValue)
-                                        {
-                                            <span> - @edu.EndYear</span>
-                                        }
-                                    </small>
-                                </div>
-                                <div class="d-flex gap-2 align-items-start">
-                                    <a asp-controller="Education" asp-action="Edit" asp-route-id="@edu.Id"
-                                       class="btn btn-sm btn-outline-primary">Edit</a>
-                                    <a asp-controller="Education" asp-action="Delete" asp-route-id="@edu.Id"
-                                       class="btn btn-sm btn-outline-danger">Delete</a>
-                                </div>
-                            </div>
-                        }
-                    }
-                </div>
+
+                <div class="card-body" id="education-container"></div>
             </div>
 
             @* Experience *@
@@ -312,6 +286,54 @@ else
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body" id="contactDeleteModalBody"></div>
+                </div>
+            </div>
+        </div>
+
+        @* Education Create Modal *@
+        <div class="modal fade" id="educationCreateModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+
+                    @* Header *@
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add Education</h5>
+
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    @* Body *@
+                    <div class="modal-body">
+                        <partial name="~/Views/Education/_EducationCreateForm.cshtml"
+                                 model="new CustomerManagementPractiseCS.ViewModels.EducationViewModels.EducationCreateViewModel()" />
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        @* Education Edit Modal *@
+        <div class="modal fade" id="educationEditModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit Education</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="educationEditModalBody"></div>
+                </div>
+            </div>
+        </div>
+
+        @* Education Delete Modal *@
+        <div class="modal fade" id="educationDeleteModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete Education</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="educationDeleteModalBody"></div>
                 </div>
             </div>
         </div>
@@ -669,6 +691,144 @@ else
                         ? 'Please enter a valid email address.'
                         : 'Please enter a valid phone number.');
                 }
+            });
+        </script>
+        <script>
+            // Function to fetch education and update the container
+            function fetchEducations() {
+                // Get the container element and set its content to a loading message
+                $('#education-container').html('<p class="text-muted mb-0">Loading education...</p>');
+
+                // Send a GET request to the EducationController's List action
+                axios.get('@Url.Action("List", "Education")')
+                    .then(function (response) {
+                        // On success, replace the container's content with the response data
+                        $('#education-container').html(response.data);
+                    })
+                    .catch(function (error) {
+                        // On error, log the error and show an error message in the container
+                        console.error(error);
+                        $('#education-container').html('<p class="text-danger mb-0">Failed to load education.</p>');
+                    });
+            }
+
+            // Call the fetchEducations function when the page loads
+            fetchEducations();
+
+            // Submit Education Create form using jQuery
+            $('#educationCreateModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const educationData = {
+                    degreeLevel: $('#DegreeLevel').val(),
+                    degreeName: $('#DegreeName').val(),
+                    institutionName: $('#InstitutionName').val(),
+                    boardOrUniversity: $('#BoardOrUniversity').val(),
+                    startYear: parseInt($('#StartYear').val(), 10),
+                    endYear: $('#EndYear').val() === '' ? null : parseInt($('#EndYear').val(), 10),
+                    isOngoing: $('#IsOngoing').is(':checked'),
+                    result: $('#Result').val()
+                };
+
+                axios.post('@Url.Action("Create", "Education")', educationData)
+                    .then(function (response) {
+                        // Close the modal and refresh the education list
+                        bootstrap.Modal.getInstance(document.getElementById('educationCreateModal')).hide();
+                        fetchEducations();
+                    })
+                    .catch(function (error) {
+                        console.error('Error submitting education:', error);
+                    });
+            });
+
+            // Open and populate the Education Edit modal when an edit button is clicked
+            $(document).on('click', '[data-education-id]', function () {
+
+                // Get the education ID from the clicked button's data attribute
+                const educationId = $(this).data('education-id');
+
+                // Set the modal body to a loading message while fetching the education details
+                $('#educationEditModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Edit", "Education")', { params: { id: educationId } })
+                    .then(function (response) {
+
+                        // On success, populate the modal body with the fetched education details
+                        $('#educationEditModalBody').html(response.data);
+
+                        // Show the modal after populating it
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('educationEditModal')).show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching education details:', error);
+                        $('#educationEditModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Education Edit form using jQuery
+            $('#educationEditModal').on('submit', function (e) {
+                e.preventDefault();
+
+                // Get values from the forms
+                const educationData = {
+                    id: parseInt($('#EditEducationId').val(), 10),
+                    degreeLevel: $('#EditDegreeLevel').val(),
+                    degreeName: $('#EditDegreeName').val(),
+                    institutionName: $('#EditInstitutionName').val(),
+                    boardOrUniversity: $('#EditBoardOrUniversity').val(),
+                    startYear: parseInt($('#EditStartYear').val(), 10),
+                    endYear: $('#EditEndYear').val() === '' ? null : parseInt($('#EditEndYear').val(), 10),
+                    isOngoing: $('#EditIsOngoing').is(':checked'),
+                    result: $('#EditResult').val()
+                };
+
+                axios.post('@Url.Action("Edit", "Education")', educationData)
+                    .then(function () {
+                        // Close the modal and refresh the education list after successful edit
+                        bootstrap.Modal.getInstance(document.getElementById('educationEditModal')).hide();
+                        fetchEducations();
+                    })
+                    .catch(function (err) { console.error(err); });
+            });
+
+            // Delete Education modal open and populate
+            $(document).on('click', '[data-education-delete-id]', function () {
+
+                // Get the education ID from the clicked button's data attribute
+                const educationId = $(this).data('education-delete-id');
+
+                // Set the modal body to a loading message while fetching the education details
+                $('#educationDeleteModalBody').html('<p class="text-muted mb-0">Loading…</p>');
+
+                axios.get('@Url.Action("Delete", "Education")', { params: { id: educationId } })
+                    .then(function (response) {
+                        // On success, populate the modal body with the fetched education details
+                        $('#educationDeleteModalBody').html(response.data);
+
+                        // Show the modal after populating it
+                        bootstrap.Modal.getOrCreateInstance(document.getElementById('educationDeleteModal')).show();
+                    })
+                    .catch(function (error) {
+                        console.error('Error fetching education details:', error);
+                        $('#educationDeleteModalBody').html('<p class="text-danger mb-0">Failed to load.</p>');
+                    });
+            });
+
+            // Submit Education Delete form using jQuery
+            $('#educationDeleteModal').on('submit', function (e) {
+                e.preventDefault();
+
+                const id = parseInt($('#DeleteEducationId').val(), 10);
+
+                axios.post('@Url.Action("Delete", "Education")', { id: id })
+                    .then(function () {
+                        // Close the modal and refresh the education list after successful deletion
+                        bootstrap.Modal.getInstance(document.getElementById('educationDeleteModal')).hide();
+                        fetchEducations();
+                    })
+                    .catch(function (error) {
+                        console.error('Error deleting education:', error);
+                    });
             });
         </script>
 
