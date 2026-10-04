@@ -21,7 +21,7 @@ namespace CustomerManagementPractiseCS.Controllers
         }
 
         // GET: /Admin
-        public async Task<IActionResult> Index(string search, string gender, int page = 1)
+        public async Task<IActionResult> Index(string search, string gender, string bloodGroup, int page = 1)
         {
             // How many profiles fit on one page
             const int pageSize = 10;
@@ -41,6 +41,12 @@ namespace CustomerManagementPractiseCS.Controllers
             if (!string.IsNullOrEmpty(gender))
             {
                 query = query.Where(x => x.Gender == gender);
+            }
+
+            // Same for the Blood Group, the empty option means "show every blood group"
+            if (!string.IsNullOrEmpty(bloodGroup))
+            {
+                query = query.Where(x => x.BloodGroup == bloodGroup);
             }
 
             // Count first, so the view knows how many page links it has to draw

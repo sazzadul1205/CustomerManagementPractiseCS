@@ -6,7 +6,11 @@
     // Read the current filter values from the query string so the form stays filled
     var search = Context.Request.Query["search"].ToString();
     var gender = Context.Request.Query["gender"].ToString();
-    var hasFilter = !string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(gender);
+    var bloodGroup = Context.Request.Query["bloodGroup"].ToString();
+    var hasFilter = !string.IsNullOrEmpty(search) || !string.IsNullOrEmpty(gender) || !string.IsNullOrEmpty(bloodGroup);
+
+    // The blood groups offered in the filter, the same list the Profile form uses
+    var bloodGroups = new[] { "A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-" };
 
     // Pagination values the controller handed over
     int currentPage = (int)ViewBag.Page;
@@ -28,19 +32,30 @@
 <div class="card shadow-sm mb-3">
     <div class="card-body">
         <form method="get" asp-action="Index" class="row g-2 align-items-end">
-            <div class="col-md-6">
+            <div class="col-md-4">
                 <label for="search" class="form-label">Search by name</label>
                 <input type="text" id="search" name="search" value="@search" class="form-control"
                        placeholder="e.g. John" />
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label for="gender" class="form-label">Gender</label>
                 <select id="gender" name="gender" class="form-select">
                     <option value="" selected="@(gender != "Male" && gender != "Female" && gender != "Other")">-- All --</option>
                     <option value="Male" selected="@(gender == "Male")">Male</option>
                     <option value="Female" selected="@(gender == "Female")">Female</option>
                     <option value="Other" selected="@(gender == "Other")">Other</option>
+                </select>
+            </div>
+
+            <div class="col-md-3">
+                <label for="bloodGroup" class="form-label">Blood Group</label>
+                <select id="bloodGroup" name="bloodGroup" class="form-select">
+                    <option value="" selected="@(string.IsNullOrEmpty(bloodGroup))">-- All --</option>
+                    @foreach (var group in bloodGroups)
+                    {
+                        <option value="@group" selected="@(bloodGroup == group)">@group</option>
+                    }
                 </select>
             </div>
 
@@ -73,7 +88,7 @@ else
     <div class="card shadow-sm">
         <div class="table-responsive">
             <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
+<thead class="table-light">
                     <tr>
                         <th style="width:80px;">Photo</th>
                         <th>Name</th>
@@ -127,7 +142,7 @@ else
 
                 @* Previous *@
                 <li class="page-item @(currentPage == 1 ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                    <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
                        asp-route-page="@(currentPage - 1)">Previous</a>
                 </li>
 
@@ -135,7 +150,7 @@ else
                 @if (windowStart > 1)
                 {
                     <li class="page-item">
-                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
                            asp-route-page="1">1</a>
                     </li>
 
@@ -151,7 +166,7 @@ else
                 @for (int i = windowStart; i <= windowEnd; i++)
                 {
                     <li class="page-item @(i == currentPage ? "active" : "")">
-                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
                            asp-route-page="@i">@i</a>
                     </li>
                 }
@@ -167,14 +182,14 @@ else
                     }
 
                     <li class="page-item">
-                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                        <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
                            asp-route-page="@totalPages">@totalPages</a>
                     </li>
                 }
 
                 @* Next *@
                 <li class="page-item @(currentPage == totalPages ? "disabled" : "")">
-                    <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender"
+                    <a class="page-link" asp-action="Index" asp-route-search="@search" asp-route-gender="@gender" asp-route-bloodGroup="@bloodGroup"
                        asp-route-page="@(currentPage + 1)">Next</a>
                 </li>
             </ul>
