@@ -33,6 +33,7 @@ education, experience, and social links. That profile can be rendered as a singl
 - [Image Uploads](#image-uploads)
 - [Security Notes](#security-notes)
 - [Known Limitations & Roadmap](#known-limitations--roadmap)
+- [Code Review Notes](#code-review-notes)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -69,6 +70,13 @@ blood group, and a professional summary.
 **Photo upload** — validated image uploads with unique GUID filenames; the previous file is deleted from disk
 when replaced.
 
+**Date of birth validation** — a date after today is rejected twice over: the date picker greys out future
+dates in the browser, and a `NotFutureDate` validation attribute rejects them on the server, so the rule
+still holds if the browser check is bypassed.
+
+**Contact value format check** — picking `Email` or `Phone` in the Add Contact modal runs a format check on
+the value before the form is allowed to submit. `Other` accepts free text.
+
 **Related section CRUD** — each section supports a full Create / Edit / Delete cycle and is always scoped to
 the signed-in user's own profile:
 
@@ -100,6 +108,8 @@ and the admin **Details** page.
 - **Audit fields** — `CreatedAt` / `CreatedBy` / `UpdatedAt` / `UpdatedBy` on every entity
 - **Service layer** — image handling lives behind `IImageService` and is injected via DI rather than inlined
   in controllers
+- **Custom validation attributes** — reusable rules such as `NotFutureDate` live in `Data/Validations/` and are
+  applied with a plain attribute, so no extra code is needed in the controller
 - **Responsive UI** — Bootstrap 5 with a shared layout and navbar
 
 ---
@@ -131,8 +141,10 @@ and the admin **Details** page.
 │   ├── AdminController.cs           # [Admin] profile list + details
 │   └── UserManagementController.cs  # [Admin] user list + delete
 ├── Data/
-│   └── AppDbContext.cs              # IdentityDbContext + Persons/Addresses/Contacts/
-│                                    # Educations/Experiences/SocialLinks DbSets
+│   ├── AppDbContext.cs              # IdentityDbContext + Persons/Addresses/Contacts/
+│   │                                # Educations/Experiences/SocialLinks DbSets
+│   └── Validations/
+│       └── NotFutureDateAttribute.cs# Rejects a date that is in the future
 ├── Models/
 │   ├── Person.cs                    # Root profile entity + navigation collections
 │   ├── Address.cs
@@ -143,8 +155,10 @@ and the admin **Details** page.
 │   └── ErrorViewModel.cs
 ├── Services/
 │   ├── ImageService.cs              # Save / delete / validate uploaded images
+│   ├── ProfileCompletenessService.cs# Scores how much of a profile is filled in
 │   └── Interfaces/
-│       └── IImageService.cs
+│       ├── IImageService.cs
+│       └── IProfileCompletenessService.cs
 ├── ViewModels/
 │   ├── Profile/                     # Create, Edit, Delete, Index, Cv view models
 │   ├── AddressViewModels/           # Create, Edit, Delete
@@ -181,7 +195,7 @@ and the admin **Details** page.
 
 ```mermaid
 erDiagram
-    ApplicationUser ||--o| Person : "owns one"
+    IdentityUser ||--o| Person : "owns one"
     Person ||--o{ Address : has
     Person ||--o{ Contact : has
     Person ||--o{ Education : has
@@ -198,6 +212,8 @@ Person (1) ──┬── (N) Address
 ```
 
 - `Person.UserId` links a profile to its owning ASP.NET Core Identity user.
+- The owner is the built-in `IdentityUser` class from ASP.NET Core Identity — this project does not define a
+  custom `ApplicationUser`, and every `UserManager<IdentityUser>` call uses that type directly.
 - All child entities carry a `PersonId` foreign key plus the audit fields
   `CreatedAt` / `CreatedBy` / `UpdatedAt` / `UpdatedBy`.
 
@@ -303,11 +319,32 @@ Profile photos are handled by `IImageService`:
 ## Known Limitations & Roadmap
 
 | Item                   | Status / Notes                                                                                                                                                                                              |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Soft delete**        | `Deleted` flags exist on the entity classes, but current delete actions perform **hard deletes**. The soft-delete block in `ProfileController.DeleteConfirmed` is commented out and ready to be re-enabled. |
-| **Public CV access**   | `ProfileController.Cv` is marked `[AllowAnonymous]`, so any CV is reachable by ID without authentication. Consider requiring auth or adding a share token.                                                  |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Standalone address/contact pages** | `/Address/Create` and `/Contact/Create` render a normal HTML form, but the matching POST actions are marked `[FromBody]` and expect JSON. Submitting either page therefore returns *415 Unsupported Media Type*. The AJAX modals on the profile page are unaffected. Either drop `[FromBody]` from those two actions or delete the unused pages. See [`CODE_REVIEW_NOTES.md`](CODE_REVIEW_NOTES.md) §1.1. |
+| **Soft delete**        | `Deleted` flags exist on the entity classes, but current delete actions perform **hard deletes**. The soft-delete block in `ProfileController.DeleteConfirmed` is commented out and ready to be re-enabled. No query filters on the flag yet, so it must not be used until a global query filter is added. |
+| **Public CV access**   | `ProfileController.Cv` is marked `[AllowAnonymous]`, so any CV is reachable by ID without authentication. Consider requiring auth or adding a share token. |
+| **No anti-forgery check** | No POST action uses `[ValidateAntiForgeryToken]` and `app.UseAntiforgery()` is not registered, so the project currently has no CSRF protection. See [`CODE_REVIEW_NOTES.md`](CODE_REVIEW_NOTES.md) §2.1. |
+| **Connection string**  | The live connection string is committed in `appsettings.json`. Move it to user secrets before sharing the repository. It uses Windows authentication, so no password is stored. |
 | **Registration input** | `AccountController.Register` accepts a plain `email` and `password` rather than a dedicated view model.                                                                                                     |
+| **First user is admin** | The `Admin` role is handed to whoever registers when the user table is empty, so a wiped or freshly restored database hands admin rights to the next signup.                                                                                                     |
 | **Tests**              | No automated test project is included yet.                                                                                                                                                                  |
+
+---
+
+## Code Review Notes
+
+[`CODE_REVIEW_NOTES.md`](CODE_REVIEW_NOTES.md) is a full intern-level review of this codebase — bugs,
+security gaps, dead code and suggested improvements. Every item explains what happens, why it happens, and
+the simplest fix, so it doubles as a learning guide. Start there when you are picking up your next task.
+
+Two findings from that review are already resolved:
+
+- **Date of birth can no longer be a future date** — blocked in the browser and rejected on the server by
+  `NotFutureDateAttribute`.
+- **The Add Contact email/phone check now actually runs** — it previously lived in a `@section` inside a
+  partial view, which Razor never renders, and wrote its message into an element that had no `id`.
+
+The remaining findings are tracked in the Known Limitations table above.
 
 ---
 
@@ -318,6 +355,21 @@ Profile photos are handled by `IImageService`:
    and ownership checks on every user-scoped query.
 3. Keep migrations focused and descriptively named.
 4. Open a pull request describing the change and how it was verified.
+
+### Verifying a change
+
+Run a build before you commit — Razor views are compiled at build time, so a mistake in a `.cshtml` file
+(such as writing the literal text `@section` inside a JavaScript comment) fails the build rather than the
+page:
+
+```bash
+dotnet build
+```
+
+For anything touching browser behaviour, check the HTML the server actually returns instead of assuming.
+Two bugs in this project were only visible there: a `@section` inside a partial view silently renders
+nothing, and `<span asp-validation-for="X">` does not emit an `id`, so a JavaScript selector for it finds
+nothing.
 
 ---
 
