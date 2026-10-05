@@ -56,6 +56,7 @@ namespace CustomerManagementPractiseCS.Controllers
             return PartialView("_AddressList", addresses);
         }
 
+       
         // POST: /Address/Create
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] AddressCreateViewModel ViewModel)

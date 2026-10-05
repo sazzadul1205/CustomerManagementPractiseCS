@@ -189,7 +189,7 @@ else
         </div>
 
         @* Models - Contact Create Model *@
-        <div class="modal fade" id="contactCreateModal" tabindex="-1">
+        <div class="modal fade" id="contactCreateModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                 
@@ -211,7 +211,7 @@ else
         </div>
 
         @* Contact Edit Modal *@
-        <div class="modal fade" id="contactEditModal" tabindex="-1">
+        <div class="modal fade" id="contactEditModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -224,7 +224,7 @@ else
         </div>
 
         @* Contact Delete Modal *@
-        <div class="modal fade" id="contactDeleteModal" tabindex="-1">
+        <div class="modal fade" id="contactDeleteModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -237,7 +237,7 @@ else
         </div>
 
         @* Education Create Modal *@
-        <div class="modal fade" id="educationCreateModal" tabindex="-1">
+        <div class="modal fade" id="educationCreateModal">
             <div class="modal-dialog">
                 <div class="modal-content">
 
@@ -259,7 +259,7 @@ else
         </div>
 
         @* Education Edit Modal *@
-        <div class="modal fade" id="educationEditModal" tabindex="-1">
+        <div class="modal fade" id="educationEditModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -272,7 +272,7 @@ else
         </div>
 
         @* Education Delete Modal *@
-        <div class="modal fade" id="educationDeleteModal" tabindex="-1">
+        <div class="modal fade" id="educationDeleteModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -284,9 +284,8 @@ else
             </div>
         </div>
 
-
         @* Experience Create Modal *@
-        <div class="modal fade" id="experienceCreateModal" tabindex="-1">
+        <div class="modal fade" id="experienceCreateModal">
             <div class="modal-dialog">
                 <div class="modal-content">
 
@@ -308,7 +307,7 @@ else
         </div>
 
         @* Experience Edit Modal *@
-        <div class="modal fade" id="experienceEditModal" tabindex="-1">
+        <div class="modal fade" id="experienceEditModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -321,7 +320,7 @@ else
         </div>
 
         @* Experience Delete Modal *@
-        <div class="modal fade" id="experienceDeleteModal" tabindex="-1">
+        <div class="modal fade" id="experienceDeleteModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -334,7 +333,7 @@ else
         </div>
 
         @* Social Link Create Modal *@
-        <div class="modal fade" id="socialLinkCreateModal" tabindex="-1">
+        <div class="modal fade" id="socialLinkCreateModal">
             <div class="modal-dialog">
                 <div class="modal-content">
 
@@ -356,7 +355,7 @@ else
         </div>
 
         @* Social Link Edit Modal *@
-        <div class="modal fade" id="socialLinkEditModal" tabindex="-1">
+        <div class="modal fade" id="socialLinkEditModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -369,7 +368,7 @@ else
         </div>
 
         @* Social Link Delete Modal *@
-        <div class="modal fade" id="socialLinkDeleteModal" tabindex="-1">
+        <div class="modal fade" id="socialLinkDeleteModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
@@ -381,9 +380,8 @@ else
             </div>
         </div>
 
-
         @* Models - Address Create Model *@
-        <div class="modal fade" id="addressCreateModal" tabindex="-1">
+        <div class="modal fade" id="addressCreateModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                 
@@ -405,7 +403,7 @@ else
         </div>
 
         @* Address Edit Modal *@
-        <div class="modal fade" id="addressEditModal" tabindex="-1">
+        <div class="modal fade" id="addressEditModal">
             <div class="modal-dialog">
                 <div class="modal-content">
 
@@ -423,7 +421,7 @@ else
         </div>
 
         @* Address Delete Modal *@
-        <div class="modal fade" id="addressDeleteModal" tabindex="-1">
+        <div class="modal fade" id="addressDeleteModal">
             <div class="modal-dialog">
                 <div class="modal-content">
 
@@ -497,6 +495,9 @@ else
                     })
                     .catch(function (error) {
                         console.error('Error submitting address:', error);
+
+                        $('#addressCreateModal .modal-body').prepend('<div class="alert alert-danger" id="model-error-alert">Failed to create address. Please try again.</div>')
+
                     });
             });
 
@@ -549,7 +550,9 @@ else
                         // Show the message the server sent back
                         showToast(response.data.message);
                     })
-                    .catch(function (err) { console.error(err); });
+                    .catch(function (err) {
+                        console.error("Error Editing address:",err);
+                    });
             });
 
             // Delete Address modal open and populate
@@ -595,7 +598,7 @@ else
                     });
             });
         </script>
-        <script>  
+        <script>
             // Function to fetch addresses and update the container
             function fetchContacts() {
                 $('#contacts-container').html('<p class="text-muted mb-0">Loading contacts…</p>');

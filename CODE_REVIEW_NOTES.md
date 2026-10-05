@@ -7,6 +7,9 @@ learnable fixes you can make this week.
 **Build status:** `dotnet build` → **Build succeeded, 0 errors.** Nothing is broken at compile time.
 Everything below is a runtime / design / security issue.
 
+**Last verified:** 2026-10-05, against commit `dd43aa1` plus the uncommitted working-tree changes.
+Every path, line number and count in this document was re-checked against the source that day.
+
 ---
 
 ## Table of Contents
@@ -21,7 +24,20 @@ Everything below is a runtime / design / security issue.
 ### Status
 
 **Done (6):** 1.3, 1.5, 4.1, 4.2, 4.6, 4.8
-**Still open:** everything else, plus the new 1.9 below.
+**Still open:** everything else, plus the new items 1.9 and 1.10 below.
+
+Since the last update the **Experience and Social Link sections were converted to the same AJAX modal
+pattern** as Address / Contact / Education (`refactor(profile): implement asynchronous partial view
+loading for experience and social links`). That widened several findings rather than closing them:
+
+| Item | What changed |
+|---|---|
+| 1.1 | Now **five** broken pages, not two — `Education/Create`, `Experience/Create` and `SocialLink/Create` have the same `[FromBody]` + HTML form mismatch. |
+| 1.2 | One of the 15 catch blocks got an alert; the other 14 still only `console.error`. The one that did is also subtly broken. |
+| 1.3 | Widened from 9 handlers to **15**, and it stayed fixed for the two new sections. |
+| 3.1 | The dead-view list grew from 5 files to **11** — the new `_ExperienceEditForm` / `_SocialLinkDeleteForm` pattern orphaned another six. |
+| 4.4 | The copy-pasted "find my profile" block grew from 31 to **36** occurrences. |
+| 4.3 | The 5 child collections in `ProfileController.Index` are now **loaded and never rendered** — see the new note in 4.3. |
 
 Work that was not part of this review: a Blood Group filter, AJAX loading for the admin profile table and
 the user table, a delete confirmation modal for user accounts, a shared `showToast()` helper in
@@ -31,16 +47,22 @@ the user table, a delete confirmation modal for user accounts, a shared `showToa
 
 ## 1. Real Bugs (fix these first)
 
-### 1.1 `/Address/Create` and `/Contact/Create` pages always fail with **415 Unsupported Media Type**
+### 1.1 Five `/…/Create` pages always fail with **415 Unsupported Media Type**
 
 **Files:**
 - `Controllers/AddressController.cs:61` — `public async Task<IActionResult> Create([FromBody] AddressCreateViewModel ViewModel, ...)`
 - `Controllers/ContactController.cs:62` — same pattern
-- `Views/Address/Create.cshtml:14` — `<form asp-action="Create" method="post">`
-- `Views/Contact/Create.cshtml:14` — same
+- `Controllers/EducationController.cs:65` — same pattern
+- `Controllers/ExperienceController.cs:65` — same pattern
+- `Controllers/SocialLinkController.cs:65` — same pattern
+- `Views/Address/Create.cshtml:14`, `Views/Contact/Create.cshtml:14`,
+  `Views/Education/Create.cshtml:14`, `Views/Experience/Create.cshtml:14`,
+  `Views/SocialLink/Create.cshtml:14` — all `<form asp-action="Create" method="post">`
 
 **What happens:** You sign in, go to `/Address/Create`, fill the form, press *Save Address*, and the
 server answers **415 Unsupported Media Type**. Nothing is saved and the user sees a blank error page.
+The same happens on `/Contact/Create`, `/Education/Create`, `/Experience/Create` and
+`/SocialLink/Create`.
 
 **Why:** These two POST actions read the body with `[FromBody]`, which means *"give me JSON"*.
 But the plain HTML `<form method="post">` in the view sends the data as
@@ -48,17 +70,21 @@ But the plain HTML `<form method="post">` in the view sends the data as
 content type, so it refuses the request with 415 before your code even runs.
 
 The AJAX modals on `Views/Profile/Index.cshtml` send real JSON (`axios.post(url, data)`), so
-**those work fine**. Only the standalone `Address/Create` and `Contact/Create` pages are broken.
+**those work fine**. Only the five standalone `/…/Create` pages are broken.
 
 **How to fix (pick one):**
 
 Option A — delete the broken pages, because the modals already do the job:
 ```bash
 # remove the unreachable/broken pieces
-Views/Address/Create.cshtml
-Views/Contact/Create.cshtml
-GET+POST AddressController.Create   (lines 22-35 and 59-114)
-GET+POST ContactController.Create   (lines 23-36 and 60-110)
+Views/Address/Create.cshtml      Views/Contact/Create.cshtml
+Views/Education/Create.cshtml     Views/Experience/Create.cshtml
+Views/SocialLink/Create.cshtml
+GET + POST AddressController.Create
+GET + POST ContactController.Create
+GET + POST EducationController.Create
+GET + POST ExperienceController.Create
+GET + POST SocialLinkController.Create
 ```
 The `+ Add` buttons on the profile page already open modals, so nothing is lost.
 
@@ -85,21 +111,29 @@ return RedirectToAction("Index", "Profile");   // instead of Ok()
 
 ### 1.2 Failures in the AJAX modals are silent — the user sees nothing happen
 
-**File:** `Views/Profile/Index.cshtml` — the `.catch(...)` block of every axios call
-(address create / edit / delete, contact create / edit / delete, education create / edit / delete)
+**File:** `Views/Profile/Index.cshtml` — the `.catch(...)` block of every axios call.
+There are now **15** of them (address, contact, education, experience and social link × create / edit /
+delete), and only one of them shows the user anything.
 
 **What happens:** You add an address with an empty city inside the modal. The server replies
 `400 Bad Request` with the validation errors. The modal just stays open and **nothing is displayed**.
-The only clue is in the browser console (F12).
+The only clue is in the browser console (F12). Same for every other modal except address-create.
 
-**Why:** Every `axios` call ends with a `.catch()` that only does `console.error(...)`:
+**Why:** Almost every `axios` call ends with a `.catch()` that only does `console.error(...)`:
 ```javascript
 .catch(function (error) {
     console.error('Error submitting address:', error);   // user never sees this
 });
 ```
 
-**How to fix:** Show the problem inside the modal. Small change, big UX win:
+**The one exception** is `Views/Profile/Index.cshtml:499`, in the address-create handler, which does
+prepend an alert. It is a good direction but it is not finished:
+- The message is **hardcoded** — "Failed to create address. Please try again." — so the actual
+  validation message the server sent ("City is required.") is still thrown away.
+- The alert is never **removed**. Press *Save* twice with a bad value and you get two stacked alerts.
+- It uses a **fixed `id="model-error-alert"`**, and `id`s must be unique in a document.
+
+**How to fix (all 15 handlers):** show the problem inside the modal. Small change, big UX win:
 ```javascript
 .catch(function (error) {
     let message = 'Something went wrong. Please try again.';
@@ -109,24 +143,29 @@ The only clue is in the browser console (F12).
         message = Object.values(error.response.data.errors).flat().join('<br>');
     }
 
-    // Show it right above the Save button
+    // Clear any previous alert first, then show the new one.
+    // No id — the element does not need to be looked up later.
+    $('#addressEditModalBody').find('.alert-danger').remove();
     $('#addressEditModalBody').prepend(
-        '<div class="alert alert-danger">' + message + '</div>'
+        $('<div class="alert alert-danger"></div>').text(message)
     );
 });
 ```
+> Using `.text()` instead of putting the string into `.prepend('…' + message + '…')` matters: server
+> messages can contain characters that would otherwise be parsed as HTML.
 
 ---
 
 ### 1.3 "Success" messages pop up on the wrong page, later — **FIXED**
 
 **Files:** `Controllers/AddressController.cs`, `Controllers/ContactController.cs`,
-`Controllers/EducationController.cs` (Create / Edit / Delete POST actions)
+`Controllers/EducationController.cs`, `Controllers/ExperienceController.cs`,
+`Controllers/SocialLinkController.cs` (Create / Edit / Delete POST actions)
 
 **What happened:** You add an address in the modal → success. Then you click *View CV* → the banner
 **"Address added successfully."** suddenly appears there. Confusing.
 
-**Why:** Those 9 actions set `TempData["Success"] = "..."` but then `return Ok()` — no redirect.
+**Why:** Those actions used to set `TempData["Success"] = "..."` but then `return Ok()` — no redirect.
 `TempData` survives until the **next full page render**, and the AJAX call is not a page render,
 so the message waited and then popped up on whatever page you visited next.
 
@@ -144,8 +183,13 @@ return Ok(new { message = "Address added successfully." });
 
 `Views/Profile/Index.cshtml` grew a small `showToast(message, isError)` helper that appends a
 Bootstrap alert to a fixed holder in the bottom-right corner and fades it out after 4 seconds. It
-uses `.text()`, not `.html()`, so a message can never inject markup. The 9 success handlers for
-Address, Contact and Education now call it.
+uses `.text()`, not `.html()`, so a message can never inject markup. **All 15** success handlers —
+Address, Contact, Education, Experience and Social Link × create / edit / delete — now call it, and
+`showToast(response.data.message)` appears 15 times in the file.
+
+Verified: no `TempData` remains in any of the five section controllers. The only `TempData` left in
+the project is in `AccountController` and `ProfileController`, and every one of those actions ends in a
+redirect — which is the correct pairing.
 
 **Rule to remember:** `TempData` is for actions that **redirect**. An endpoint that answers `200 OK`
 with JSON has to send its message in the body.
@@ -155,8 +199,8 @@ with JSON has to send its message in the body.
 ### 1.4 `[Required]` does nothing on `DateOnly` and `int`
 
 **Files:**
-- `ViewModels/Profile/ProfileCreateViewModel.cs:15-17`
-- `ViewModels/Profile/ProfileEditViewModel.cs:17-19`
+- `ViewModels/Profile/ProfileCreateViewModel.cs:16-19`
+- `ViewModels/Profile/ProfileEditViewModel.cs:19-21`
 - `ViewModels/EducationViewModels/EducationCreateViewModel.cs:22-23`
 
 **What happens:** A user submits the profile form with the date of birth left blank. Instead of a
@@ -198,6 +242,9 @@ The same `.ToString("dd MMM yyyy")` pattern exists in `Views/Admin/Index.cshtml:
 `Views/Admin/Details.cshtml:36`, `Views/Profile/Delete.cshtml:19` and `Views/Profile/Cv.cshtml:38` —
 all five need the guard.
 
+Note that `EducationCreateViewModel.EndYear` (line 25) is already `int?`, which is why a blank
+end year works while a blank start year does not. That contrast is the whole point of this item.
+
 > **Lesson:** `[Required]` on `int` / `bool` / `DateOnly` / `DateTime` = no-op.
 > Use `int?` / `bool?` / `DateOnly?` when "the user may leave it blank".
 
@@ -229,16 +276,16 @@ all five need the guard.
 
 ---
 
-### 1.6 axios loads from a CDN — the whole Addresses/Contacts area dies without internet
+### 1.6 axios loads from a CDN — the whole profile page dies without internet
 
-**File:** `Views/Profile/Index.cshtml:383`
+**File:** `Views/Profile/Index.cshtml:446`
 ```html
 <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 ```
 
 **What happens:** You develop offline (or the CDN is blocked on your network). You open My Profile
-and the Addresses and Contacts cards are empty / the browser console says `axios is not defined`.
-Every add/edit/delete in those two sections is dead.
+and **every** card is empty / the browser console says `axios is not defined`. All add/edit/delete
+in all five sections is dead — the page cannot render a single list without it.
 
 **Why:** `Views/Profile/Index.cshtml` is the **only** page that loads axios, and it loads it from
 the internet. Every other library (jQuery, Bootstrap, validation) is already sitting in
@@ -253,7 +300,7 @@ the internet. Every other library (jQuery, Bootstrap, validation) is already sit
 
 ### 1.7 Duplicate photos are possible (no database guarantee of "one profile per user")
 
-**Files:** `Controllers/ProfileController.cs:88` and `:108`, `Migrations/20261001060835_InitialCreate.cs`
+**Files:** `Controllers/ProfileController.cs:93` and `:113`, `Migrations/20261001060835_InitialCreate.cs`
 
 **What happens:** Your app only *hopes* each user has one profile. If a user double-clicks
 *Create Profile* fast enough (or opens two tabs), both requests pass the `Any(...)` check before
@@ -334,14 +381,14 @@ catch (DbUpdateException ex)
 }
 ```
 
-*Option B — once for the whole app.* Add `Views/Shared/Error.cshtml` handling plus a global filter
-in `Program.cs`. Do this later; per-action is fine for a practice project.
+*Option B — once for the whole app.* `Views/Shared/Error.cshtml` already exists, so the remaining
+work is the global filter in `Program.cs`. Do this later; per-action is fine for a practice project.
 
 ---
 
-### 1.9 The admin profile pager links navigate away from the page (new)
+### 1.9 The admin profile pager links navigate away from the page
 
-**File:** `Views/Admin/_ProfileList.cshtml`
+**File:** `Views/Admin/_ProfileList.cshtml:103`, `:114`, `:124`
 
 **What happens:** You are on page 2 of the All Profiles list and click **3**. The browser navigates to
 `/Admin/List?page=3` and shows a bare table with no navbar, no filter form and no styling.
@@ -353,16 +400,55 @@ $(document).on('click', '[data-profile-page]', function (e) { ... });
 ```
 
 `href` alone is a normal link, and `/Admin/List` returns a *partial*. A partial is not a page.
+Re-checked on the current file: `data-profile-page` appears **nowhere** in `_ProfileList.cshtml` — only
+in the handler at `Views/Admin/Index.cshtml:100`.
 
-**How to fix:** put `data-profile-page` back on each link so the handler catches the click:
+**How to fix:** put `data-profile-page` back on each link so the handler catches the click. All three
+links need it, not just the numbered ones:
 
 ```html
+@* Previous *@
+<a class="page-link" href="..." data-profile-page="@(currentPage - 1)">Previous</a>
+
+@* Numbers *@
 <a class="page-link" href="..." data-profile-page="@i">@i</a>
+
+@* Next *@
+<a class="page-link" href="..." data-profile-page="@(currentPage + 1)">Next</a>
 ```
 
 While you are there: the profile table has filters and pagination but **no sorting** yet. The list is
-newest-first only. `AdminController.List` already receives `search`, `gender`, `bloodGroup` and `page`, so
-a `sort` / `dir` pair plus an `OrderBy` switch and clickable `<th>`s is a small next step.
+newest-first only (`AdminController.cs:74` hard-codes `OrderByDescending(x => x.CreatedAt)`). The
+action already receives `search`, `gender`, `bloodGroup` and `page`, so a `sort` / `dir` pair plus an
+`OrderBy` switch and clickable `<th>`s is a small next step.
+
+---
+
+### 1.10 The `+ Add` buttons on the profile page are commented out (new)
+
+**File:** `Views/Profile/Index.cshtml` — lines 86, 103, 120, 131 and 146
+
+```cshtml
+@* <a asp-controller="Experience" asp-action="Create" class="btn btn-sm btn-primary">+ Add</a> *@
+```
+
+**What happens:** Nothing visibly breaks — the modals still work. But every "add" entry point on the
+profile page is dead markup, so a new section has no visible way to start.
+
+**Why:** When each section moved to AJAX, the standalone link was commented out because
+`/Experience/Create` (and the other four) return 415 — see **1.1**. So the comment is hiding a real
+bug rather than removing a redundant feature. Once 1.1 is fixed or the pages are deleted, the buttons
+should come back as plain `data-*` triggers for the modals.
+
+**How to fix:** once 1.1 is resolved, replace the commented anchor with the modal trigger the section
+already uses:
+
+```html
+<button type="button" class="btn btn-sm btn-primary"
+        data-bs-toggle="modal" data-bs-target="#experienceCreateModal">
+    + Add
+</button>
+```
 
 ---
 
@@ -425,12 +511,14 @@ axios.post(url, data, {
 
 ### 2.2 Anyone can read anyone's full CV by changing the URL
 
-**File:** `Controllers/ProfileController.cs:292-295`
+**File:** `Controllers/ProfileController.cs:297-300`
 ```csharp
 [AllowAnonymous]
-public IActionResult Cv(int id)
+public async Task<IActionResult> Cv(int id)
 {
-    var profileData = _context.Persons.FirstOrDefault(x => x.Id == id);
+    var profileData = await _context.Persons
+        .AsNoTracking()
+        .FirstOrDefaultAsync(x => x.Id == id);
 ```
 
 **What happens:** Not logged in, go to `/Profile/Cv/1`, `/Profile/Cv/2`, `/Profile/Cv/3` … You see
@@ -473,9 +561,9 @@ the URL `/Profile/Cv/{token}`. Random 128-bit tokens cannot be guessed at all.
 
 ### 2.3 First registered user silently becomes Admin
 
-**File:** `Controllers/AccountController.cs:38, 63-71`
+**File:** `Controllers/AccountController.cs:44, 70-77`
 ```csharp
-bool usersAlreadyExist = _userManager.Users.Any();
+bool usersAlreadyExist = await _userManager.Users.AnyAsync();
 ...
 if (usersAlreadyExist) { await _userManager.AddToRoleAsync(user, "User"); }
 else                  { await _userManager.AddToRoleAsync(user, "Admin"); }
@@ -501,9 +589,9 @@ You already reference the `"Admin"` role in six places, so this fits your existi
 
 ### 2.4 Login uses the email in the *username* parameter
 
-**File:** `Controllers/AccountController.cs:95`
+**File:** `Controllers/AccountController.cs:106`
 ```csharp
-var result = await _signInManager.PasswordSignInAsync(email, password, ...);
+var result = await _signInManager.PasswordSignInAsync(ViewModel.Email, ViewModel.Password, ...);
 ```
 
 **What happens:** It works right now — but only by luck. The first parameter of
@@ -594,15 +682,30 @@ Also only allow deleting from the `uploads` folder, not all of `wwwroot`.
 Dead code is not a style opinion — it is code that future-you will read, try to fix, and get confused
 by. Removing it is a real skill.
 
-### 3.1 Five view files that can never be rendered
+### 3.1 Eleven view files that can never be rendered
 
 | File | Why it is dead |
 |---|---|
-| `Views/Address/Edit.cshtml` | `AddressController.Edit(int id)` returns `PartialView("_AddressEditForm", ...)`, never `View(...)` |
-| `Views/Address/Delete.cshtml` | `AddressController.Delete(int id)` returns `PartialView("_AddressDeleteForm", ...)` |
-| `Views/Contact/Edit.cshtml` | `ContactController.Edit(int id)` returns `PartialView("_ContactEditForm", ...)` |
-| `Views/Contact/Delete.cshtml` | `ContactController.Delete(int id)` returns `PartialView("_ContactDeleteForm", ...)` |
+| `Views/Address/Edit.cshtml` | `AddressController.Edit(int id)` returns `PartialView("_AddressEditForm", ...)` (`AddressController.cs:152`), never `View(...)` |
+| `Views/Address/Delete.cshtml` | `AddressController.Delete(int id)` returns `PartialView("_AddressDeleteForm", ...)` (`:249`) |
+| `Views/Contact/Edit.cshtml` | `ContactController.Edit(int id)` returns `PartialView("_ContactEditForm", ...)` (`ContactController.cs:144`) |
+| `Views/Contact/Delete.cshtml` | `ContactController.Delete(int id)` returns `PartialView("_ContactDeleteForm", ...)` (`:237`) |
+| `Views/Education/Edit.cshtml` | `EducationController.Edit(int id)` returns `PartialView("_EducationEditForm", ...)` (`EducationController.cs:144`) |
+| `Views/Education/Delete.cshtml` | `EducationController.Delete(int id)` returns `PartialView("_EducationDeleteForm", ...)` (`:231`) |
+| `Views/Experience/Edit.cshtml` | `ExperienceController.Edit(int id)` returns `PartialView("_ExperienceEditForm", ...)` (`ExperienceController.cs:146`) |
+| `Views/Experience/Delete.cshtml` | `ExperienceController.Delete(int id)` returns `PartialView("_ExperienceDeleteForm", ...)` (`:235`) |
+| `Views/SocialLink/Edit.cshtml` | `SocialLinkController.Edit(int id)` returns `PartialView("_SocialLinkEditForm", ...)` (`SocialLinkController.cs:132`) |
+| `Views/SocialLink/Delete.cshtml` | `SocialLinkController.Delete(int id)` returns `PartialView("_SocialLinkDeleteForm", ...)` (`:207`) |
 | `Views/UserManagement/Delete.cshtml` | The user delete confirmation moved into a modal, so `UserManagementController.Delete` now returns `PartialView("_UserDeleteForm", ...)` |
+
+The last six arrived with the Experience / Social Link AJAX refactor. The pattern is now fully
+consistent: **every section's `Edit` and `Delete` GET returns a partial**, so **all ten** of those
+`Edit.cshtml` / `Delete.cshtml` files are dead. Only the five `Create.cshtml` pages are still
+reachable — and they are broken (415, see **1.1**).
+
+The dead views are also misleading: each one contains a real `<form method="post">` posting to an
+action that has `[FromBody]` on it, so if someone ever did restore the controller's `View(...)` call
+they would get an instant 415. Delete the views, not the controllers.
 
 **How to check for dead views yourself:** put a breakpoint in the action, or search for the file name.
 If nothing references it, delete it. Git keeps history if you change your mind.
@@ -611,18 +714,22 @@ If nothing references it, delete it. Git keeps history if you change your mind.
 
 `Views/Profile/_Addresses.cshtml` and `Views/Profile/_Contacts.cshtml` are only referenced from
 commented-out lines (`Views/Profile/Index.cshtml:80` and `:97`). The data is now loaded via AJAX.
-Delete both.
+Both files still exist on disk. Delete both.
 
 ### 3.3 ~330 lines of commented-out JavaScript
 
 `Views/Profile/Index.cshtml` holds a full second copy of the Address + Contact scripts, wrapped
-in `@* ... *@`, in the *vanilla JavaScript* style next to the live *jQuery* version. Git already
-remembers it — delete it. Keeping two copies of the same logic is how bugs get fixed in one place
-and not the other.
+in `@* ... *@`, in the *vanilla JavaScript* style next to the live *jQuery* version. It now runs from
+line 1192 to line 1521. Git already remembers it — delete it. Keeping two copies of the same logic
+is how bugs get fixed in one place and not the other.
 
 While you are there, consider moving the remaining JS **out of the view** into `wwwroot/js/site.js`
-(or a new `wwwroot/js/profile.js`). A 1200-line `.cshtml` file is hard to read. In the layout you
+(or a new `wwwroot/js/profile.js`). The file is now **1523 lines** and hard to read. In the layout you
 already have the hook for it: the `@await RenderSectionAsync("Scripts", ...)` line.
+
+There is also commented-out Razor left in the same view — the `<partial name="_Addresses">` /
+`_Contacts` tags (lines 80, 97, 114) and the five commented `+ Add` links (lines 86, 103, 120, 131,
+146). Those last five are not just noise; they hide the bug in **1.10**.
 
 ### 3.4 Stray file
 
@@ -638,7 +745,7 @@ done for that file.
 ### 3.5 The `Deleted` soft-delete flag exists but nothing uses it
 
 Every model has `public bool Deleted { get; set; } = false;`, and the soft-delete block in
-`ProfileController.DeleteConfirmed` is commented out (`ProfileController.cs:262-265`). So deletes are
+`ProfileController.DeleteConfirmed` is commented out (`ProfileController.cs:268`). So deletes are
 hard deletes and the flag is always `false`.
 
 This is a trap: if you ever *do* set `Deleted = true`, **no query filters on it**, so the "deleted"
@@ -709,12 +816,41 @@ Two notes from doing it:
 - Other read-only queries could also use it later if you want: the `List` actions and the GET
   `Edit` / `Delete` actions in the five section controllers only fill a ViewModel and never save.
 
-### 4.3 `ProfileController.Index` makes 6 database round-trips
+### 4.3 `ProfileController.Index` makes 6 database round-trips — and now loads 5 lists nobody uses
 
-`ProfileController.cs:42-74` loads the person (1 query), then 5 more separate queries for addresses,
+`ProfileController.cs:43-79` loads the person (1 query), then 5 more separate queries for addresses,
 contacts, education, experience and social links. Each one is a network round-trip to SQL Server.
 
-EF Core can do it in one go with `Include`:
+**This got worse with the AJAX refactor, and in a way worth understanding.** The five collections
+are assigned to the ViewModel, but `Views/Profile/Index.cshtml` no longer renders any of them — the
+five `@* <partial name="_Addresses"> *@`-style tags are commented out and each section is now filled
+in by its own `List` partial over axios. Verified: the only `Model.*` references left in the view are
+`Id`, `PhotoUrl`, `FullName`, `Gender`, `DateOfBirth`, `BloodGroup`, `Religion`, `Summary` and the
+four completeness properties.
+
+So those five `ToListAsync()` calls pull every child row of the profile into memory on **every page
+load**, and the view throws four of the five away. The only consumer left is
+`ProfileCompletenessService.Fill`, and it just asks `.Count > 0`.
+
+Two ways to fix, in order of how much they teach:
+
+**Option 1 — keep the shape, fetch only what is used.** Replace each `ToListAsync()` with a count
+check. Five list loads become five `EXISTS` queries that return one row each:
+
+```csharp
+Addresses   = await _context.Addresses.AsNoTracking().AnyAsync(x => x.PersonId == profileData.Id),
+Contacts    = await _context.Contacts.AsNoTracking().AnyAsync(x => x.PersonId == profileData.Id),
+Educations  = await _context.Educations.AsNoTracking().AnyAsync(x => x.PersonId == profileData.Id),
+Experiences = await _context.Experiences.AsNoTracking().AnyAsync(x => x.PersonId == profileData.Id),
+SocialLinks = await _context.SocialLinks.AsNoTracking().AnyAsync(x => x.PersonId == profileData.Id)
+```
+Then change the five properties on `ProfileIndexViewModel` from `List<Address>` to `bool`, and
+`ProfileCompletenessService` from `.Count > 0` to just `if (viewModel.Addresses)`. That also lets you
+delete `using CustomerManagementPractiseCS.Models;` from the ViewModel — the view model no longer
+exposes EF entities at all, which is the point of having a view model.
+
+**Option 2 — cut the round-trips with `Include`.** If you keep the collections, at least fetch them
+in one go:
 ```csharp
 var profileData = await _context.Persons
     .AsNoTracking()
@@ -727,15 +863,20 @@ var profileData = await _context.Persons
 ```
 The `OrderByDescending` calls stay as they are — sorting is still done in SQL.
 
+> Take **Option 1**. The AJAX refactor already moved the rendering out of the view, so the server
+> loading the data to hand to the view is simply the last piece of the old design left behind.
+> Option 2 optimises code that should not be running at all.
+
 ### 4.4 Stop repeating the same "find my profile" block
 
-This exact 6-line block appears **31 times** across the five section controllers
-(6 in `AddressController`, 7 in `ContactController`, 6 each in `EducationController`,
-`ExperienceController` and `SocialLinkController`):
+This exact block appears **36 times** across the five section controllers
+(6 in `AddressController`, 7 in `ContactController`, 7 each in `EducationController`,
+`ExperienceController` and `SocialLinkController`) — it went up by 5 when the `List` actions were
+added:
 
 ```csharp
 var userId = _userManager.GetUserId(User);
-var profileData = _context.Persons.FirstOrDefault(x => x.UserId == userId);
+var profileData = _context.Persons.FirstOrDefaultAsync(x => x.UserId == userId);
 if (profileData == null) { return NotFound(); }
 ```
 
@@ -895,8 +1036,8 @@ matter:
 only draws the filter form, and `List` returns the table as a partial that the page drops into
 `#profiles-container` (5 profiles per page). Paging through 10,000 rows still draws 7 buttons, not 500.
 
-> Two follow-ups came out of that work: the pager links lost their `data-profile-page` attribute (see the
-> new **1.9** above), and sorting is not in yet.
+> Two follow-ups came out of that work: the pager links lost their `data-profile-page` attribute (see
+> **1.9** above), and sorting is not in yet.
 
 ### 4.9 Add a test project
 
@@ -948,10 +1089,12 @@ Worth saying out loud, because these are the habits that make the rest of the co
    explains *why* in plain English.
 2. **ViewModels everywhere.** No entity class is bound directly to a form, so over-posting
    (`CreatedBy`, `Deleted`, `PersonId`) is impossible. Most practice projects skip this.
-3. **`[ValidateAntiForgeryToken]`-ready POST-only Logout** (`AccountController.cs:123`) instead of a
+3. **`[ValidateAntiForgeryToken]`-ready POST-only Logout** (`AccountController.cs:134`) instead of a
    GET link — many real apps get this wrong.
 4. **Real DI + a service layer.** `IImageService` behind an interface and registered with
    `AddScoped` is exactly the right shape, and it is why 1.1 and 2.5 can be fixed in one file.
+   `IProfileCompletenessService` is the same idea, and keeping the completeness math *out* of the
+   controller and the view is why 4.3 is a one-file change.
 5. **Audit fields** (`CreatedAt` / `CreatedBy` / `UpdatedAt` / `UpdatedBy`) on every entity, set
    consistently.
 6. **Friendly validation messages.** `AccountController.Login` shows one generic
@@ -961,6 +1104,10 @@ Worth saying out loud, because these are the habits that make the rest of the co
    *Known Limitations* section. Two items I found in this review (2.2 public CV, 4.6 Register
    view model) were already listed there — you documented your own gaps correctly.
 9. **Genuinely useful inline comments** explaining *why*, not *what*. That is a professional habit.
+10. **The AJAX pattern was applied consistently.** When Experience and Social Link were converted,
+    all five sections ended up with the same shape: a `List` GET returning a partial, three `[FromBody]`
+    POSTs returning `{ message }`, and a `showToast()` on success. Copying a *pattern* rather than
+    inventing a second one is exactly the habit that makes a codebase grow safely.
 
 > A note on the comments: several have since been trimmed to the bare minimum. The rule of thumb is one
 > comment per *why*, not one per line — long explanations go in this document, not in the code.
@@ -972,34 +1119,38 @@ Worth saying out loud, because these are the habits that make the rest of the co
 Do them in this order — each one is small, and each one teaches something.
 
 ### Week 1 — correctness
-1. ~~**1.1** Fix or delete `/Address/Create` and `/Contact/Create` (415 bug)~~ — still open
-2. ~~**1.2** Show errors in the AJAX modals instead of `console.error`~~ — still open
+1. **1.1** Fix or delete the five `/…/Create` pages (415 bug)
+2. **1.2** Show errors in all 15 AJAX modals instead of `console.error` — and finish the one that
+   already started (real message, remove-on-retry, no fixed `id`)
 3. **1.3** Remove `TempData` from the AJAX endpoints — **done**
 4. **1.4** `[Required]` on non-nullable `DateOnly` / `int` — still open
-5. **1.9** Put `data-profile-page` back on the admin pager links — still open
+5. **1.9** Put `data-profile-page` back on the admin pager links
+6. **1.10** Un-comment the five `+ Add` buttons once 1.1 is resolved
 
 ### Week 2 — security basics
-6. **2.1** Add `app.UseAntiforgery()` + `[ValidateAntiForgeryToken]` on POSTs
-7. **2.3** Replace first-user-is-admin with an explicit admin email
-8. **2.4** Fix `PasswordSignInAsync`, turn lockout on
-9. **2.5** Add a 2 MB upload limit + the `wwwroot` path guard
+7. **2.1** Add `app.UseAntiforgery()` + `[ValidateAntiForgeryToken]` on POSTs
+8. **2.3** Replace first-user-is-admin with an explicit admin email
+9. **2.4** Fix `PasswordSignInAsync`, turn lockout on
+10. **2.5** Add a 2 MB upload limit + the `wwwroot` path guard
 
 ### Week 3 — code quality
-10. **3.x** Delete the dead code (5 views, 2 partials, the commented JS, the `.gitignore` typo)
-11. **4.4** Extract the base controller — removes 31 copy-pasted blocks
-12. **4.5** Delete the manual child-removal loops and rely on the cascade
-13. **4.3** Add `Include(...)` to cut 6 queries down to 1
+11. **3.x** Delete the dead code (11 views, 2 partials, the commented JS, the `.gitignore` typo)
+12. **4.4** Extract the base controller — removes 36 copy-pasted blocks
+13. **4.5** Delete the manual child-removal loops and rely on the cascade
+14. **4.3** Replace the five `ToListAsync()` calls in `ProfileController.Index` with `AnyAsync` —
+    the lists are no longer rendered, only counted
 
 ### Week 4 — grow
-14. **4.1** Go async everywhere — **done**
-15. **4.6** `RegisterViewModel` / `LoginViewModel` with `[Compare]` for confirm-password — **done**
-16. **2.2** Add `IsPublic` to `Person` so CVs are private by default
-17. **4.9** Create the test project and write 5 tests around `ImageService` + ownership checks
+15. **4.1** Go async everywhere — **done**
+16. **4.6** `RegisterViewModel` / `LoginViewModel` with `[Compare]` for confirm-password — **done**
+17. **2.2** Add `IsPublic` to `Person` so CVs are private by default
+18. **4.9** Create the test project and write 5 tests around `ImageService` + ownership checks
 
 Also done along the way: **1.5** (the contact validation script), **4.2** (`AsNoTracking()`) and
 **4.8** (admin pagination).
 
 ---
 
-*Reviewed against commit state on 2026-10-04. `dotnet build` clean, 0 errors. Status updated the same day
-after the async, AJAX and documentation pass.*
+*First reviewed against commit state on 2026-10-04. Re-verified line by line on 2026-10-05 against
+`dd43aa1` plus the working-tree changes — `dotnet build` clean, 0 errors. Every file path, line number
+and count in this document was re-checked against the source on that date.*
